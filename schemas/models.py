@@ -1,7 +1,7 @@
 from typing import List, Optional
 from sqlmodel import SQLModel, Field, Relationship
 
-#models from known_compositions.db
+#models from known_compositions.db (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)
 class PerovskiteBase(SQLModel):
     id: str = Field(primary_key=True)
     display_composition: str
