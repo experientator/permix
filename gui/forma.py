@@ -2,10 +2,14 @@ import tkinter as tk
 import tkinter.messagebox as mb
 from tkinter import ttk
 from collections import namedtuple
+import time
+
+from Lib.contextlib import nullcontext
+
 from gui.comp_forma_models import CompositionStructureModel
+import sqlite3
 
 Numbers = namedtuple("Numbers", ["elements", "solvent"])
-
 
 class Solvents(tk.LabelFrame):
     def __init__(self, parent, controller):
@@ -57,6 +61,50 @@ class CompositionInformation(tk.LabelFrame):
         num_solv.grid(row=2, column=1)
         self.entry_num_solv.grid(row=3, column=1)
 
+    def get_data(self):
+        doi = self.entry_doi.get()
+        data_type = self.data_box.get()
+        notes = self.entry_notes.get()
+
+        try:
+            conn = sqlite3.connect('data.db')
+            table_create_query = '''CREATE TABLE IF NOT EXISTS Compositions_info 
+                                       (id INTEGER PRIMARY KEY,
+                                       name TEXT NULL, 
+                                       doi TEXT, 
+                                       data_type TEXT, 
+                                       notes TEXT)
+                               '''
+            conn.execute(table_create_query)
+            cursor = conn.cursor()
+            # Insert Data
+            data_insert_query = '''INSERT INTO Compositions_info  
+                                                    (doi, data_type, notes) VALUES 
+                                                    (?, ?, ?)'''
+            data_insert_tuple = (doi, data_type, notes)
+            cursor.execute(data_insert_query, data_insert_tuple)
+            conn.commit()
+            mb.showinfo(title="success", message="Composition registered. Please fill another requirement fields")
+
+            self.entry_doi.delete(0, tk.END)
+            self.data_box.delete(0, tk.END)
+            self.entry_notes.delete(0, tk.END)
+        except TypeError:
+            mb.showerror(title="error", message="Error: Invalid type operation!")
+            return
+
+        finally:
+            conn.close()
+
+    def return_id(self):
+        try:
+            conn = sqlite3.connect('data.db')
+            cursor = conn.execute("SELECT id FROM Compositions_info ORDER BY id DESC LIMIT 1")
+            id_info = cursor.fetchone()
+        finally:
+            conn.close()
+        return id_info[0]
+
     def get_numbers(self):
         elements = self.entry_num_elements.get()
         solvents = self.entry_num_solv.get()
@@ -66,7 +114,7 @@ class CompositionInformation(tk.LabelFrame):
             solvents = int(solvents) if solvents else 0
         except ValueError:
             mb.showerror(title="error", message="number of elements or solvents must be integer numbers")
-
+            return
         elements = int(elements)
         solvents = int(solvents)
         return Numbers(elements, solvents)
@@ -102,35 +150,81 @@ class Properties(tk.LabelFrame):
         self.controller = controller
 
         bg = tk.Label(self, text="band gap, eV")
-        bg_entry = tk.Entry(self)
+        self.entry_bg = tk.Entry(self)
         bg.grid(row=0, column=0)
-        bg_entry.grid(row=1, column=0)
+        self.entry_bg.grid(row=1, column=0)
 
         pp = tk.Label(self, text="pce percent")
-        pp_entry = tk.Entry(self)
+        self.entry_pp = tk.Entry(self)
         pp.grid(row=0, column=1)
-        pp_entry.grid(row=1, column=1)
+        self.entry_pp.grid(row=1, column=1)
 
         voc = tk.Label(self, text="voc, V")
-        voc_entry = tk.Entry(self)
+        self.entry_voc = tk.Entry(self)
         voc.grid(row=0, column=2)
-        voc_entry.grid(row=1, column=2)
+        self.entry_voc.grid(row=1, column=2)
 
         jsc = tk.Label(self, text="jsc, mA/cm^2")
-        jsc_entry = tk.Entry(self)
+        self.entry_jsc = tk.Entry(self)
         jsc.grid(row=2, column=0)
-        jsc_entry.grid(row=3, column=0)
+        self.entry_jsc.grid(row=3, column=0)
 
         ff_percent = tk.Label(self, text="ff percent")
-        ff_percent_entry = tk.Entry(self)
+        self.entry_ff_percent = tk.Entry(self)
         ff_percent.grid(row=2, column=1)
-        ff_percent_entry.grid(row=3, column=1)
+        self.entry_ff_percent.grid(row=3, column=1)
 
         stability_notes = tk.Label(self, text="stability notes")
-        stability_notes_entry = tk.Entry(self)
+        self.entry_stability_notes = tk.Entry(self)
         stability_notes.grid(row=2, column=2)
-        stability_notes_entry.grid(row=3, column=2)
+        self.entry_stability_notes.grid(row=3, column=2)
 
+    def get_data(self):
+        band_gap = self.entry_bg.get()
+        ff_percent = self.entry_ff_percent.get()
+        pce_percent = self.entry_pp.get()
+        voc = self.entry_voc.get()
+        jsc = self.entry_jsc.get()
+        stability_notes = self.entry_stability_notes.get()
+
+        try:
+            conn = sqlite3.connect('data.db')
+            table_create_query = '''CREATE TABLE IF NOT EXISTS Compositions_properties 
+                                               (id INTEGER PRIMARY KEY,
+                                               id_info INT NULL,
+                                               band_gap FLOAT NULL, 
+                                               ff_percent FLOAT NULL, 
+                                               pce_percent FLOAT NULL,
+                                               voc FLOAT NULL,
+                                               jsc FLOAT NULL,  
+                                               stability_notes TEXT NULL,
+                                               v_antisolvent FLOAT NULL,
+                                               anion_stoichiometry FLOAT NULL,
+                                               FOREIGN KEY (id_info) REFERENCES Compositions_info (id))
+                                       '''
+            conn.execute(table_create_query)
+            cursor = conn.cursor()
+            # Insert Data
+            data_insert_query = '''INSERT INTO Compositions_properties 
+                                                            (band_gap, ff_percent, pce_percent, voc, jsc, stability_notes) VALUES 
+                                                            (?, ?, ?, ?, ?, ?)'''
+            data_insert_tuple = (band_gap, ff_percent, pce_percent, voc, jsc, stability_notes)
+            conn.execute(data_insert_query, data_insert_tuple)
+            conn.commit()
+
+            self.entry_bg.delete(0, tk.END)
+            self.entry_ff_percent.delete(0, tk.END)
+            self.entry_pp.delete(0, tk.END)
+            self.entry_voc.delete(0, tk.END)
+            self.entry_jsc.delete(0, tk.END)
+            self.entry_stability_notes.delete(0, tk.END)
+
+        except TypeError:
+            mb.showerror(title="error", message="Error: Invalid type operation!")
+            return
+
+        finally:
+            conn.close()
 
 class AddCompositionForm(tk.Toplevel):
     def __init__(self, parent):
@@ -144,33 +238,31 @@ class AddCompositionForm(tk.Toplevel):
         self.sec_column = ttk.Frame(container)
         self.third_column = ttk.Frame(container)
 
-        button_frame = ttk.Frame(self)
-        button_frame.pack(fill='x', pady=10)
+        self.button_frame = ttk.Frame(self)
+        self.button_frame.pack(fill='x', pady=10)
 
         self.first_column.pack(side='left', fill='both', expand=True, padx=5)
         self.sec_column.pack(side='left', fill='both', expand=True, padx=5)
         self.third_column.pack(side='left', fill='both', expand=True, padx=5)
 
         self.composition_info = CompositionInformation(self.first_column, self)
-        self.properties = Properties(self.first_column, self)
         self.first_button = tk.Button(self.first_column, text = "Enter info",
-                                      command=lambda: self.numbers_data(self.sec_column, self.third_column))
-        self.button = tk.Button(button_frame, text="Enter data")
+                                      command=lambda: self.numbers_data(self.first_column, self.sec_column, self.third_column, self.button_frame))
 
         self.composition_info.pack(fill='x', pady=5)
-        self.properties.pack(fill='x', pady=5)
         self.first_button.pack(fill='x', pady=5)
-        self.button.pack(fill='x', pady=5)
 
-        #хранение всех виджетов возникающих автоматически
+        #хранение всех виджетов возникающих автоматически, хранение id основной таблицы
         self.composition_structures = []
         self.solvents = []
+        self.properties = object
+        self.main_button = object
 
-    def numbers_data(self, column2, column3):
+    def numbers_data(self, column1, column2, column3, button_frame):
+        # создаем необходимое количество виджетов для расторителей и элементов
         numbers = self.composition_info.get_numbers()
         num_solv = numbers.solvent
         num_elem = numbers.elements
-        print(num_solv)
         for i in range(num_elem):
             widget = CompositionStructure(column2, self)
             widget.pack(fill='x', pady=5)
@@ -179,11 +271,44 @@ class AddCompositionForm(tk.Toplevel):
             widget = Solvents(column3, self)
             widget.pack(fill='x', pady=5)
             self.solvents.append(widget)
-        v_antisolvent = tk.Label(self.third_column, text="V antisolvent")
+        self.v_antisolvent = tk.Label(self.third_column, text="V antisolvent")
         self.v_antisolvent_entry = tk.Entry(self.third_column)
-        tot_anion_s = tk.Label(self.sec_column, text="total anion stoichiometry")
+        self.tot_anion_s = tk.Label(self.sec_column, text="total anion stoichiometry")
         self.tot_anion_s_entry = tk.Entry(self.sec_column)
-        v_antisolvent.pack(fill='x', pady=5)
-        tot_anion_s.pack(fill='x', pady=5)
+        self.v_antisolvent.pack(fill='x', pady=5)
+        self.tot_anion_s.pack(fill='x', pady=5)
         self.v_antisolvent_entry.pack(fill='x', pady=5)
         self.tot_anion_s_entry.pack(fill='x', pady=5)
+        # заполняем основную табличку
+        self.composition_info.get_data()
+        # получаем id основной таблицы
+        id = self.composition_info.return_id()
+        # добавляем properties
+        self.properties = Properties(column1, self)
+        self.properties.pack(fill='x', pady=5)
+        self.first_button.destroy()
+        self.main_button = tk.Button(button_frame, text="Enter data", command=lambda: self.get_all_data(id))
+        self.main_button.pack(fill='x', pady=5)
+
+    def get_all_data(self, id_info):
+        #get properties table
+        self.properties.get_data()
+        print(id_info)
+        try:
+            conn = sqlite3.connect('data.db')
+            # Update properties table
+            data_update_query = '''UPDATE Compositions_properties  SET id_info = ?, v_antisolvent = ?,  anion_stoichiometry = ?
+                                WHERE id = ?'''
+            data_update_tuple = (id_info, self.v_antisolvent_entry.get(), self.tot_anion_s_entry.get(), id_info)
+            conn.execute(data_update_query, data_update_tuple)
+            conn.commit()
+            self.v_antisolvent_entry.delete(0, tk.END)
+            self.tot_anion_s_entry.delete(0, tk.END)
+
+        except TypeError:
+            mb.showerror(title="error", message="Error: Invalid type operation!")
+            return
+
+        finally:
+            conn.close()
+

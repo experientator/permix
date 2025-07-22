@@ -2,7 +2,6 @@ import tkinter as tk
 import sqlite3
 import tkinter.messagebox as mb
 
-
 class AddSolventForm(tk.Toplevel):
     def __init__(self, parent):
         super().__init__(parent)

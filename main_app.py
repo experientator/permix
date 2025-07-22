@@ -1,21 +1,28 @@
 import tkinter as tk
 from gui.forma import AddCompositionForm
 from gui.solv_form import AddSolventForm
+from gui.cation_form import CationUploadForm
+from gui.ionic_radii_form import IonicRadiiUploadForm
 
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
         menu = tk.Menu(self)
-        file_menu = tk.Menu(menu, tearoff=0)
+        upload_menu = tk.Menu(menu, tearoff=0)
+        view_menu = tk.Menu(menu, tearoff=0)
 
-        file_menu.add_command(label="Загрузить структуру", command=self.open_comp_form)
-        file_menu.add_command(label="Просмотр структуры")
-        file_menu.add_command(label="Загрузить растворитель", command=self.open_solv_form)
-        file_menu.add_command(label="Просмотр растворителей")
-        file_menu.add_command(label="Загрузить цены на прекурсоры", command=self.open_prices_form)
-        file_menu.add_command(label="Просмотр цен")
+        upload_menu.add_command(label="Загрузить структуру", command=self.open_comp_form)
+        upload_menu.add_command(label="Загрузить растворитель", command=self.open_solv_form)
+        upload_menu.add_command(label="Загрузить цены на прекурсоры", command=self.open_prices_form)
+        upload_menu.add_command(label="Загрузить катионы/анионы", command=self.open_cation_form)
+        upload_menu.add_command(label="Загрузить ионные радиусы", command=self.open_ionic_radii_form)
 
-        menu.add_cascade(label="Загрузить", menu=file_menu)
+        view_menu.add_command(label="Просмотр структуры")
+        view_menu.add_command(label="Просмотр растворителей")
+        view_menu.add_command(label="Просмотр цен")
+
+        menu.add_cascade(label="Загрузить", menu=upload_menu)
+        menu.add_cascade(label="Просмотреть", menu=view_menu)
         menu.add_command(label="О программе")
         menu.add_command(label="Выйти", command=self.destroy)
         self.config(menu=menu)
@@ -30,8 +37,18 @@ class App(tk.Tk):
         form.grab_set()
         self.wait_window(form)
 
+    def open_cation_form(self):
+        form = CationUploadForm(self)
+        form.grab_set()
+        self.wait_window(form)
+
     def open_prices_form(self):
         form = AddSolventForm(self)
+        form.grab_set()
+        self.wait_window(form)
+
+    def open_ionic_radii_form(self):
+        form = IonicRadiiUploadForm(self)
         form.grab_set()
         self.wait_window(form)
 
