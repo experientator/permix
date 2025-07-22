@@ -4,7 +4,7 @@ class CompositionInformation(object):
         self.type = type
         self.notes = notes
 
-class CompositionStructure(object):
+class CompositionStructureModel(object):
     instances = []
     def __init__(self, site, symbol, fraction, valence):
         self.site = site
@@ -22,18 +22,6 @@ class CompositionStructure(object):
         if not isinstance(value, int):
             raise ValueError("Валентность должна быть целым числом")
         self._valence = value
-
-    @property
-    def fraction(self):
-        return self._fraction
-
-    @fraction.setter
-    def fraction(self, value):
-        self._fraction = value
-        self._check_fraction_sum("A_site")
-        self._check_fraction_sum("B_site")
-        self._check_fraction_sum("B_double_site")
-        self._check_fraction_sum("Anion")
 
     def _check_fraction_sum(self, check_parameter):
         instances = [obj for obj in self.__class__.instances if obj.site == "check_parameter"]

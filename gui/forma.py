@@ -2,8 +2,30 @@ import tkinter as tk
 import tkinter.messagebox as mb
 from tkinter import ttk
 from collections import namedtuple
+from gui.comp_forma_models import CompositionStructureModel
 
 Numbers = namedtuple("Numbers", ["elements", "solvent"])
+
+
+class Solvents(tk.LabelFrame):
+    def __init__(self, parent, controller):
+        super().__init__(parent, text="Solvents")
+        self.controller = controller
+
+        type = tk.Label(self, text="type")
+        type_box = ttk.Combobox(self, values=["solvent", "antisolvent"])
+        type.grid(row=0, column=0)
+        type_box.grid(row=1, column=0)
+
+        symbol = tk.Label(self, text="symbol")
+        symbol_entry = tk.Entry(self)
+        symbol.grid(row=0, column=1)
+        symbol_entry.grid(row=1, column=1)
+
+        fraction = tk.Label(self, text="fraction")
+        fraction_entry = tk.Entry(self)
+        fraction.grid(row=0, column=2)
+        fraction_entry.grid(row=1, column=2)
 
 class CompositionInformation(tk.LabelFrame):
     def __init__(self, parent, controller):
@@ -35,10 +57,7 @@ class CompositionInformation(tk.LabelFrame):
         num_solv.grid(row=2, column=1)
         self.entry_num_solv.grid(row=3, column=1)
 
-    def get_data(self):
-        doi = self.entry_doi.get()
-        data_box = self.data_box.get()
-        notes = self.entry_notes.get()
+    def get_numbers(self):
         elements = self.entry_num_elements.get()
         solvents = self.entry_num_solv.get()
 
@@ -46,12 +65,10 @@ class CompositionInformation(tk.LabelFrame):
             elements = int(elements) if elements else 0
             solvents = int(solvents) if solvents else 0
         except ValueError:
-            # Можно добавить обработку ошибки, например:
-            raise ValueError("Number of elements and solvents must be integers")
+            mb.showerror(title="error", message="number of elements or solvents must be integer numbers")
 
         elements = int(elements)
         solvents = int(solvents)
-
         return Numbers(elements, solvents)
 
 class CompositionStructure(tk.LabelFrame):
@@ -78,27 +95,6 @@ class CompositionStructure(tk.LabelFrame):
         valence_entry = tk.Entry(self)
         valence.grid(row=0, column=3)
         valence_entry.grid(row=1, column=3)
-
-
-class Solvents(tk.LabelFrame):
-    def __init__(self, parent, controller):
-        super().__init__(parent, text="Solvents")
-        self.controller = controller
-
-        type = tk.Label(self, text="type")
-        type_box = ttk.Combobox(self, values=["solvent", "antisolvent"])
-        type.grid(row=0, column=0)
-        type_box.grid(row=1, column=0)
-
-        symbol = tk.Label(self, text="symbol")
-        symbol_entry = tk.Entry(self)
-        symbol.grid(row=0, column=1)
-        symbol_entry.grid(row=1, column=1)
-
-        fraction = tk.Label(self, text="fraction")
-        fraction_entry = tk.Entry(self)
-        fraction.grid(row=0, column=2)
-        fraction_entry.grid(row=1, column=2)
 
 class Properties(tk.LabelFrame):
     def __init__(self, parent, controller):
@@ -135,6 +131,7 @@ class Properties(tk.LabelFrame):
         stability_notes.grid(row=2, column=2)
         stability_notes_entry.grid(row=3, column=2)
 
+
 class AddCompositionForm(tk.Toplevel):
     def __init__(self, parent):
         super().__init__(parent)
@@ -165,14 +162,28 @@ class AddCompositionForm(tk.Toplevel):
         self.first_button.pack(fill='x', pady=5)
         self.button.pack(fill='x', pady=5)
 
+        #хранение всех виджетов возникающих автоматически
+        self.composition_structures = []
+        self.solvents = []
+
     def numbers_data(self, column2, column3):
-        numbers = self.composition_info.get_data()
+        numbers = self.composition_info.get_numbers()
         num_solv = numbers.solvent
         num_elem = numbers.elements
         print(num_solv)
         for i in range(num_elem):
-            self.composition_structure = CompositionStructure(column2, self)
-            self.composition_structure.pack(fill='x', pady=5)
+            widget = CompositionStructure(column2, self)
+            widget.pack(fill='x', pady=5)
+            self.composition_structures.append(widget)
         for i in range(num_solv):
-            self.solvents = Solvents(column3, self)
-            self.solvents.pack(fill='x', pady=5)
+            widget = Solvents(column3, self)
+            widget.pack(fill='x', pady=5)
+            self.solvents.append(widget)
+        v_antisolvent = tk.Label(self.third_column, text="V antisolvent")
+        self.v_antisolvent_entry = tk.Entry(self.third_column)
+        tot_anion_s = tk.Label(self.sec_column, text="total anion stoichiometry")
+        self.tot_anion_s_entry = tk.Entry(self.sec_column)
+        v_antisolvent.pack(fill='x', pady=5)
+        tot_anion_s.pack(fill='x', pady=5)
+        self.v_antisolvent_entry.pack(fill='x', pady=5)
+        self.tot_anion_s_entry.pack(fill='x', pady=5)
