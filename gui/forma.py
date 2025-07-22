@@ -26,6 +26,19 @@ class CompositionInformation(tk.LabelFrame):
         notes.grid(row=0, column=2)
         entry_notes.grid(row=1, column=2)
 
+        num_elements = tk.Label(label, text="number of elements")
+        entry_num_elements = tk.Entry(label)
+        num_elements.grid(row=2, column=0)
+        entry_num_elements.grid(row=3, column=0)
+
+        num_solv = tk.Label(label, text="number of solvents")
+        entry_num_solv = tk.Entry(label)
+        num_solv.grid(row=2, column=1)
+        entry_num_solv.grid(row=3, column=1)
+
+        button = tk.Button(label, text="enter info")
+        button.grid(row=3, column=2)
+
 class CompositionStructure(tk.LabelFrame):
     def __init__(self, parent, controller):
         super().__init__(parent)
@@ -51,8 +64,8 @@ class CompositionStructure(tk.LabelFrame):
 
         valence = tk.Label(label, text="valence")
         valence_entry = tk.Entry(label)
-        valence.grid(row=2, column=1)
-        valence_entry.grid(row=3, column=1)
+        valence.grid(row=0, column=3)
+        valence_entry.grid(row=1, column=3)
 
 
 class Solvents(tk.LabelFrame):
@@ -83,7 +96,7 @@ class Properties(tk.LabelFrame):
         super().__init__(parent)
         self.controller = controller
 
-        properties_frame = tk.LabelFrame(self, text="Properties")
+        properties_frame = tk.LabelFrame(self, text = "Properties")
         properties_frame.grid(row=0, column=0, sticky="news", padx=20, pady=10)
 
         bg = tk.Label(properties_frame, text="band gap, eV")
@@ -121,29 +134,35 @@ class AddCompositionForm(tk.Toplevel):
         super().__init__(parent)
         self.title("Add new composition")
 
-        self.container = ttk.Frame(self)
-        self.container.pack(anchor="w", fill = tk.Y)
+        container = tk.Frame(self, padx=20, pady=20)
+        container.pack(expand=True, fill='both')
+
+        first_column = ttk.Frame(container)
+        sec_column = ttk.Frame(container)
+        third_column = ttk.Frame(container)
+
+        button_frame = ttk.Frame(self)
+        button_frame.pack(fill='x', pady=10)
+
+        first_column.pack(side='left', fill='both', expand=True, padx=5)
+        sec_column.pack(side='left', fill='both', expand=True, padx=5)
+        third_column.pack(side='left', fill='both', expand=True, padx=5)
+
         # self.container.grid_rowconfigure(0, weight=1)
         # self.container.grid_columnconfigure(0, weight=1)
         # self.container.bind("<Configure>", self._resize_window)
 
-        self.sec_cont = ttk.Frame(self)
-        self.sec_cont.pack(anchor="center", fill = tk.Y)
+        self.composition_info = CompositionInformation(first_column, self)
+        self.properties = Properties(first_column, self)
+        self.composition_structure = CompositionStructure(sec_column, self)
+        self.solvents = Solvents(third_column, self)
+        self.button = tk.Button(button_frame, text="Enter data")
 
-        self.third_cont = ttk.Frame(self)
-        self.third_cont.pack(anchor="e", fill = tk.Y)
-
-        self.composition_info = CompositionInformation(self.container, self)
-        self.composition_structure = CompositionStructure(self.sec_cont, self)
-        self.solvents = Solvents(self.third_cont, self)
-        self.properties = Properties(self.container, self)
-        self.button = tk.Button(self.container, text="Enter data")
-
-        self.composition_info.grid(row=0, column=0, sticky="ns")
-        self.composition_structure.grid(row=0, column=1,sticky="ns")
-        self.solvents.grid(row=0, column=2, sticky="ns")
-        self.properties.grid(row=1, column=0, sticky="ns")
-        self.button.grid(row=2, column=0, sticky="ns")
+        self.composition_info.pack(fill='x', pady=5)
+        self.composition_structure.pack(fill='x', pady=5)
+        self.solvents.pack(fill='x', pady=5)
+        self.properties.pack(fill='x', pady=5)
+        self.button.pack(fill='x', pady=5)
 
     # def _resize_window(self, event=None):
     #     self.update_idletasks()
