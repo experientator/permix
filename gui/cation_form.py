@@ -8,23 +8,28 @@ class IonsUploadForm(tk.Toplevel):
         super().__init__(parent)
         self.title("Add new cation")
 
-        cation_frame = tk.LabelFrame(self)
-        cation_frame.grid(row=0, column=0, sticky="news", padx=20, pady=10)
+        ion_frame = tk.LabelFrame(self)
+        ion_frame.grid(row=0, column=0, sticky="news", padx=20, pady=10)
 
-        name = tk.Label(cation_frame, text="name")
-        self.entry_name = tk.Entry(cation_frame)
+        name = tk.Label(ion_frame, text="name")
+        self.entry_name = tk.Entry(ion_frame)
         name.grid(row=0, column=0)
         self.entry_name.grid(row=1, column=0)
 
-        ion_type = ttk.Label(cation_frame, text="type")
-        self.box_ion_type = ttk.Combobox(cation_frame, values=["anion", "cation"])
+        ion_type = ttk.Label(ion_frame, text="type")
+        self.box_ion_type = ttk.Combobox(ion_frame, values=["anion", "cation"])
         ion_type.grid(row=0, column=0)
         self.box_ion_type.grid(row=1, column=0)
 
-        formula = tk.Label(cation_frame, text="formula")
-        self.entry_formula = tk.Entry(cation_frame)
+        formula = tk.Label(ion_frame, text="formula")
+        self.entry_formula = tk.Entry(ion_frame)
         formula.grid(row=0, column=1)
         self.entry_formula.grid(row=1, column=1)
+
+        valence = tk.Label(ion_frame, text="valence")
+        self.entry_valence = tk.Entry(ion_frame)
+        valence.grid(row=0, column=1)
+        self.entry_valence.grid(row=1, column=1)
 
         button = tk.Button(self, text="Enter data", command = self.enter_data)
         button.grid(row = 1, column = 0, sticky="news", padx=20, pady=10)
@@ -33,6 +38,7 @@ class IonsUploadForm(tk.Toplevel):
         name = self.entry_name.get()
         ion_type = self.box_ion_type.get()
         formula = self.entry_formula.get()
+        valence = self.entry_valence.get()
 
         if not all([name, formula]):
             mb.showerror(title="error", message="All fields are required")
@@ -43,7 +49,8 @@ class IonsUploadForm(tk.Toplevel):
             table_create_query = '''CREATE TABLE IF NOT EXISTS Ions 
                                        (id INTEGER PRIMARY KEY, 
                                        name TEXT,
-                                       type TEXT, 
+                                       type TEXT,
+                                       valence TEXT, 
                                        formula TEXT)
                                '''
             conn.execute(table_create_query)
@@ -55,9 +62,9 @@ class IonsUploadForm(tk.Toplevel):
             else:
                 # Insert Data
                 data_insert_query = '''INSERT INTO Ions
-                                            (name, ion_type, formula) VALUES 
-                                            (?, ?, ?)'''
-                data_insert_tuple = (name, ion_type, formula)
+                                            (name, ion_type, formula, valence) VALUES 
+                                            (?, ?, ?, ?)'''
+                data_insert_tuple = (name, ion_type, formula, valence)
                 cursor.execute(data_insert_query, data_insert_tuple)
                 conn.commit()
                 conn.close()

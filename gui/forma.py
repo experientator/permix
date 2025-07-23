@@ -50,16 +50,18 @@ class Solvents(tk.LabelFrame):
         try:
             conn = sqlite3.connect('data.db')
             cursor = conn.cursor()
-            cursor.execute("SELECT 1 FROM Solvents WHERE name = (?)", (symbol))
+            cursor.execute("SELECT 1 FROM Solvents WHERE name = (?)", (symbol, ))
             if cursor.fetchone():
                 cursor.close()
                 table_create_query = '''CREATE TABLE IF NOT EXISTS Compositions_solvents
                                                                    (id INTEGER PRIMARY KEY,
                                                                     id_info INT NULL,
+                                                                    id_fav INT NULL,
                                                                     solvent_type TEXT, 
                                                                     symbol TEXT, 
                                                                     fraction FLOAT,
                                                                     FOREIGN KEY (id_info) REFERENCES Compositions_info (id),
+                                                                    FOREIGN KEY (id_fav) REFERENCES Fav_compositions (id),
                                                                     FOREIGN KEY (symbol) REFERENCES Solvents (name))'''
                 conn.execute(table_create_query)
                 cursor = conn.cursor()
@@ -183,7 +185,7 @@ class CompositionStructure(tk.LabelFrame):
         self.controller = controller
 
         structure_type = tk.Label(self, text="structure type")
-        self.structure_box = ttk.Combobox(self, values=["A_site", "B_site", "B_double", "anion"])
+        self.structure_box = ttk.Combobox(self, values=["A_site", "B_site", "B_double","spacer_site", "anion"])
         structure_type.grid(row=0, column=0)
         self.structure_box.grid(row=1, column=0)
 
@@ -218,13 +220,15 @@ class CompositionStructure(tk.LabelFrame):
             return
 
         if structure_type == "A_site":
-            return fraction, 0, 0, 0
+            return fraction, 0, 0, 0, 0
         elif structure_type == "B_site":
-            return 0, fraction, 0, 0
+            return 0, fraction, 0, 0, 0
         elif structure_type == "B_double":
-            return 0, 0, fraction, 0
+            return 0, 0, fraction, 0, 0
+        elif structure_type == "spacer_site":
+            return 0, 0, fraction, 0, 0
         else:
-            return 0, 0, 0, fraction
+            return 0, 0, 0, 0, fraction
 
     def get_data(self, id_info):
         structure_type = self.structure_box.get()
@@ -246,11 +250,13 @@ class CompositionStructure(tk.LabelFrame):
                 table_create_query = '''CREATE TABLE IF NOT EXISTS Compositions_structure 
                                                        (id INTEGER PRIMARY KEY,
                                                         id_info INT NULL,
+                                                        id_fav INT NULL,
                                                         structure_type TEXT, 
                                                         symbol TEXT, 
                                                         fraction FLOAT,
                                                         valence FLOAT,
                                                         FOREIGN KEY (id_info) REFERENCES Compositions_info (id),
+                                                        FOREIGN KEY (id_fav) REFERENCES Fav_compositions (id),
                                                         FOREIGN KEY (symbol) REFERENCES Ions (name))'''
                 conn.execute(table_create_query)
                 cursor = conn.cursor()
@@ -439,10 +445,10 @@ class AddCompositionForm(tk.Toplevel):
                 mb.showerror(title="error", message="fraction summ for one type solvents must be 1")
                 return
 
-        fractions1 = [0] * 4
+        fractions1 = [0] * 5
         for element in self.composition_structures:
             fractions2 = element.get_fractions()
-            for i in range(4):
+            for i in range(5):
                 fractions1[i] += fractions2[i]
                 print(fractions1[i])
         for num in fractions1:

@@ -14,7 +14,7 @@ class App(tk.Tk):
         upload_menu.add_command(label="Загрузить структуру", command=self.open_comp_form)
         upload_menu.add_command(label="Загрузить растворитель", command=self.open_solv_form)
         upload_menu.add_command(label="Загрузить цены на прекурсоры", command=self.open_prices_form)
-        upload_menu.add_command(label="Загрузить катионы/анионы", command=self.open_ions_form)
+        upload_menu.add_command(label="Загрузить доступные ионы", command=self.open_ions_form)
         upload_menu.add_command(label="Загрузить ионные радиусы", command=self.open_ionic_radii_form)
 
         view_menu.add_command(label="Просмотр структуры")
@@ -23,9 +23,12 @@ class App(tk.Tk):
 
         menu.add_cascade(label="Загрузить", menu=upload_menu)
         menu.add_cascade(label="Просмотреть", menu=view_menu)
-        menu.add_command(label="О программе")
+        menu.add_command(label="О программе", command= self.program_info)
         menu.add_command(label="Выйти", command=self.destroy)
         self.config(menu=menu)
+
+    def program_info(self):
+        pass
 
     def open_comp_form(self):
         form = AddCompositionForm(self)
