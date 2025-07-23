@@ -2,10 +2,6 @@ import tkinter as tk
 import tkinter.messagebox as mb
 from tkinter import ttk
 from collections import namedtuple
-import time
-
-from Lib.contextlib import nullcontext
-
 from gui.comp_forma_models import CompositionStructureModel
 import sqlite3
 
@@ -31,6 +27,21 @@ class Solvents(tk.LabelFrame):
         fraction.grid(row=0, column=2)
         self.entry_fraction.grid(row=1, column=2)
 
+    def get_fractions(self):
+        solvent_type = self.type_box.get()
+        fraction = self.entry_fraction.get()
+
+        try:
+            fraction = float(fraction)
+        except ValueError:
+            mb.showerror(title="error", message="fraction must be float number")
+            return
+
+        if solvent_type == "solvent":
+            return fraction, 0
+        else:
+            return 0, fraction
+
     def get_data(self, id_info):
         solvent_type = self.type_box.get()
         symbol = self.entry_symbol.get()
@@ -38,28 +49,34 @@ class Solvents(tk.LabelFrame):
 
         try:
             conn = sqlite3.connect('data.db')
-            table_create_query = '''CREATE TABLE IF NOT EXISTS Compositions_solvents
-                                       (id INTEGER PRIMARY KEY,
-                                        id_info INT NULL,
-                                        solvent_type TEXT, 
-                                        symbol TEXT, 
-                                        fraction FLOAT,
-                                        FOREIGN KEY (id_info) REFERENCES Compositions_info (id),
-                                        FOREIGN KEY (symbol) REFERENCES Solvents (name))'''
-            conn.execute(table_create_query)
             cursor = conn.cursor()
-            # Insert Data
-            data_insert_query = '''INSERT INTO Compositions_solvents  
-                                                    (id_info, solvent_type, symbol, fraction) VALUES 
-                                                    (?, ?, ?, ?)'''
-            data_insert_tuple = (id_info, solvent_type, symbol, fraction)
-            cursor.execute(data_insert_query, data_insert_tuple)
-            conn.commit()
+            cursor.execute("SELECT 1 FROM Solvents WHERE name = (?)", (symbol))
+            if cursor.fetchone():
+                cursor.close()
+                table_create_query = '''CREATE TABLE IF NOT EXISTS Compositions_solvents
+                                                                   (id INTEGER PRIMARY KEY,
+                                                                    id_info INT NULL,
+                                                                    solvent_type TEXT, 
+                                                                    symbol TEXT, 
+                                                                    fraction FLOAT,
+                                                                    FOREIGN KEY (id_info) REFERENCES Compositions_info (id),
+                                                                    FOREIGN KEY (symbol) REFERENCES Solvents (name))'''
+                conn.execute(table_create_query)
+                cursor = conn.cursor()
+                # Insert Data
+                data_insert_query = '''INSERT INTO Compositions_solvents 
+                                        (id_info, solvent_type, symbol, fraction) VALUES 
+                                        (?, ?, ?, ?)'''
+                data_insert_tuple = (id_info, solvent_type, symbol, fraction)
+                cursor.execute(data_insert_query, data_insert_tuple)
+                conn.commit()
 
-            self.type_box.delete(0, tk.END)
-            self.entry_symbol.delete(0, tk.END)
-            self.entry_fraction.delete(0, tk.END)
-
+                self.type_box.delete(0, tk.END)
+                self.entry_symbol.delete(0, tk.END)
+                self.entry_fraction.delete(0, tk.END)
+            else:
+                mb.showerror(title="error", message=f"solvent {symbol} doesn't exist in database")
+                return
         except TypeError:
             mb.showerror(title="error", message="Error: Invalid type operation!")
             return
@@ -107,8 +124,8 @@ class CompositionInformation(tk.LabelFrame):
             table_create_query = '''CREATE TABLE IF NOT EXISTS Compositions_info 
                                        (id INTEGER PRIMARY KEY,
                                        name TEXT NULL, 
-                                       doi TEXT, 
-                                       data_type TEXT, 
+                                       doi TEXT NULL,
+                                       data_type TEXT NULL, 
                                        notes TEXT)
                                '''
             conn.execute(table_create_query)
@@ -122,15 +139,20 @@ class CompositionInformation(tk.LabelFrame):
             conn.commit()
             mb.showinfo(title="success", message="Composition registered. Please fill another requirement fields")
 
-            self.entry_doi.delete(0, tk.END)
-            self.data_box.delete(0, tk.END)
-            self.entry_notes.delete(0, tk.END)
+
         except TypeError:
             mb.showerror(title="error", message="Error: Invalid type operation!")
             return
 
         finally:
             conn.close()
+
+    def delete_data(self):
+        self.entry_doi.delete(0, tk.END)
+        self.data_box.delete(0, tk.END)
+        self.entry_notes.delete(0, tk.END)
+        self.entry_num_elements.delete(0, tk.END)
+        self.entry_num_solv.delete(0, tk.END)
 
     def return_id(self):
         try:
@@ -180,37 +202,73 @@ class CompositionStructure(tk.LabelFrame):
         valence.grid(row=0, column=3)
         self.entry_valence.grid(row=1, column=3)
 
+    def get_fractions(self):
+        structure_type = self.structure_box.get()
+        valence = self.entry_valence.get()
+        fraction = self.entry_fraction.get()
+        try:
+            fraction = float(fraction)
+        except ValueError:
+            mb.showerror(title="error", message="fraction must be float number")
+            return
+        try:
+            valence = int(valence)
+        except ValueError:
+            mb.showerror(title="error", message="valence must be integer number")
+            return
+
+        if structure_type == "A_site":
+            return fraction, 0, 0, 0
+        elif structure_type == "B_site":
+            return 0, fraction, 0, 0
+        elif structure_type == "B_double":
+            return 0, 0, fraction, 0
+        else:
+            return 0, 0, 0, fraction
+
     def get_data(self, id_info):
         structure_type = self.structure_box.get()
         symbol = self.entry_symbol.get()
         fraction = self.entry_fraction.get()
         valence = self.entry_valence.get()
 
+        if structure_type == "anion":
+            ion_type = "anion"
+        else:
+            ion_type = "cation"
+
         try:
             conn = sqlite3.connect('data.db')
-            table_create_query = '''CREATE TABLE IF NOT EXISTS Compositions_structure 
-                                       (id INTEGER PRIMARY KEY,
-                                        id_info INT NULL,
-                                        structure_type TEXT, 
-                                        symbol TEXT, 
-                                        fraction FLOAT,
-                                        valence FLOAT,
-                                        FOREIGN KEY (id_info) REFERENCES Compositions_info (id),
-                                        FOREIGN KEY (symbol) REFERENCES Cations (name))'''
-            conn.execute(table_create_query)
             cursor = conn.cursor()
-            # Insert Data
-            data_insert_query = '''INSERT INTO Compositions_structure 
-                                                    (id_info, structure_type, symbol, fraction, valence) VALUES 
-                                                    (?, ?, ?, ?, ?)'''
-            data_insert_tuple = (id_info, structure_type, symbol, fraction, valence)
-            cursor.execute(data_insert_query, data_insert_tuple)
-            conn.commit()
+            cursor.execute("SELECT 1 FROM Ions WHERE name = ? AND ion_type = ?", (symbol, ion_type))
+            if cursor.fetchone():
+                cursor.close()
+                table_create_query = '''CREATE TABLE IF NOT EXISTS Compositions_structure 
+                                                       (id INTEGER PRIMARY KEY,
+                                                        id_info INT NULL,
+                                                        structure_type TEXT, 
+                                                        symbol TEXT, 
+                                                        fraction FLOAT,
+                                                        valence FLOAT,
+                                                        FOREIGN KEY (id_info) REFERENCES Compositions_info (id),
+                                                        FOREIGN KEY (symbol) REFERENCES Ions (name))'''
+                conn.execute(table_create_query)
+                cursor = conn.cursor()
+                # Insert Data
+                data_insert_query = '''INSERT INTO Compositions_structure 
+                                                                    (id_info, structure_type, symbol, fraction, valence) VALUES 
+                                                                    (?, ?, ?, ?, ?)'''
+                data_insert_tuple = (id_info, structure_type, symbol, fraction, valence)
+                cursor.execute(data_insert_query, data_insert_tuple)
+                conn.commit()
 
-            self.structure_box.delete(0, tk.END)
-            self.entry_symbol.delete(0, tk.END)
-            self.entry_fraction.delete(0, tk.END)
-            self.entry_valence.delete(0, tk.END)
+                self.structure_box.delete(0, tk.END)
+                self.entry_symbol.delete(0, tk.END)
+                self.entry_fraction.delete(0, tk.END)
+                self.entry_valence.delete(0, tk.END)
+            else:
+                mb.showerror(title="error", message=f"ion {symbol} doesn't exist in database")
+                return
 
         except TypeError:
             mb.showerror(title="error", message="Error: Invalid type operation!")
@@ -253,6 +311,7 @@ class Properties(tk.LabelFrame):
         self.entry_stability_notes = tk.Entry(self)
         stability_notes.grid(row=2, column=2)
         self.entry_stability_notes.grid(row=3, column=2)
+
 
     def get_data(self, id_info):
         band_gap = self.entry_bg.get()
@@ -366,26 +425,54 @@ class AddCompositionForm(tk.Toplevel):
         self.main_button.pack(fill='x', pady=5)
 
     def get_all_data(self, id_info):
-        #get properties table
-        self.properties.get_data(id_info)
+
+        fractions1 = [0]*2
+        for element in self.solvents:
+            fractions2 = element.get_fractions()
+            for i in range(2):
+                fractions1[i] += fractions2[i]
+                print(fractions1[i])
+        for num in fractions1:
+            if 0.99 <= num <= 1.01 or num == 0:
+                pass
+            else:
+                mb.showerror(title="error", message="fraction summ for one type solvents must be 1")
+                return
+
+        fractions1 = [0] * 4
+        for element in self.composition_structures:
+            fractions2 = element.get_fractions()
+            for i in range(4):
+                fractions1[i] += fractions2[i]
+                print(fractions1[i])
+        for num in fractions1:
+            if 0.99 <= num <= 1.01 or num == 0:
+                pass
+            else:
+                mb.showerror(title="error", message="fraction summ for one type elements must be 1")
+                return
+        for element in self.solvents:
+            element.get_data(id_info)
+        for element in self.composition_structures:
+            element.get_data(id_info)
+        conn = None
         try:
+            # get solvents and elements table
+
+            # get properties table
+            self.properties.get_data(id_info)
+
             conn = sqlite3.connect('data.db')
             # Update properties table
             data_update_query = '''UPDATE Compositions_properties  SET v_antisolvent = ?,  anion_stoichiometry = ?
-                                WHERE id = ?'''
+                                            WHERE id = ?'''
             data_update_tuple = (self.v_antisolvent_entry.get(), self.tot_anion_s_entry.get(), id_info)
             conn.execute(data_update_query, data_update_tuple)
             conn.commit()
 
             self.v_antisolvent_entry.delete(0, tk.END)
             self.tot_anion_s_entry.delete(0, tk.END)
-
-            for element in self.composition_structures:
-                element.get_data(id_info)
-
-            for element in self.solvents:
-                element.get_data(id_info)
-
+            self.composition_info.delete_data()
             mb.showinfo(title="success", message="Composition added in database")
 
         except TypeError:
@@ -393,5 +480,6 @@ class AddCompositionForm(tk.Toplevel):
             return
 
         finally:
-            conn.close()
+            if conn:
+                conn.close()
 

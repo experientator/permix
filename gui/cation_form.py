@@ -1,8 +1,9 @@
 import tkinter as tk
 import sqlite3
 import tkinter.messagebox as mb
+import tkinter.ttk as ttk
 
-class CationUploadForm(tk.Toplevel):
+class IonsUploadForm(tk.Toplevel):
     def __init__(self, parent):
         super().__init__(parent)
         self.title("Add new cation")
@@ -15,6 +16,11 @@ class CationUploadForm(tk.Toplevel):
         name.grid(row=0, column=0)
         self.entry_name.grid(row=1, column=0)
 
+        ion_type = ttk.Label(cation_frame, text="type")
+        self.box_ion_type = ttk.Combobox(cation_frame, values=["anion", "cation"])
+        ion_type.grid(row=0, column=0)
+        self.box_ion_type.grid(row=1, column=0)
+
         formula = tk.Label(cation_frame, text="formula")
         self.entry_formula = tk.Entry(cation_frame)
         formula.grid(row=0, column=1)
@@ -25,6 +31,7 @@ class CationUploadForm(tk.Toplevel):
 
     def enter_data(self):
         name = self.entry_name.get()
+        ion_type = self.box_ion_type.get()
         formula = self.entry_formula.get()
 
         if not all([name, formula]):
@@ -33,28 +40,29 @@ class CationUploadForm(tk.Toplevel):
 
         try:
             conn = sqlite3.connect('data.db')
-            table_create_query = '''CREATE TABLE IF NOT EXISTS Cations 
+            table_create_query = '''CREATE TABLE IF NOT EXISTS Ions 
                                        (id INTEGER PRIMARY KEY, 
-                                       name TEXT, 
+                                       name TEXT,
+                                       type TEXT, 
                                        formula TEXT)
                                '''
             conn.execute(table_create_query)
             cursor = conn.cursor()
-            cursor.execute("SELECT 1 FROM Cations WHERE name = ? OR formula = ? LIMIT 1", (name, formula))
+            cursor.execute("SELECT 1 FROM Ions WHERE name = ? OR formula = ? LIMIT 1", (name, formula))
             if cursor.fetchone():
-                mb.showerror(title="error", message="Cations with this name or formula already exists")
+                mb.showerror(title="error", message="Ion with this name or formula already exists")
                 return
             else:
                 # Insert Data
-                data_insert_query = '''INSERT INTO Cations
-                                            (name, formula) VALUES 
-                                            (?, ?)'''
-                data_insert_tuple = (name, formula)
+                data_insert_query = '''INSERT INTO Ions
+                                            (name, ion_type, formula) VALUES 
+                                            (?, ?, ?)'''
+                data_insert_tuple = (name, ion_type, formula)
                 cursor.execute(data_insert_query, data_insert_tuple)
                 conn.commit()
                 conn.close()
 
-                mb.showinfo(title="success", message="cation successfully upload")
+                mb.showinfo(title="success", message=f"{ion_type} successfully upload")
 
                 self.entry_name.delete(0, tk.END)
                 self.entry_formula.delete(0, tk.END)

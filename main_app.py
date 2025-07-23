@@ -1,7 +1,7 @@
 import tkinter as tk
 from gui.forma import AddCompositionForm
 from gui.solv_form import AddSolventForm
-from gui.cation_form import CationUploadForm
+from gui.cation_form import IonsUploadForm
 from gui.ionic_radii_form import IonicRadiiUploadForm
 
 class App(tk.Tk):
@@ -14,7 +14,7 @@ class App(tk.Tk):
         upload_menu.add_command(label="Загрузить структуру", command=self.open_comp_form)
         upload_menu.add_command(label="Загрузить растворитель", command=self.open_solv_form)
         upload_menu.add_command(label="Загрузить цены на прекурсоры", command=self.open_prices_form)
-        upload_menu.add_command(label="Загрузить катионы/анионы", command=self.open_cation_form)
+        upload_menu.add_command(label="Загрузить катионы/анионы", command=self.open_ions_form)
         upload_menu.add_command(label="Загрузить ионные радиусы", command=self.open_ionic_radii_form)
 
         view_menu.add_command(label="Просмотр структуры")
@@ -37,8 +37,8 @@ class App(tk.Tk):
         form.grab_set()
         self.wait_window(form)
 
-    def open_cation_form(self):
-        form = CationUploadForm(self)
+    def open_ions_form(self):
+        form = IonsUploadForm(self)
         form.grab_set()
         self.wait_window(form)
 

@@ -68,11 +68,10 @@ class IonicRadiiUploadForm(tk.Toplevel):
             mb.showerror(title="error", message="ionic radii must be float number")
             return
 
-
         try:
             conn = sqlite3.connect('data.db')
             cursor = conn.cursor()
-            cursor.execute("SELECT 1 FROM Cations WHERE name = ? OR formula = ?", (name, name))
+            cursor.execute("SELECT 1 FROM Ions WHERE name = ? AND ion_type = ?", (name, ion_type))
             if cursor.fetchone():
                 cursor.close()
                 table_create_query = '''CREATE TABLE IF NOT EXISTS Ionic_radii 
@@ -82,7 +81,7 @@ class IonicRadiiUploadForm(tk.Toplevel):
                                                        charge INT, 
                                                        CN INT,
                                                        ionic_radii FLOAT,
-                                                       FOREIGN KEY (name)  REFERENCES Cations (name))
+                                                       FOREIGN KEY (name) REFERENCES Ions (name))
                                                '''
                 conn.execute(table_create_query)
                 cursor = conn.cursor()
@@ -109,7 +108,7 @@ class IonicRadiiUploadForm(tk.Toplevel):
                     self.entry_CN.delete(0, tk.END)
                     self.entry_ionic_radii.delete(0, tk.END)
             else:
-                mb.showerror(title="error", message="this cation doesn't exist in database")
+                mb.showerror(title="error", message="this ion doesn't exist in database")
                 return
         except TypeError:
             mb.showerror(title= "error", message="Error: Invalid type operation!")
