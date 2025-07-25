@@ -19,8 +19,13 @@ class Sites(tk.LabelFrame):
         valence.grid(row=0, column=2)
         self.entry_valence.grid(row=1, column=2)
 
-    def create_site(self):
-        pass
+    def get_data(self):
+        stoich = self.entry_stoich.get()
+        valence = self.entry_valence.get()
+        if not all([stoich, valence]):
+            mb.showerror(title="error", message="All fields are required")
+            return
+        return stoich, valence
 
 class TemplateUploadForm(tk.Toplevel):
     def __init__(self, parent):
@@ -50,6 +55,7 @@ class TemplateUploadForm(tk.Toplevel):
         anion_stoich.grid(row=0, column=1)
         self.entry_anion_stoich.grid(row=1, column=2)
 
+        #выбор элементов для дальнейшего добавления виджетов
         label_sites = tk.Label(self, text="choose elements")
         label_sites.grid(row=1, column=0, sticky="news", padx=20, pady=10)
 
@@ -66,67 +72,125 @@ class TemplateUploadForm(tk.Toplevel):
         button = tk.Button(self, text="Enter data", command = self.enter_info)
         button.grid(row = 2, column = 0, sticky="news", padx=20, pady=10)
 
+        self.element_frames = []
+        self.text = ""
+
+    def return_id(self):
+        try:
+            conn = sqlite3.connect('data.db')
+            cursor = conn.execute("SELECT id FROM Phase_templates ORDER BY id DESC LIMIT 1")
+            id_template = cursor.fetchone()
+        finally:
+            conn.close()
+        return id_template[0]
+
     def enter_info(self):
         if self.a_site:
+            self.text = "a_site"
             a_site_frame = Sites(self, "A site")
             a_site_frame.pack(fill='x', pady=5)
+            self.element_frames.append(a_site_frame)
         else:
             pass
         if self.b_site:
+            self.text = "b_site"
             b_site_frame = Sites(self, "B site")
             b_site_frame.pack(fill='x', pady=5)
+            self.element_frames.append(b_site_frame)
         else:
             pass
         if self.b_double:
+            self.text = "b_double"
             b_double_frame = Sites(self, "B double")
             b_double_frame.pack(fill='x', pady=5)
+            self.element_frames.append(b_double_frame)
         else:
             pass
         if self.spacer:
+            self.text = "spacer"
             spacer_frame = Sites(self, "Spacer")
             spacer_frame.pack(fill='x', pady=5)
+            self.element_frames.append(spacer_frame)
         else:
             pass
 
-        # name = self.entry_name.get()
-        # ion_type = self.box_ion_type.get()
-        # formula = self.entry_formula.get()
-        # valence = self.entry_valence.get()
-        #
-        # if not all([name, formula]):
-        #     mb.showerror(title="error", message="All fields are required")
-        #     return
-        #
-        # try:
-        #     conn = sqlite3.connect('data.db')
-        #     table_create_query = '''CREATE TABLE IF NOT EXISTS Ions
-        #                                (id INTEGER PRIMARY KEY,
-        #                                name TEXT,
-        #                                type TEXT,
-        #                                valence TEXT,
-        #                                formula TEXT)
-        #                        '''
-        #     conn.execute(table_create_query)
-        #     cursor = conn.cursor()
-        #     cursor.execute("SELECT 1 FROM Ions WHERE name = ? OR formula = ? LIMIT 1", (name, formula))
-        #     if cursor.fetchone():
-        #         mb.showerror(title="error", message="Ion with this name or formula already exists")
-        #         return
-        #     else:
-        #         # Insert Data
-        #         data_insert_query = '''INSERT INTO Ions
-        #                                     (name, ion_type, formula, valence) VALUES
-        #                                     (?, ?, ?, ?)'''
-        #         data_insert_tuple = (name, ion_type, formula, valence)
-        #         cursor.execute(data_insert_query, data_insert_tuple)
-        #         conn.commit()
-        #         conn.close()
-        #
-        #         mb.showinfo(title="success", message=f"{ion_type} successfully upload")
-        #
-        #         self.entry_name.delete(0, tk.END)
-        #         self.entry_formula.delete(0, tk.END)
-        #
-        # except TypeError:
-        #     mb.showerror(title= "error", message="Error: Invalid type operation!")
-        #     return
+        button = tk.Button(self, text="Enter elements", command=self.enter_elements)
+        button.grid(row=2, column=0, sticky="news", padx=20, pady=10)
+
+        name = self.entry_name.get()
+        dimensionality = self.entry_dimensionality.get()
+        description = self.entry_description.get()
+        anion_stoich = self.entry_anion_stoich.get()
+
+        try:
+            dimensionality = int(dimensionality)
+            anion_stoich = int(anion_stoich)
+        except:
+            tk.messagebox.showerror(title="error", message="dimensionality and stoichiometry must be integer numbers")
+
+        try:
+            conn = sqlite3.connect('data.db')
+            table_create_query = '''CREATE TABLE IF NOT EXISTS Phase_templates
+                                                  (id INTEGER PRIMARY KEY,
+                                                  name TEXT,
+                                                  description TEXT NULL,
+                                                  anion_stoichiometry INT,
+                                                  dimensionality INT)
+                                          '''
+            conn.execute(table_create_query)
+            cursor = conn.cursor()
+            cursor.execute("SELECT 1 FROM Phase_template WHERE name = ? LIMIT 1", (name, ))
+            if cursor.fetchone():
+                mb.showerror(title="error", message="Phase template with this name already exists")
+                return
+            else:
+                # Insert Data
+                data_insert_query = '''INSERT INTO Phase_templates
+                                                       (name, description, anion_stoichiometry, dimensionality) VALUES
+                                                       (?, ?, ?, ?)'''
+                data_insert_tuple = (name, description, anion_stoich, dimensionality)
+                cursor.execute(data_insert_query, data_insert_tuple)
+
+                conn.commit()
+                conn.close()
+
+                mb.showinfo(title="success", message=f"template successfully upload")
+
+                self.entry_name.delete(0, tk.END)
+                self.entry_dimensionality.delete(0, tk.END)
+                self.entry_description.delete(0, tk.END)
+                self.entry_anion_stoich.delete(0, tk.END)
+
+        except TypeError:
+            mb.showerror(title="error", message="Error: Invalid type operation!")
+            return
+
+    def enter_elements(self):
+        id_template = self.return_id()
+        for element in self.element_frames:
+            stoich, valence = element.get_data()
+            try:
+                conn = sqlite3.connect('data.db')
+                table_create_query = '''CREATE TABLE IF NOT EXISTS Template_sites
+                                           (id_phase TEXT,
+                                           stoichiometry INT,
+                                           type TEXT,
+                                           valence TEXT,
+                                           name_candidate TEXT NULL,
+                                           FOREIGN KEY (id_phase) REFERENCES Phase_templates (id),
+                                           FOREIGN KEY (name_candidate) REFERENCES Candidate_cations (name))
+                                   '''
+                conn.execute(table_create_query)
+                cursor = conn.cursor()
+                name_candidate = self.text+"_val_"+valence
+                data_insert_query = '''INSERT INTO Template_sites 
+                                        (id_phase, stoichiometry, type, valence, name_candidate) VALUES
+                                         (?, ?, ?, ?, ?)'''
+                data_insert_tuple = (id_template, stoich, self.text, valence, name_candidate)
+                cursor.execute(data_insert_query, data_insert_tuple)
+                conn.commit()
+                conn.close()
+
+            except TypeError:
+                mb.showerror(title="error", message="Error: Invalid type operation!")
+                return

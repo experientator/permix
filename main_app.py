@@ -3,6 +3,10 @@ from gui.forma import AddCompositionForm
 from gui.solv_form import AddSolventForm
 from gui.cation_form import IonsUploadForm
 from gui.ionic_radii_form import IonicRadiiUploadForm
+from gui.controllers.Ions_form import IonsFormController
+from gui.controllers.solvents_form import SolventController
+from gui.controllers.ionic_radii_form import IonicRadiiController
+from gui.controllers.composition_form import CompositionController
 
 class App(tk.Tk):
     def __init__(self):
@@ -31,29 +35,19 @@ class App(tk.Tk):
         pass
 
     def open_comp_form(self):
-        form = AddCompositionForm(self)
-        form.grab_set()
-        self.wait_window(form)
+        CompositionController(self)
 
     def open_solv_form(self):
-        form = AddSolventForm(self)
-        form.grab_set()
-        self.wait_window(form)
+        SolventController(self)
 
     def open_ions_form(self):
-        form = IonsUploadForm(self)
-        form.grab_set()
-        self.wait_window(form)
+        IonsFormController(self)
 
     def open_prices_form(self):
-        form = AddSolventForm(self)
-        form.grab_set()
-        self.wait_window(form)
+        pass
 
     def open_ionic_radii_form(self):
-        form = IonicRadiiUploadForm(self)
-        form.grab_set()
-        self.wait_window(form)
+        IonicRadiiController(self)
 
 if __name__ == "__main__":
     app = App()
