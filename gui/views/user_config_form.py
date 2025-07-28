@@ -1,9 +1,8 @@
 import tkinter as tk
 from tkinter import ttk
-from analysis import get_templates_list
 
 
-class CompositionView(tk.Toplevel):
+class UserConfigView(tk.Toplevel):
     def __init__(self, parent, controller):
         super().__init__(parent)
         self.controller = controller
@@ -50,19 +49,13 @@ class CompositionView(tk.Toplevel):
         self.entry_notes = tk.Entry(info_frame)
         self.entry_notes.grid(row=1, column=2)
 
-        phase_t = get_templates_list()
-
-        tk.Label(info_frame, text="phase template").grid(row=2, column=0)
-        self.phase_template = ttk.Combobox(info_frame, values = phase_t)
-        self.phase_template.grid(row=3, column=0)
-
-        tk.Label(info_frame, text="number of elements").grid(row=2, column=1)
+        tk.Label(info_frame, text="number of elements").grid(row=2, column=0)
         self.entry_num_elements = tk.Entry(info_frame)
-        self.entry_num_elements.grid(row=3, column=1)
+        self.entry_num_elements.grid(row=3, column=0)
 
-        tk.Label(info_frame, text="number of solvents").grid(row=2, column=2)
+        tk.Label(info_frame, text="number of solvents").grid(row=2, column=1)
         self.entry_num_solv = tk.Entry(info_frame)
-        self.entry_num_solv.grid(row=3, column=2)
+        self.entry_num_solv.grid(row=3, column=1)
 
     def create_dynamic_widgets(self, num_elements, num_solvents):
 
@@ -132,37 +125,10 @@ class CompositionView(tk.Toplevel):
         self.v_antisolvent_entry = tk.Entry(self.third_column)
         self.v_antisolvent_entry.pack(fill='x', pady=5)
 
-        self.tot_anion_s_label = tk.Label(self.sec_column, text="total anion stoichiometry")
-        self.tot_anion_s_label.pack(fill='x', pady=5)
-        self.tot_anion_s_entry = tk.Entry(self.sec_column)
-        self.tot_anion_s_entry.pack(fill='x', pady=5)
-
-        properties_frame = tk.LabelFrame(self.first_column, text="Properties")
-        properties_frame.pack(fill='x', pady=5)
-
-        tk.Label(properties_frame, text="band gap, eV").grid(row=0, column=0)
-        self.entry_bg = tk.Entry(properties_frame)
-        self.entry_bg.grid(row=1, column=0)
-
-        tk.Label(properties_frame, text="pce percent").grid(row=0, column=1)
-        self.entry_pp = tk.Entry(properties_frame)
-        self.entry_pp.grid(row=1, column=1)
-
-        tk.Label(properties_frame, text="voc, V").grid(row=0, column=2)
-        self.entry_voc = tk.Entry(properties_frame)
-        self.entry_voc.grid(row=1, column=2)
-
-        tk.Label(properties_frame, text="jsc, mA/cm^2").grid(row=2, column=0)
-        self.entry_jsc = tk.Entry(properties_frame)
-        self.entry_jsc.grid(row=3, column=0)
-
-        tk.Label(properties_frame, text="ff percent").grid(row=2, column=1)
-        self.entry_ff_percent = tk.Entry(properties_frame)
-        self.entry_ff_percent.grid(row=3, column=1)
-
-        tk.Label(properties_frame, text="stability notes").grid(row=2, column=2)
-        self.entry_stability_notes = tk.Entry(properties_frame)
-        self.entry_stability_notes.grid(row=3, column=2)
+        self.c_solution_label = tk.Label(self.third_column, text="С solution")
+        self.c_solution_label.pack(fill='x', pady=5)
+        self.c_solution_entry = tk.Entry(self.third_column)
+        self.c_solution_entry.pack(fill='x', pady=5)
 
         self.main_button = tk.Button(
             self.button_frame,
@@ -172,18 +138,10 @@ class CompositionView(tk.Toplevel):
         self.main_button.pack(fill='x', pady=5)
 
         self.dynamic_widgets.extend([
-            {'frame': properties_frame, 'type': 'properties', 'widgets': {
-                'band_gap': self.entry_bg,
-                'pce_percent': self.entry_pp,
-                'voc': self.entry_voc,
-                'jsc': self.entry_jsc,
-                'ff_percent': self.entry_ff_percent,
-                'stability_notes': self.entry_stability_notes
-            }},
             {'frame': self.v_antisolvent_label, 'type': 'additional'},
             {'frame': self.v_antisolvent_entry, 'type': 'additional'},
-            {'frame': self.tot_anion_s_label, 'type': 'additional'},
-            {'frame': self.tot_anion_s_entry, 'type': 'additional'}
+            {'frame': self.c_solution_label, 'type': 'additional'},
+            {'frame': self.c_solution_entry, 'type': 'additional'}
         ])
 
     def on_info_submit(self):
@@ -191,7 +149,6 @@ class CompositionView(tk.Toplevel):
             'doi': self.entry_doi.get(),
             'data_type': self.data_box.get(),
             'notes': self.entry_notes.get(),
-            'phase_template': self.phase_template.get(),
             'num_elements': self.entry_num_elements.get(),
             'num_solvents': self.entry_num_solv.get()
         }
@@ -244,7 +201,6 @@ class CompositionView(tk.Toplevel):
         self.data_box.set('')
         self.entry_notes.delete(0, tk.END)
         self.entry_num_elements.delete(0, tk.END)
-        self.phase_template.set('')
         self.entry_num_solv.delete(0, tk.END)
 
         for widget in self.dynamic_widgets:

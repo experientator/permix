@@ -18,7 +18,9 @@ class CompositionModel:
                             name TEXT NULL, 
                             doi TEXT NULL,
                             data_type TEXT NULL, 
-                            notes TEXT)''')
+                            notes TEXT
+                            id_template TEXT,
+                            FOREIGN KEY (id_template) REFERENCES Phase_templates (id))''')
 
             cursor.execute('''CREATE TABLE IF NOT EXISTS Compositions_solvents
                            (id_info INT NULL,
@@ -57,12 +59,12 @@ class CompositionModel:
         except sqlite3.Error as e:
             mb.showerror("Database Error", f"Failed to create tables: {e}")
 
-    def add_composition_info(self, doi, data_type, notes):
+    def add_composition_info(self, doi, data_type, notes, template_id):
         try:
             cursor = self.conn.cursor()
             cursor.execute('''INSERT INTO Compositions_info  
-                          (doi, data_type, notes) VALUES (?, ?, ?)''',
-                           (doi, data_type, notes))
+                          (doi, data_type, notes, template_id) VALUES (?, ?, ?, ?)''',
+                           (doi, data_type, notes, template_id))
             self.conn.commit()
             return cursor.lastrowid
         except sqlite3.Error as e:
@@ -71,7 +73,6 @@ class CompositionModel:
 
     def add_solvent(self, id_info, solvent_type, symbol, fraction):
         try:
-            # Проверка существования растворителя
             cursor = self.conn.cursor()
             cursor.execute("SELECT 1 FROM Solvents WHERE name = ?", (symbol,))
             if not cursor.fetchone():
@@ -88,7 +89,6 @@ class CompositionModel:
 
     def add_structure(self, id_info, structure_type, symbol, fraction, valence):
         try:
-            # Определение типа иона и проверка его существования
             ion_type = "anion" if structure_type == "anion" else "cation"
             cursor = self.conn.cursor()
             cursor.execute("SELECT 1 FROM Ions WHERE name = ? AND ion_type = ?",

@@ -47,6 +47,6 @@ class IonsFormModel:
         except sqlite3.Error as e:
             return False, f"Database error: {e}"
 
-        finally:
-            if self.conn:
-                self.conn.close()
+    def __del__(self):
+        if self.conn:
+            self.conn.close()
