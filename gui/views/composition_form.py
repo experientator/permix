@@ -1,7 +1,8 @@
 import tkinter as tk
 from tkinter import ttk
-from analysis import get_templates_list
 
+import analysis
+from analysis import get_templates_list
 
 class CompositionView(tk.Toplevel):
     def __init__(self, parent, controller):
@@ -12,31 +13,55 @@ class CompositionView(tk.Toplevel):
         self.dynamic_widgets = []
 
     def build_ui(self):
-        self.container = tk.Frame(self, padx=20, pady=20)
+        self.container = tk.Frame(self, padx=10, pady=10)
         self.container.pack(expand=True, fill='both')
 
-        self.first_column = ttk.Frame(self.container)
-        self.sec_column = ttk.Frame(self.container)
-        self.third_column = ttk.Frame(self.container)
+        self.first_column = self.create_scrollable_frame(self.container, show_scrollbar=False)
+        self.sec_column = self.create_scrollable_frame(self.container, show_scrollbar=False)
 
-        self.button_frame = ttk.Frame(self)
+        self.button_frame = tk.Frame(self)
         self.button_frame.pack(fill='x', pady=10)
 
-        self.first_column.pack(side='left', fill='both', expand=True, padx=5)
-        self.sec_column.pack(side='left', fill='both', expand=True, padx=5)
-        self.third_column.pack(side='left', fill='both', expand=True, padx=5)
+        self.first_column.pack(side='left', fill='both', expand=True)
+        self.sec_column.pack(side='left', fill='both', expand=True)
 
         self.create_info_frame()
         self.first_button = tk.Button(
-            self.first_column,
+            self.first_column.inner_frame,
             text="Enter info",
             command=self.on_info_submit
         )
         self.first_button.pack(fill='x', pady=5)
 
+    def create_scrollable_frame(self, parent, show_scrollbar=False):
+        container = tk.Frame(parent)
+
+        canvas = tk.Canvas(container)
+        scrollbar = tk.Scrollbar(container, orient="vertical", command=canvas.yview)
+
+        scrollable_frame = tk.Frame(canvas)
+        scrollable_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+
+        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        canvas.pack(side="left", fill="both", expand=True)
+
+        if show_scrollbar:
+            scrollbar.pack(side="right", fill="y")
+
+        container.canvas = canvas
+        container.scrollbar = scrollbar
+        container.inner_frame = scrollable_frame
+        container.show_scrollbar = lambda: scrollbar.pack(side="right", fill="y")
+        container.hide_scrollbar = lambda: scrollbar.pack_forget()
+
+        return container
+
     def create_info_frame(self):
-        info_frame = tk.LabelFrame(self.first_column, text="Composition information")
-        info_frame.pack(fill='x', pady=5)
+        info_frame = tk.LabelFrame(self.first_column.inner_frame,
+                                   text="Composition information")  # Изменено на inner_frame
+        info_frame.pack(side="top", fill='x', padx=5, pady=5)
 
         tk.Label(info_frame, text="doi").grid(row=0, column=0)
         self.entry_doi = tk.Entry(info_frame)
@@ -64,15 +89,29 @@ class CompositionView(tk.Toplevel):
         self.entry_num_solv = tk.Entry(info_frame)
         self.entry_num_solv.grid(row=3, column=2)
 
-    def create_dynamic_widgets(self, num_elements, num_solvents):
+        tk.Label(info_frame, text="number of k-factors").grid(row=4, column=1)
+        self.entry_k_fact = tk.Entry(info_frame)
+        self.entry_k_fact.grid(row=5, column=1)
 
-        for widget in self.dynamic_widgets:
-            widget.destroy()
+    def clear_dynamic_widgets(self):
+        for widget_info in self.dynamic_widgets:
+                widget_info['frame'].destroy()
+
         self.dynamic_widgets = []
 
+    def create_dynamic_widgets(self, num_elements, num_solvents, num_k):
+
+        self.clear_dynamic_widgets()
+
+        self.tot_anion_s_label = tk.Label(self.sec_column.inner_frame, text="total anion stoichiometry")
+        self.tot_anion_s_label.pack(fill='x')
+        self.tot_anion_s_entry = tk.Entry(self.sec_column.inner_frame)
+        self.tot_anion_s_entry.pack(fill='x')
+
+        tk.Label(self.sec_column.inner_frame, text="structure").pack(side="top", fill='x')
         for i in range(num_elements):
-            frame = tk.LabelFrame(self.sec_column, text=f"Element {i + 1}")
-            frame.pack(fill='x', pady=5)
+            frame = tk.LabelFrame(self.sec_column.inner_frame)
+            frame.pack(side="top", fill='x')
 
             tk.Label(frame, text="structure type").grid(row=0, column=0)
             structure_box = ttk.Combobox(frame, values=["A_site", "B_site", "B_double", "spacer_site", "anion"])
@@ -101,9 +140,25 @@ class CompositionView(tk.Toplevel):
                 }
             })
 
+        self.v_solution_label = tk.Label(self.sec_column.inner_frame, text="V solution")
+        self.v_solution_label.pack(fill='x')
+        self.v_solution_entry = tk.Entry(self.sec_column.inner_frame)
+        self.v_solution_entry.pack(fill='x')
+
+        self.v_antisolvent_label = tk.Label(self.sec_column.inner_frame, text="V antisolvent")
+        self.v_antisolvent_label.pack(fill='x')
+        self.v_antisolvent_entry = tk.Entry(self.sec_column.inner_frame)
+        self.v_antisolvent_entry.pack(fill='x')
+
+        self.c_solution_label = tk.Label(self.sec_column.inner_frame, text="C solution")
+        self.c_solution_label.pack(fill='x')
+        self.c_solution_entry = tk.Entry(self.sec_column.inner_frame)
+        self.c_solution_entry.pack(fill='x')
+
+        tk.Label(self.sec_column.inner_frame, text="solvents").pack(side="top", fill='x')
         for i in range(num_solvents):
-            frame = tk.LabelFrame(self.third_column, text=f"Solvent {i + 1}")
-            frame.pack(fill='x', pady=5)
+            frame = tk.LabelFrame(self.sec_column.inner_frame)
+            frame.pack(side="top", fill='x')
 
             tk.Label(frame, text="type").grid(row=0, column=0)
             type_box = ttk.Combobox(frame, values=["solvent", "antisolvent"])
@@ -126,19 +181,13 @@ class CompositionView(tk.Toplevel):
                     'fraction': entry_fraction
                 }
             })
+        self.method_description_label = tk.Label(self.sec_column.inner_frame, text="method_description")
+        self.method_description_label.pack(fill='x')
+        self.method_description_entry = tk.Entry(self.sec_column.inner_frame)
+        self.method_description_entry.pack(fill='x')
 
-        self.v_antisolvent_label = tk.Label(self.third_column, text="V antisolvent")
-        self.v_antisolvent_label.pack(fill='x', pady=5)
-        self.v_antisolvent_entry = tk.Entry(self.third_column)
-        self.v_antisolvent_entry.pack(fill='x', pady=5)
-
-        self.tot_anion_s_label = tk.Label(self.sec_column, text="total anion stoichiometry")
-        self.tot_anion_s_label.pack(fill='x', pady=5)
-        self.tot_anion_s_entry = tk.Entry(self.sec_column)
-        self.tot_anion_s_entry.pack(fill='x', pady=5)
-
-        properties_frame = tk.LabelFrame(self.first_column, text="Properties")
-        properties_frame.pack(fill='x', pady=5)
+        properties_frame = tk.LabelFrame(self.first_column.inner_frame, text="Properties")
+        properties_frame.pack(side="top", fill='x')
 
         tk.Label(properties_frame, text="band gap, eV").grid(row=0, column=0)
         self.entry_bg = tk.Entry(properties_frame)
@@ -164,12 +213,41 @@ class CompositionView(tk.Toplevel):
         self.entry_stability_notes = tk.Entry(properties_frame)
         self.entry_stability_notes.grid(row=3, column=2)
 
+        tk.Label(self.first_column.inner_frame, text="k-factors").pack(side="top", fill='x')
+
+        for i in range(num_k):
+            frame = tk.LabelFrame(self.first_column.inner_frame)
+            frame.pack(side="top", fill='x')
+
+            tk.Label(frame, text="precursor").grid(row=0, column=0)
+            entry_precursor = tk.Entry(frame)
+            entry_precursor.grid(row=1, column=0)
+
+            tk.Label(frame, text="k-factor").grid(row=0, column=3)
+            entry_k_factor = tk.Entry(frame)
+            entry_k_factor.grid(row=1, column=3)
+
+            self.dynamic_widgets.append({
+                'frame': frame,
+                'type': 'k_factors',
+                'widgets': {
+                    'precursor': entry_precursor,
+                    'k_factor': entry_k_factor,
+                }
+            })
+        self.sec_column.show_scrollbar()
+        self.first_column.show_scrollbar()
+
+        self.sec_column.canvas.configure(scrollregion=self.sec_column.canvas.bbox("all"))
+        self.first_column.canvas.configure(scrollregion=self.first_column.canvas.bbox("all"))
+
+
         self.main_button = tk.Button(
             self.button_frame,
             text="Enter data",
             command=self.on_main_submit
         )
-        self.main_button.pack(fill='x', pady=5)
+        self.main_button.pack(side="top", fill='x')
 
         self.dynamic_widgets.extend([
             {'frame': properties_frame, 'type': 'properties', 'widgets': {
@@ -187,13 +265,16 @@ class CompositionView(tk.Toplevel):
         ])
 
     def on_info_submit(self):
+        name_phase = self.phase_template.get()
+        id_template = analysis.get_template_id(name_phase)
         data = {
             'doi': self.entry_doi.get(),
             'data_type': self.data_box.get(),
             'notes': self.entry_notes.get(),
-            'phase_template': self.phase_template.get(),
+            'id_template': id_template,
             'num_elements': self.entry_num_elements.get(),
-            'num_solvents': self.entry_num_solv.get()
+            'num_solvents': self.entry_num_solv.get(),
+            'num_k': self.entry_k_fact.get()
         }
         self.controller.handle_info_submit(data)
 
@@ -219,6 +300,15 @@ class CompositionView(tk.Toplevel):
                 }
                 solvent_data.append(data)
 
+        factors_data = []
+        for widget in self.dynamic_widgets:
+            if widget['type'] == 'k_factors':
+                data = {
+                    'precursor': widget['widgets']['precursor'].get(),
+                    'k_factor': widget['widgets']['k_factor'].get()
+                }
+                factors_data.append(data)
+
         properties_data = {
             'band_gap': self.entry_bg.get(),
             'ff_percent': self.entry_ff_percent.get(),
@@ -227,10 +317,13 @@ class CompositionView(tk.Toplevel):
             'jsc': self.entry_jsc.get(),
             'stability_notes': self.entry_stability_notes.get(),
             'v_antisolvent': self.v_antisolvent_entry.get(),
-            'anion_stoichiometry': self.tot_anion_s_entry.get()
+            'v_solution': self.v_antisolvent_entry.get(),
+            'c_solution': self.c_solution_entry.get(),
+            'anion_stoichiometry': self.tot_anion_s_entry.get(),
+            'method_description': self.method_description_entry.get()
         }
 
-        self.controller.handle_main_submit(structure_data, solvent_data, properties_data)
+        self.controller.handle_main_submit(structure_data, solvent_data, properties_data, factors_data)
 
     def show_success(self, message):
         tk.messagebox.showinfo(title="success", message=message)
@@ -246,6 +339,7 @@ class CompositionView(tk.Toplevel):
         self.entry_num_elements.delete(0, tk.END)
         self.phase_template.set('')
         self.entry_num_solv.delete(0, tk.END)
+        self.entry_k_fact.delete(0, tk.END)
 
         for widget in self.dynamic_widgets:
             if 'widgets' in widget:

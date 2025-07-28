@@ -8,7 +8,7 @@ class SolventController:
 
     def handle_submit(self, data):
 
-        if not all([data['name'], data['formula'], data['density'], data['boiling_point']]):
+        if not all([data['name'], data['type'], data['formula'], data['density'], data['boiling_point']]):
             self.view.show_error("All fields except notes are required")
             return
         try:
@@ -20,6 +20,7 @@ class SolventController:
 
         success, message = self.model.add_solvent(
             data['name'],
+            data['type'],
             data['formula'],
             density,
             boiling_point,

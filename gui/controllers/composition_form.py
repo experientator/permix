@@ -1,5 +1,6 @@
-import tkinter.messagebox as mb
 from collections import namedtuple
+
+import analysis
 from gui.models.composition_form import CompositionModel
 from gui.views.composition_form import CompositionView
 
@@ -13,25 +14,27 @@ class CompositionController:
 
     def handle_info_submit(self, data):
         try:
-            num_elements = int(data['num_elements']) if data['num_elements'] else 0
-            num_solvents = int(data['num_solvents']) if data['num_solvents'] else 0
+            num_elements = int(data['num_elements'])
+            num_solvents = int(data['num_solvents'])
+            num_k = int(data['num_k'])
         except ValueError:
-            self.view.show_error("Number of elements or solvents must be integer numbers")
+            self.view.show_error("Number of elements, solvents and k_factors must be float numbers")
             return
 
         id_info = self.model.add_composition_info(
+            data['id_template'],
             data['doi'],
             data['data_type'],
             data['notes']
         )
 
         if id_info:
-            self.view.create_dynamic_widgets(num_elements, num_solvents)
+            self.view.create_dynamic_widgets(num_elements, num_solvents, num_k)
             self.view.first_button.destroy()
             return id_info
         return None
 
-    def handle_main_submit(self, structure_data, solvent_data, properties_data):
+    def handle_main_submit(self, structure_data, solvent_data, properties_data, factors_data):
         solvent_fractions = {'solvent': 0, 'antisolvent': 0}
         for solvent in solvent_data:
             try:
@@ -72,16 +75,37 @@ class CompositionController:
                 self.view.show_error(f"Total fraction for {stype} must be 1")
                 return
 
+        name_phase = self.view.phase_template.get()
+        id_template = analysis.get_template_id(name_phase)
         id_info = self.handle_info_submit({
             'doi': self.view.entry_doi.get(),
             'data_type': self.view.data_box.get(),
             'notes': self.view.entry_notes.get(),
+            'id_template': id_template,
             'num_elements': len(structure_data),
-            'num_solvents': len(solvent_data)
+            'num_solvents': len(solvent_data),
+            'num_k': len(factors_data)
         })
 
         if not id_info:
             return
+
+        for element in factors_data:
+            try:
+                k_factor = float(element['k_factor'])
+            except ValueError:
+                self.view.show_error("k factors must be float number")
+                return
+
+        for factor in factors_data:
+            success, message = self.model.add_k_factors(
+                id_info,
+                factor['precursor'],
+                factor['k_factor']
+            )
+            if not success:
+                self.view.show_error(message)
+                return
 
         for solvent in solvent_data:
             success, message = self.model.add_solvent(
@@ -115,7 +139,10 @@ class CompositionController:
                 float(properties_data['jsc']) if properties_data['jsc'] else None,
                 properties_data['stability_notes'],
                 float(properties_data['v_antisolvent']) if properties_data['v_antisolvent'] else None,
-                float(properties_data['anion_stoichiometry']) if properties_data['anion_stoichiometry'] else None
+                float(properties_data['v_solution']) if properties_data['v_solution'] else None,
+                float(properties_data['c_solution']) if properties_data['c_solution'] else None,
+                float(properties_data['anion_stoichiometry']) if properties_data['anion_stoichiometry'] else None,
+                properties_data['method_description'] if properties_data['method_description'] else None
             ]
         except ValueError:
             self.view.show_error("All numeric properties must be valid numbers")

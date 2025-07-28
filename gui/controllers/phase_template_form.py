@@ -1,4 +1,3 @@
-import tkinter.messagebox as mb
 from gui.views.phase_template_form import TemplateView
 from gui.models.phase_template_form import TemplateModel
 

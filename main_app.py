@@ -1,10 +1,14 @@
 import tkinter as tk
 from gui.controllers.Ions_form import IonsFormController
+from gui.controllers.ions_check import IonsCheckController
+from gui.controllers.solvents_check import SolventsCheckController
 from gui.controllers.solvents_form import SolventController
 from gui.controllers.ionic_radii_form import IonicRadiiController
 from gui.controllers.composition_form import CompositionController
 from gui.controllers.phase_template_form import TemplateController
 from gui.controllers.candidates_form import CandidatesFormController
+from gui.controllers.templates_check import TemplatesCheckController
+
 
 class App(tk.Tk):
     def __init__(self):
@@ -20,15 +24,24 @@ class App(tk.Tk):
         upload_menu.add_command(label="Загрузить шаблон", command=self.open_template_form)
         upload_menu.add_command(label="Загрузить кандидатов", command=self.open_candidate_form)
 
-        view_menu.add_command(label="Просмотр структуры")
-        view_menu.add_command(label="Просмотр растворителей")
-        view_menu.add_command(label="Просмотр цен")
+        view_menu.add_command(label="Просмотр растворителей",  command=self.get_solvents)
+        view_menu.add_command(label="Просмотр ионных радиусов",  command=self.get_ionic_radii)
+        view_menu.add_command(label="Просмотр шаблонов",  command=self.get_templates)
 
         menu.add_cascade(label="Загрузить", menu=upload_menu)
         menu.add_cascade(label="Просмотреть", menu=view_menu)
         menu.add_command(label="О программе", command= self.program_info)
         menu.add_command(label="Выйти", command=self.destroy)
         self.config(menu=menu)
+
+    def get_templates(self):
+        TemplatesCheckController(self)
+
+    def get_ionic_radii(self):
+        IonsCheckController(self)
+
+    def get_solvents(self):
+        SolventsCheckController(self)
 
     def program_info(self):
         pass

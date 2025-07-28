@@ -1,4 +1,3 @@
-import tkinter.messagebox as mb
 from gui.models.candidates_form import CandidateFormModel
 from gui.views.candidates_form import CandidateFormView
 

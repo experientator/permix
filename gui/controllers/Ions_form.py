@@ -1,4 +1,3 @@
-import tkinter.messagebox as mb
 from gui.models.Ions_form import IonsFormModel
 from gui.views.Ions_form import IonsFormView
 

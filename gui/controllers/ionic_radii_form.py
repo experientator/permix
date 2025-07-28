@@ -1,4 +1,3 @@
-import tkinter.messagebox as mb
 from gui.models.ionic_radii_form import IonicRadiiModel
 from gui.views.ionic_radii_form import IonicRadiiView
 

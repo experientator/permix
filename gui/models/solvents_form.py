@@ -10,7 +10,8 @@ class SolventFormModel:
         try:
             cursor = self.conn.cursor()
             cursor.execute('''CREATE TABLE IF NOT EXISTS Solvents 
-                           (name TEXT PRIMARY KEY,  
+                           (name TEXT PRIMARY KEY,
+                           type TEXT,  
                             formula TEXT, 
                             density FLOAT, 
                             boiling_point FLOAT, 
@@ -19,13 +20,13 @@ class SolventFormModel:
         except sqlite3.Error as e:
             mb.showerror("Database Error", f"Failed to create table: {e}")
 
-    def add_solvent(self, name, formula, density, boiling_point, notes):
+    def add_solvent(self, name, type, formula, density, boiling_point, notes):
         try:
             cursor = self.conn.cursor()
             cursor.execute('''INSERT INTO Solvents 
-                          (name, formula, density, boiling_point, notes) 
-                          VALUES (?, ?, ?, ?, ?)''',
-                           (name, formula, density, boiling_point, notes))
+                          (name, type, formula, density, boiling_point, notes) 
+                          VALUES (?, ?, ?, ?, ?, ?)''',
+                           (name, type, formula, density, boiling_point, notes))
             self.conn.commit()
             return True, "Solvent successfully uploaded"
         except sqlite3.Error as e:

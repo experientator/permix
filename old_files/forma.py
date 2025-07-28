@@ -2,7 +2,6 @@ import tkinter as tk
 import tkinter.messagebox as mb
 from tkinter import ttk
 from collections import namedtuple
-from gui.comp_forma_models import CompositionStructureModel
 import sqlite3
 
 Numbers = namedtuple("Numbers", ["elements", "solvent"])

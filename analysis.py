@@ -9,3 +9,12 @@ def get_templates_list():
 
     conn.close()
     return values
+
+def get_template_id(name):
+    conn = sqlite3.connect("data.db")
+    cursor = conn.cursor()
+
+    cursor.execute(f"SELECT id FROM Phase_templates WHERE name = ?", (name,))
+    id_phase = cursor.fetchone()
+    conn.close()
+    return int(id_phase[0])
