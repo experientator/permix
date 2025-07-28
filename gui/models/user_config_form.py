@@ -1,0 +1,98 @@
+import sqlite3
+import tkinter.messagebox as mb
+from collections import namedtuple
+
+Numbers = namedtuple("Numbers", ["elements", "solvent"])
+
+class UserConfigModel:
+    def __init__(self):
+        self.conn = sqlite3.connect('data.db')
+        self.create_tables()
+
+    def create_tables(self):
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute('''CREATE TABLE IF NOT EXISTS Fav_compositions
+                           (id INTEGER PRIMARY KEY,
+                            name TEXT NULL, 
+                            id_phase INT,
+                            V_antisolvent FLOAT,
+                            C_solution FLOAT,  
+                            notes TEXT,
+                            FOREIGN KEY (id_phase) REFERENCES Phase_templates (id))''')
+
+            cursor.execute('''CREATE TABLE IF NOT EXISTS Compositions_solvents
+                           (id_info INT NULL,
+                            id_fav INT NULL,
+                            solvent_type TEXT, 
+                            symbol TEXT, 
+                            fraction FLOAT,
+                            FOREIGN KEY (id_info) REFERENCES Compositions_info (id),
+                            FOREIGN KEY (id_fav) REFERENCES Fav_compositions (id),
+                            FOREIGN KEY (symbol) REFERENCES Solvents (name))''')
+
+            cursor.execute('''CREATE TABLE IF NOT EXISTS Compositions_structure 
+                           (id_info INT NULL,
+                            id_fav INT NULL,
+                            structure_type TEXT, 
+                            symbol TEXT, 
+                            fraction FLOAT,
+                            valence FLOAT,
+                            FOREIGN KEY (id_info) REFERENCES Compositions_info (id),
+                            FOREIGN KEY (id_fav) REFERENCES Fav_compositions (id),
+                            FOREIGN KEY (symbol) REFERENCES Ions (name))''')
+
+            self.conn.commit()
+        except sqlite3.Error as e:
+            mb.showerror("Database Error", f"Failed to create tables: {e}")
+
+    def add_favorite_composition(self, name, id_phase, notes, v, c):
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute('''INSERT INTO Fav_compositions  
+                          (name, id_phase, notes, V_antisolvent, C_solution) VALUES (?, ?, ?, ?, ?)''',
+                           (name, id_phase, notes, v, c))
+            self.conn.commit()
+            return cursor.lastrowid
+        except sqlite3.Error as e:
+            mb.showerror("Database Error", f"Failed to add composition info: {e}")
+            return None
+
+    def add_solvent(self, id_phase, solvent_type, symbol, fraction):
+        try:
+            # Проверка существования растворителя
+            cursor = self.conn.cursor()
+            cursor.execute("SELECT 1 FROM Solvents WHERE name = ?", (symbol,))
+            if not cursor.fetchone():
+                return False, f"Solvent {symbol} doesn't exist in database"
+
+            cursor.execute('''INSERT INTO Compositions_solvents 
+                          (id_phase, solvent_type, symbol, fraction) 
+                          VALUES (?, ?, ?, ?)''',
+                           (id_phase, solvent_type, symbol, fraction))
+            self.conn.commit()
+            return True, "Solvent added successfully"
+        except sqlite3.Error as e:
+            return False, f"Database error: {e}"
+
+    def add_structure(self, id_phase, structure_type, symbol, fraction, valence):
+        try:
+            ion_type = "anion" if structure_type == "anion" else "cation"
+            cursor = self.conn.cursor()
+            cursor.execute("SELECT 1 FROM Ions WHERE name = ? AND ion_type = ?",
+                           (symbol, ion_type))
+            if not cursor.fetchone():
+                return False, f"Ion {symbol} doesn't exist in database"
+
+            cursor.execute('''INSERT INTO Compositions_structure 
+                          (id_phase, structure_type, symbol, fraction, valence) 
+                          VALUES (?, ?, ?, ?, ?)''',
+                           (id_phase, structure_type, symbol, fraction, valence))
+            self.conn.commit()
+            return True, "Structure element added successfully"
+        except sqlite3.Error as e:
+            return False, f"Database error: {e}"
+
+    def __del__(self):
+        if self.conn:
+            self.conn.close()
