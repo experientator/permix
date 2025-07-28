@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
+from analysis import get_templates_list
 
 
 class CompositionView(tk.Toplevel):
@@ -49,13 +50,19 @@ class CompositionView(tk.Toplevel):
         self.entry_notes = tk.Entry(info_frame)
         self.entry_notes.grid(row=1, column=2)
 
-        tk.Label(info_frame, text="number of elements").grid(row=2, column=0)
-        self.entry_num_elements = tk.Entry(info_frame)
-        self.entry_num_elements.grid(row=3, column=0)
+        phase_t = get_templates_list()
 
-        tk.Label(info_frame, text="number of solvents").grid(row=2, column=1)
+        tk.Label(info_frame, text="phase template").grid(row=2, column=0)
+        self.phase_template = ttk.Combobox(info_frame, values = phase_t)
+        self.phase_template.grid(row=3, column=0)
+
+        tk.Label(info_frame, text="number of elements").grid(row=2, column=1)
+        self.entry_num_elements = tk.Entry(info_frame)
+        self.entry_num_elements.grid(row=3, column=1)
+
+        tk.Label(info_frame, text="number of solvents").grid(row=2, column=2)
         self.entry_num_solv = tk.Entry(info_frame)
-        self.entry_num_solv.grid(row=3, column=1)
+        self.entry_num_solv.grid(row=3, column=2)
 
     def create_dynamic_widgets(self, num_elements, num_solvents):
 
@@ -184,6 +191,7 @@ class CompositionView(tk.Toplevel):
             'doi': self.entry_doi.get(),
             'data_type': self.data_box.get(),
             'notes': self.entry_notes.get(),
+            'phase_template': self.phase_template.get(),
             'num_elements': self.entry_num_elements.get(),
             'num_solvents': self.entry_num_solv.get()
         }
@@ -236,6 +244,7 @@ class CompositionView(tk.Toplevel):
         self.data_box.set('')
         self.entry_notes.delete(0, tk.END)
         self.entry_num_elements.delete(0, tk.END)
+        self.phase_template.set('')
         self.entry_num_solv.delete(0, tk.END)
 
         for widget in self.dynamic_widgets:

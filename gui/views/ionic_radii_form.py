@@ -50,7 +50,7 @@ class IonicRadiiView(tk.Toplevel):
 
     def clear_form(self):
         self.entry_name.delete(0, tk.END)
-        self.ion_box.set('')
+        self.ion_box.delete()
         self.entry_charge.delete(0, tk.END)
         self.entry_CN.delete(0, tk.END)
         self.entry_ionic_radii.delete(0, tk.END)
