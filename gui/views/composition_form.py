@@ -108,29 +108,35 @@ class CompositionView(tk.Toplevel):
         self.tot_anion_s_entry = tk.Entry(self.sec_column.inner_frame)
         self.tot_anion_s_entry.pack(fill='x')
 
-        tk.Label(self.sec_column.inner_frame, text="structure").pack(side="top", fill='x')
+        struct_frame = tk.LabelFrame(self.sec_column.inner_frame, text = "structure")
+        struct_frame.pack(side="top", fill='x', padx=5, pady=5)
+
+        struct_frame.columnconfigure(0, weight=1)
+        struct_frame.columnconfigure(1, weight=1)
+        struct_frame.columnconfigure(2, weight=1)
+        struct_frame.columnconfigure(3, weight=1)
+
+        tk.Label(struct_frame, text="structure type").grid(row=0, column=0, sticky="ew", padx=2, pady=2)
+        tk.Label(struct_frame, text="symbol").grid(row=0, column=1, sticky="ew", padx=2, pady=2)
+        tk.Label(struct_frame, text="fraction").grid(row=0, column=2, sticky="ew", padx=2, pady=2)
+        tk.Label(struct_frame, text="valence").grid(row=0, column=3, sticky="ew", padx=2, pady=2)
+
         for i in range(num_elements):
-            frame = tk.LabelFrame(self.sec_column.inner_frame)
-            frame.pack(side="top", fill='x')
 
-            tk.Label(frame, text="structure type").grid(row=0, column=0)
-            structure_box = ttk.Combobox(frame, values=["A_site", "B_site", "B_double", "spacer_site", "anion"])
-            structure_box.grid(row=1, column=0)
+            structure_box = ttk.Combobox(struct_frame, values=["A_site", "B_site", "B_double", "spacer_site", "anion"])
+            structure_box.grid(row=i+1, column=0, sticky="ew", padx=2, pady=2)
 
-            tk.Label(frame, text="symbol").grid(row=0, column=1)
-            entry_symbol = tk.Entry(frame)
-            entry_symbol.grid(row=1, column=1)
+            entry_symbol = tk.Entry(struct_frame)
+            entry_symbol.grid(row=i+1, column=1, sticky="ew", padx=2, pady=2)
 
-            tk.Label(frame, text="fraction").grid(row=0, column=2)
-            entry_fraction = tk.Entry(frame)
-            entry_fraction.grid(row=1, column=2)
+            entry_fraction = tk.Entry(struct_frame)
+            entry_fraction.grid(row=i+1, column=2, sticky="ew", padx=2, pady=2)
 
-            tk.Label(frame, text="valence").grid(row=0, column=3)
-            entry_valence = tk.Entry(frame)
-            entry_valence.grid(row=1, column=3)
+            entry_valence = tk.Entry(struct_frame)
+            entry_valence.grid(row=i+1, column=3, sticky="ew", padx=2, pady=2)
 
             self.dynamic_widgets.append({
-                'frame': frame,
+                'frame': struct_frame,
                 'type': 'structure',
                 'widgets': {
                     'structure_type': structure_box,
@@ -145,35 +151,40 @@ class CompositionView(tk.Toplevel):
         self.v_solution_entry = tk.Entry(self.sec_column.inner_frame)
         self.v_solution_entry.pack(fill='x')
 
-        self.v_antisolvent_label = tk.Label(self.sec_column.inner_frame, text="V antisolvent")
-        self.v_antisolvent_label.pack(fill='x')
-        self.v_antisolvent_entry = tk.Entry(self.sec_column.inner_frame)
-        self.v_antisolvent_entry.pack(fill='x')
-
         self.c_solution_label = tk.Label(self.sec_column.inner_frame, text="C solution")
         self.c_solution_label.pack(fill='x')
         self.c_solution_entry = tk.Entry(self.sec_column.inner_frame)
         self.c_solution_entry.pack(fill='x')
 
-        tk.Label(self.sec_column.inner_frame, text="solvents").pack(side="top", fill='x')
+        self.v_antisolvent_label = tk.Label(self.sec_column.inner_frame, text="V antisolvent")
+        self.v_antisolvent_label.pack(fill='x')
+        self.v_antisolvent_entry = tk.Entry(self.sec_column.inner_frame)
+        self.v_antisolvent_entry.pack(fill='x')
+
+        solv_frame = tk.LabelFrame(self.sec_column.inner_frame, text = "solvents")
+        solv_frame.pack(side="top", fill='x', padx=5, pady=5)
+
+        solv_frame.columnconfigure(0, weight=1)
+        solv_frame.columnconfigure(1, weight=1)
+        solv_frame.columnconfigure(2, weight=1)
+
+        tk.Label(solv_frame, text="type").grid(row=0, column=0, sticky="ew", padx=2, pady=2)
+        tk.Label(solv_frame, text="symbol").grid(row=0, column=1, sticky="ew", padx=2, pady=2)
+        tk.Label(solv_frame, text="fraction").grid(row=0, column=2, sticky="ew", padx=2, pady=2)
+
         for i in range(num_solvents):
-            frame = tk.LabelFrame(self.sec_column.inner_frame)
-            frame.pack(side="top", fill='x')
 
-            tk.Label(frame, text="type").grid(row=0, column=0)
-            type_box = ttk.Combobox(frame, values=["solvent", "antisolvent"])
-            type_box.grid(row=1, column=0)
+            type_box = ttk.Combobox(solv_frame, values=["solvent", "antisolvent"])
+            type_box.grid(row=i+1, column=0, sticky="ew", padx=2, pady=2)
 
-            tk.Label(frame, text="symbol").grid(row=0, column=1)
-            entry_symbol = tk.Entry(frame)
-            entry_symbol.grid(row=1, column=1)
+            entry_symbol = tk.Entry(solv_frame)
+            entry_symbol.grid(row=i+1, column=1, sticky="ew", padx=2, pady=2)
 
-            tk.Label(frame, text="fraction").grid(row=0, column=2)
-            entry_fraction = tk.Entry(frame)
-            entry_fraction.grid(row=1, column=2)
+            entry_fraction = tk.Entry(solv_frame)
+            entry_fraction.grid(row=i+1, column=2, sticky="ew", padx=2, pady=2)
 
             self.dynamic_widgets.append({
-                'frame': frame,
+                'frame': solv_frame,
                 'type': 'solvent',
                 'widgets': {
                     'solvent_type': type_box,
@@ -213,22 +224,25 @@ class CompositionView(tk.Toplevel):
         self.entry_stability_notes = tk.Entry(properties_frame)
         self.entry_stability_notes.grid(row=3, column=2)
 
-        tk.Label(self.first_column.inner_frame, text="k-factors").pack(side="top", fill='x')
+        k_frame = tk.LabelFrame(self.first_column.inner_frame, text = "k-factors")
+        k_frame.pack(side="top", fill='x', padx=5, pady=5)
+
+        k_frame.columnconfigure(0, weight=1)
+        k_frame.columnconfigure(1, weight=1)
+
+        tk.Label(k_frame, text="precursor").grid(row=0, column=0, sticky="ew", padx=2, pady=2)
+        tk.Label(k_frame, text="k-factor").grid(row=0, column=1, sticky="ew", padx=2, pady=2)
 
         for i in range(num_k):
-            frame = tk.LabelFrame(self.first_column.inner_frame)
-            frame.pack(side="top", fill='x')
 
-            tk.Label(frame, text="precursor").grid(row=0, column=0)
-            entry_precursor = tk.Entry(frame)
-            entry_precursor.grid(row=1, column=0)
+            entry_precursor = tk.Entry(k_frame)
+            entry_precursor.grid(row=i+1, column=0, sticky="ew", padx=2, pady=2)
 
-            tk.Label(frame, text="k-factor").grid(row=0, column=3)
-            entry_k_factor = tk.Entry(frame)
-            entry_k_factor.grid(row=1, column=3)
+            entry_k_factor = tk.Entry(k_frame)
+            entry_k_factor.grid(row=i+1, column=1, sticky="ew", padx=2, pady=2)
 
             self.dynamic_widgets.append({
-                'frame': frame,
+                'frame': k_frame,
                 'type': 'k_factors',
                 'widgets': {
                     'precursor': entry_precursor,
