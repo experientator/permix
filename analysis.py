@@ -1,5 +1,6 @@
 import sqlite3
 from decimal import Decimal
+import pandas as pd
 
 def get_templates_list():
     conn = sqlite3.connect("data.db")
@@ -19,6 +20,23 @@ def get_template_id(name):
     id_phase = cursor.fetchone()
     conn.close()
     return int(id_phase[0])
+
+def get_template_sites(template_id):
+    conn = sqlite3.connect("data.db")
+    sites_data = pd.read_sql_query(f"SELECT type, name_candidate, stoichiometry, valence "
+                   f"FROM Template_sites WHERE id_phase = {template_id}", conn)
+    conn.close()
+    return sites_data
+
+def get_candidate_cations(name):
+    conn = sqlite3.connect("data.db")
+    cursor = conn.cursor()
+
+    cursor.execute(f"SELECT cations FROM Candidate_cations WHERE name_candidates = ?", (name,))
+    cations_text = cursor.fetchone()
+    conn.close()
+    cations_list = [x.strip() for x in cations_text.split(",")]
+    return cations_list
 
 def calculate_target_product_moles(c_solution_molar, v_solution_ml):
     """Рассчитывает общее количество молей продукта."""
