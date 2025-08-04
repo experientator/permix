@@ -8,7 +8,7 @@ from gui.controllers.composition_form import CompositionController
 from gui.controllers.phase_template_form import TemplateController
 from gui.controllers.candidates_form import CandidatesFormController
 from gui.controllers.templates_check import TemplatesCheckController
-
+from gui.controllers.user_config_form import UserConfigController
 
 class App(tk.Tk):
     def __init__(self):
@@ -31,8 +31,12 @@ class App(tk.Tk):
         menu.add_cascade(label="Загрузить", menu=upload_menu)
         menu.add_cascade(label="Просмотреть", menu=view_menu)
         menu.add_command(label="О программе", command= self.program_info)
+        menu.add_command(label="Калькулятор", command=self.get_user_config)
         menu.add_command(label="Выйти", command=self.destroy)
         self.config(menu=menu)
+
+    def get_user_config(self):
+        UserConfigController(self)
 
     def get_templates(self):
         TemplatesCheckController(self)

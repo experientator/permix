@@ -32,11 +32,22 @@ def get_candidate_cations(name):
     conn = sqlite3.connect("data.db")
     cursor = conn.cursor()
 
-    cursor.execute(f"SELECT cations FROM Candidate_cations WHERE name_candidates = ?", (name,))
-    cations_text = cursor.fetchone()
+    cursor.execute(f"SELECT cations FROM Candidate_cations WHERE name = ?", (name,))
+    result = cursor.fetchone()
     conn.close()
+    cations_text = result[0]
     cations_list = [x.strip() for x in cations_text.split(",")]
     return cations_list
+
+def get_solvents(solvent_type):
+    conn = sqlite3.connect("data.db")
+    cursor = conn.cursor()
+
+    cursor.execute(f"SELECT DISTINCT name FROM Solvents WHERE type = ?", (solvent_type,))
+    values = [row[0] for row in cursor.fetchall()]
+
+    conn.close()
+    return values
 
 def calculate_target_product_moles(c_solution_molar, v_solution_ml):
     """Рассчитывает общее количество молей продукта."""
