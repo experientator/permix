@@ -60,9 +60,13 @@ class UserConfigView(tk.Toplevel):
         tk.Label(self.sites_frame, text="Доля").grid(row=0, column=3)
 
         self.site_widgets = {}
-
+        self.structure_types_and_valences = {}
         for index, sites_row in sites_data.iterrows():
             site_type = sites_row["type"]
+            self.structure_types_and_valences.append({
+                "type": site_type,
+                "valence":sites_row["valence"]
+            })
             site_candidate = sites_row["name_candidate"]
             current_row = self.get_next_row(self.site_widgets)
 
@@ -86,11 +90,14 @@ class UserConfigView(tk.Toplevel):
                 "combobox_num": combobox_num,
                 "dynamic_widgets": []
             }
-
             self._update_site(site_type, site_candidate)
 
         current_row = self.get_next_row(self.site_widgets)
         site_type = "anion"
+        self.structure_types_and_valences.append({
+            "type": site_type,
+            "valence": 1
+        })
         label_site = tk.Label(self.sites_frame, text=site_type)
         label_site.grid(row=current_row, column=0, padx=5, pady=2)
         combobox_num = ttk.Combobox(
@@ -105,13 +112,8 @@ class UserConfigView(tk.Toplevel):
             "<<ComboboxSelected>>",
             lambda e, st=site_type, sc=0: self._update_site(st, sc)
         )
-
-        self.site_widgets[site_type] = {
-            "label": label_site,
-            "combobox_num": combobox_num,
-            "dynamic_widgets": []
-        }
         self._update_site(site_type, 0)
+
         self.upload_button = tk.Button(self.first_column, text = "подтвердить состав", command = self.create_solvents)
         self.upload_button.pack(fill='x', pady=5)
 
@@ -176,6 +178,7 @@ class UserConfigView(tk.Toplevel):
 
     def create_solvents(self):
         self.upload_button["state"] = "disabled"
+        self.get_structure_data()
         self.solvents_frame = tk.LabelFrame(self.first_column, text="растворители")
         self.solvents_frame.pack(fill='x', pady=5)
 
@@ -217,9 +220,23 @@ class UserConfigView(tk.Toplevel):
             }
 
             self._update_solvent(type)
+        self.create_solvent_properties()
+
+    def get_structure_data(self):
+        self.structure ={}
+        for site_type in self.structure_types_and_valences["type"]:
+            num_sites = int(self.site_widgets[site_type]["combobox_num"].get())
+            for i in range(num_sites):
+                widget = self.site_widgets[site_type]["dynamic_widgets"][i]
+                self.structure.append({
+                    "valence": structure_types_and_valences["type"]
+                    "structure_type": site_type,
+                    "symbol": widget["symbol"].get(),
+                    "fraction": widget["fraction"].get()
+                })
+
 
     def _update_solvent(self, solvent_type):
-
         for field in self.solvents_widgets[solvent_type]["dynamic_widgets"]:
             field["symbol"].destroy()
             field["fraction"].destroy()
@@ -248,3 +265,17 @@ class UserConfigView(tk.Toplevel):
             })
 
         self.recalculate_all_positions(self.solvents_widgets)
+
+    def create_solvent_properties(self):
+        self.propereties_frame = tk.LabelFrame(self.first_column, text="свойства раствора")
+        self.propereties_frame.pack(fill='x', pady=5)
+        tk.Label(self.propereties_frame, text="Объем раствора").grid(row=0, column=0)
+        tk.Label(self.propereties_frame, text="Концентрация раствора").grid(row=0, column=1)
+        tk.Label(self.propereties_frame, text="Объем антирастворителя").grid(row=0, column=2)
+
+        self.entry_v_solvent = tk.Entry(self.propereties_frame, width=10)
+        self.entry_v_solvent.grid(row=1, column=0, padx=5, pady=2)
+        self.entry_c_solvent = tk.Entry(self.propereties_frame, width=10)
+        self.entry_c_solvent.grid(row=1, column=1, padx=5, pady=2)
+        self.entry_v_antisolvent = tk.Entry(self.propereties_frame, width=10)
+        self.entry_v_antisolvent.grid(row=1, column=2, padx=5, pady=2)
