@@ -1,7 +1,6 @@
 import sqlite3
 import tkinter.messagebox as mb
 
-
 class TemplateModel:
     def __init__(self):
         self.conn = sqlite3.connect('data.db')

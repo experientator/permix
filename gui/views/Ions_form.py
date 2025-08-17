@@ -1,35 +1,44 @@
 import tkinter as tk
 import tkinter.ttk as ttk
+from gui.default_style import AppStyles
 
 class IonsFormView(tk.Toplevel):
     def __init__(self, parent, controller):
         super().__init__(parent)
         self.controller = controller
         self.title("Add new ion")
-
+        self.configure(bg=AppStyles.BACKGROUND_COLOR)
         self.create_widgets()
 
     def create_widgets(self):
-        ion_frame = tk.LabelFrame(self)
+        ion_frame = tk.LabelFrame(self, **AppStyles.frame_style())
         ion_frame.grid(row=0, column=0, sticky="news", padx=20, pady=10)
 
-        tk.Label(ion_frame, text="name").grid(row=0, column=0)
-        self.entry_name = tk.Entry(ion_frame)
+        tk.Label(ion_frame, text="name",
+                 **AppStyles.label_style()).grid(row=0, column=0)
+        self.entry_name = tk.Entry(ion_frame, **AppStyles.entry_style())
         self.entry_name.grid(row=1, column=0)
 
-        ttk.Label(ion_frame, text="type").grid(row=0, column=1)
-        self.box_ion_type = ttk.Combobox(ion_frame, values=["anion", "cation"])
+        tk.Label(ion_frame, text="type",
+                 **AppStyles.label_style()).grid(row=0, column=1)
+        self.box_ion_type = ttk.Combobox(ion_frame,
+                                        ** AppStyles.combobox_style(),
+                                         values=["anion", "cation"])
         self.box_ion_type.grid(row=1, column=1)
 
-        tk.Label(ion_frame, text="formula").grid(row=0, column=2)
-        self.entry_formula = tk.Entry(ion_frame)
+        tk.Label(ion_frame, text="formula",
+                 **AppStyles.label_style()).grid(row=0, column=2)
+        self.entry_formula = tk.Entry(ion_frame, **AppStyles.entry_style())
         self.entry_formula.grid(row=1, column=2)
 
-        tk.Label(ion_frame, text="valence").grid(row=0, column=3)
-        self.entry_valence = tk.Entry(ion_frame)
+        tk.Label(ion_frame, text="valence",
+                 ** AppStyles.label_style()
+                 ).grid(row=0, column=3)
+        self.entry_valence = tk.Entry(ion_frame, **AppStyles.entry_style())
         self.entry_valence.grid(row=1, column=3)
 
         tk.Button(self, text="Enter data",
+                  **AppStyles.button_style(),
                   command=self.on_submit).grid(row=1, column=0, sticky="news", padx=20, pady=10)
 
     def on_submit(self):

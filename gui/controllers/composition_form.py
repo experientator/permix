@@ -1,6 +1,6 @@
 from collections import namedtuple
 
-import analysis
+from analysis.database_utils import get_template_id
 from gui.models.composition_form import CompositionModel
 from gui.views.composition_form import CompositionView
 
@@ -76,7 +76,7 @@ class CompositionController:
                 return
 
         name_phase = self.view.phase_template.get()
-        id_template = analysis.get_template_id(name_phase)
+        id_template = get_template_id(name_phase)
         id_info = self.handle_info_submit({
             'doi': self.view.entry_doi.get(),
             'data_type': self.view.data_box.get(),

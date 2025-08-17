@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import ttk
 from gui.controllers.Ions_form import IonsFormController
 from gui.controllers.ions_check import IonsCheckController
 from gui.controllers.solvents_check import SolventsCheckController

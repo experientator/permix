@@ -1,6 +1,10 @@
 import tkinter as tk
 from tkinter import ttk
-from analysis import get_templates_list, get_template_id, get_template_sites, get_candidate_cations, get_solvents
+
+from Tools.scripts.make_ctype import values
+
+from analysis.database_utils import get_templates_list, get_template_id, get_template_sites, get_candidate_cations, get_solvents
+from analysis.chemistry_utils import get_salt_formula
 from gui.controllers.templates_check import TemplatesCheckController
 
 class UserConfigView(tk.Toplevel):
@@ -60,13 +64,12 @@ class UserConfigView(tk.Toplevel):
         tk.Label(self.sites_frame, text="Доля").grid(row=0, column=3)
 
         self.site_widgets = {}
-        self.structure_types_and_valences = {}
+        self.structure_types = []
+        self.structure_valences = []
         for index, sites_row in sites_data.iterrows():
             site_type = sites_row["type"]
-            self.structure_types_and_valences.append({
-                "type": site_type,
-                "valence":sites_row["valence"]
-            })
+            self.structure_types.append(site_type)
+            self.structure_valences.append(sites_row["valence"])
             site_candidate = sites_row["name_candidate"]
             current_row = self.get_next_row(self.site_widgets)
 
@@ -94,10 +97,6 @@ class UserConfigView(tk.Toplevel):
 
         current_row = self.get_next_row(self.site_widgets)
         site_type = "anion"
-        self.structure_types_and_valences.append({
-            "type": site_type,
-            "valence": 1
-        })
         label_site = tk.Label(self.sites_frame, text=site_type)
         label_site.grid(row=current_row, column=0, padx=5, pady=2)
         combobox_num = ttk.Combobox(
@@ -112,11 +111,15 @@ class UserConfigView(tk.Toplevel):
             "<<ComboboxSelected>>",
             lambda e, st=site_type, sc=0: self._update_site(st, sc)
         )
+        self.site_widgets[site_type] = {
+            "label": label_site,
+            "combobox_num": combobox_num,
+            "dynamic_widgets": []
+        }
         self._update_site(site_type, 0)
 
         self.upload_button = tk.Button(self.first_column, text = "подтвердить состав", command = self.create_solvents)
         self.upload_button.pack(fill='x', pady=5)
-
 
     def get_next_row(self, widget):
         if not widget:
@@ -131,14 +134,13 @@ class UserConfigView(tk.Toplevel):
         return last_row + 1
 
     def _update_site(self, site_type, site_candidate):
-
         for field in self.site_widgets[site_type]["dynamic_widgets"]:
             field["symbol"].destroy()
             field["fraction"].destroy()
         self.site_widgets[site_type]["dynamic_widgets"] = []
         num_sites = int(self.site_widgets[site_type]["combobox_num"].get())
         if site_type == "anion":
-            symbols = ["F", "Cl", "Br", "I"]
+            symbols = ["Cl", "Br", "I"]
         else:
             symbols = get_candidate_cations(site_candidate)
         start_row = self.site_widgets[site_type]["label"].grid_info()["row"] + 1
@@ -178,7 +180,6 @@ class UserConfigView(tk.Toplevel):
 
     def create_solvents(self):
         self.upload_button["state"] = "disabled"
-        self.get_structure_data()
         self.solvents_frame = tk.LabelFrame(self.first_column, text="растворители")
         self.solvents_frame.pack(fill='x', pady=5)
 
@@ -221,20 +222,67 @@ class UserConfigView(tk.Toplevel):
 
             self._update_solvent(type)
         self.create_solvent_properties()
+        self.create_k_factors_frame()
+
+    def create_k_factors_frame(self):
+        self.salt_formulas = []
+        cations, anions = self.get_structure_data()
+        cation_valences = [cation["valence"] for cation in cations]
+        cation_symbols = [cation["symbol"] for cation in cations]
+        anion_symbols = [anion["symbol"] for anion in anions]
+        for i in range(len(cation_symbols)):
+            for anion_symbol in anion_symbols:
+                self.salt_formulas.append(get_salt_formula(cation_symbols[i], anion_symbol, cation_valences[i]))
+        value_salts = list(range(1, len(self.salt_formulas) + 1))
+        self.current_row = 1
+        self.k_factors_frame = tk.LabelFrame(self.first_column, text="K-факторы", yscrollcommand=self.scroll_y.set)
+        self.k_factors_frame.pack(fill='x', pady=5)
+        tk.Button(self.k_factors_frame, text="Просмотр возможных солей",
+                  command = self.create_k_factors_widgets).grid(row=0, column=0)
+        tk.Button(self.k_factors_frame, text="Добавить k-фактор",
+                  command = self.create_k_factors_widgets).grid(row=0, column=1)
+        tk.Label(self.k_factors_frame, text="Соль").grid(row=1, column=0)
+        tk.Label(self.k_factors_frame, text="К-фактор").grid(row=1, column=1)
+        self.k_factors_widgets = {}
+        scrollbar = ttk.Scrollbar(orient="vertical", command=self.k_factors_frame.yview)
+        scrollbar.pack(side="right", fill="y")
+    def create_k_factors_widgets(self):
+        self.current_row+=1
+        combobox_salts = ttk.Combobox(
+            self.k_factors_frame,
+            values=self.salt_formulas,
+            state="readonly",
+            width=5
+        )
+        combobox_salts.current(0)
+        combobox_salts.grid(row=self.current_row, column=0, padx=5, pady=2)
+        entry_k_factor = tk.Entry(self.k_factors_frame, width=10)
+        entry_k_factor.grid(row=self.current_row, column=1, padx=5, pady=2)
 
     def get_structure_data(self):
-        self.structure ={}
-        for site_type in self.structure_types_and_valences["type"]:
+        cations = []
+        anions = []
+        for idx, site_type in enumerate(self.structure_types):
             num_sites = int(self.site_widgets[site_type]["combobox_num"].get())
+            valence = self.structure_valences[idx]
+
             for i in range(num_sites):
                 widget = self.site_widgets[site_type]["dynamic_widgets"][i]
-                self.structure.append({
-                    "valence": structure_types_and_valences["type"]
+                cations.append({
                     "structure_type": site_type,
                     "symbol": widget["symbol"].get(),
-                    "fraction": widget["fraction"].get()
+                    "fraction": widget["fraction"].get(),
+                    "valence": valence
                 })
 
+        num_anions = int(self.site_widgets["anion"]["combobox_num"].get())
+        for i in range(num_anions):
+            widget = self.site_widgets["anion"]["dynamic_widgets"][i]
+            anions.append({
+                "symbol": widget["symbol"].get(),
+                "fraction": widget["fraction"].get(),
+            })
+        return cations, anions
 
     def _update_solvent(self, solvent_type):
         for field in self.solvents_widgets[solvent_type]["dynamic_widgets"]:

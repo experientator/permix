@@ -1,8 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 
-import analysis
-from analysis import get_templates_list
+from analysis.database_utils import get_templates_list
 
 class CompositionView(tk.Toplevel):
     def __init__(self, parent, controller):
