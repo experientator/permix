@@ -1,10 +1,10 @@
 import tkinter as tk
 from tkinter import ttk
 
-from Tools.scripts.make_ctype import values
-
-from analysis.database_utils import get_templates_list, get_template_id, get_template_sites, get_candidate_cations, get_solvents
-from analysis.chemistry_utils import get_salt_formula
+from analysis.database_utils import (get_templates_list, get_template_id, get_template_sites,
+                                     get_candidate_cations, get_solvents, get_anion_stoichiometry)
+from analysis.chemistry_utils import get_salt_formula, calculate_target_anion_moles
+from analysis.strategies import calculate_coefficients_all_flexible
 from gui.controllers.templates_check import TemplatesCheckController
 
 class UserConfigView(tk.Toplevel):
@@ -52,6 +52,7 @@ class UserConfigView(tk.Toplevel):
         self.name = self.phase_template.get()
         template_id = get_template_id(self.name)
         sites_data = get_template_sites(template_id)
+        self.anion_stoichiometry = get_anion_stoichiometry(template_id)
         values_sites = ["1", "2", "3", "4"]
 
         for field in self.sites_frame.winfo_children():
@@ -66,10 +67,12 @@ class UserConfigView(tk.Toplevel):
         self.site_widgets = {}
         self.structure_types = []
         self.structure_valences = []
+        self.structure_stoichiometry = []
         for index, sites_row in sites_data.iterrows():
             site_type = sites_row["type"]
             self.structure_types.append(site_type)
             self.structure_valences.append(sites_row["valence"])
+            self.structure_stoichiometry.append(sites_row["stoichiometry"])
             site_candidate = sites_row["name_candidate"]
             current_row = self.get_next_row(self.site_widgets)
 
@@ -227,6 +230,8 @@ class UserConfigView(tk.Toplevel):
     def create_k_factors_frame(self):
         self.salt_formulas = []
         cations, anions = self.get_structure_data()
+        anions_listt = calculate_target_anion_moles(anions, self.anion_stoichiometry)
+        print(calculate_coefficients_all_flexible(cations, anions_listt))
         cation_valences = [cation["valence"] for cation in cations]
         cation_symbols = [cation["symbol"] for cation in cations]
         anion_symbols = [anion["symbol"] for anion in anions]
@@ -235,7 +240,7 @@ class UserConfigView(tk.Toplevel):
                 self.salt_formulas.append(get_salt_formula(cation_symbols[i], anion_symbol, cation_valences[i]))
         value_salts = list(range(1, len(self.salt_formulas) + 1))
         self.current_row = 1
-        self.k_factors_frame = tk.LabelFrame(self.first_column, text="K-факторы", yscrollcommand=self.scroll_y.set)
+        self.k_factors_frame = tk.LabelFrame(self.first_column, text="K-факторы")
         self.k_factors_frame.pack(fill='x', pady=5)
         tk.Button(self.k_factors_frame, text="Просмотр возможных солей",
                   command = self.create_k_factors_widgets).grid(row=0, column=0)
@@ -244,8 +249,7 @@ class UserConfigView(tk.Toplevel):
         tk.Label(self.k_factors_frame, text="Соль").grid(row=1, column=0)
         tk.Label(self.k_factors_frame, text="К-фактор").grid(row=1, column=1)
         self.k_factors_widgets = {}
-        scrollbar = ttk.Scrollbar(orient="vertical", command=self.k_factors_frame.yview)
-        scrollbar.pack(side="right", fill="y")
+
     def create_k_factors_widgets(self):
         self.current_row+=1
         combobox_salts = ttk.Combobox(
@@ -265,6 +269,7 @@ class UserConfigView(tk.Toplevel):
         for idx, site_type in enumerate(self.structure_types):
             num_sites = int(self.site_widgets[site_type]["combobox_num"].get())
             valence = self.structure_valences[idx]
+            stoichiometry = self.structure_stoichiometry[idx]
 
             for i in range(num_sites):
                 widget = self.site_widgets[site_type]["dynamic_widgets"][i]
@@ -272,7 +277,8 @@ class UserConfigView(tk.Toplevel):
                     "structure_type": site_type,
                     "symbol": widget["symbol"].get(),
                     "fraction": widget["fraction"].get(),
-                    "valence": valence
+                    "valence": valence,
+                    "real_stoichiometry": float(stoichiometry)*float(valence)
                 })
 
         num_anions = int(self.site_widgets["anion"]["combobox_num"].get())

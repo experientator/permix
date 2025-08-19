@@ -1,209 +1,67 @@
-import logging
 import math
-from decimal import (
-    Decimal,
-    InvalidOperation,
-)  # Добавил ROUND_HALF_UP для единообразия, если понадобится
-from typing import Any, Dict, List, Optional, Union
+import tkinter.messagebox as mb
+from analysis.database_utils import get_ionic_radius, get_template_site_types, get_template_site_valences
 
-from src.app.data_processing import db_manager  # Обновленный импорт
-
-logger = logging.getLogger(__name__)
-
-# Координационные числа по умолчанию для расчетов
 DEFAULT_CN_A = 12
 DEFAULT_CN_B = 6
-DEFAULT_CN_X = 6  # Обычно для аниона в октаэдре с B, или в кубооктаэдре с A
-# Порог для проверки деления на ноль и незначительных значений
-ZERO_THRESHOLD = Decimal("1e-9")
+DEFAULT_CN_X = 6
 
+def show_error(message):
+    mb.showerror(title="error", message=message)
 
-def _get_radius(symbol: str, charge: int, cn: int) -> Optional[Decimal]:
-    """
-    Внутренняя функция-обертка для получения радиуса из db_manager
-    и преобразования его в Decimal.
-    """
-    radius_float = db_manager.get_ionic_radius(symbol, charge, cn)
-    if radius_float is None:
-        # db_manager.get_ionic_radius уже должен логировать отсутствие или null
-        return None
-    try:
-        # Используем строку для точности преобразования float -> Decimal
-        radius_decimal = Decimal(str(radius_float))
-        # Проверка, что радиус положительный
-        if radius_decimal <= ZERO_THRESHOLD:
-            logger.warning(
-                f"GEOM_CALC: Радиус для {symbol} (заряд {charge}, CN {cn}) равен или меньше нуля ({radius_decimal}). Возвращается None."
-            )
-            return None
-        return radius_decimal
-    except InvalidOperation:
-        logger.error(
-            f"GEOM_CALC: Не удалось преобразовать радиус {radius_float} для {symbol} в Decimal."
-        )
-        return None
-
-
-def calculate_effective_radius(
-    components: List[Dict[str, Any]],
-    charge: int,
-    cn: int,
-    fraction_key: str = "fraction_on_site",  # Ключ для доли компонента
-) -> Optional[Decimal]:
-    """
-    Рассчитывает эффективный ионный радиус для смешанного сайта (например, A или X).
-    Использует линейную комбинацию радиусов компонентов r_eff = sum(x_i * r_i).
-
-    Args:
-        components: Список словарей компонентов на сайте. Каждый словарь
-                    должен содержать 'symbol' и ключ с долей (fraction_key).
-        charge: Целевой заряд ионов на этом сайте (для получения индивидуальных радиусов).
-        cn: Целевое координационное число (для получения индивидуальных радиусов).
-        fraction_key: Ключ в словаре component, указывающий на долю.
-                      Для катионов это "fraction_on_site", для анионов "fraction".
-
-    Returns:
-        Усредненный радиус как Decimal, или None если радиус для любого
-        значимого компонента не найден или сумма долей некорректна.
-    """
-    if not components:
-        logger.warning(
-            "GEOM_CALC: calculate_effective_radius: Получен пустой список компонентов."
-        )
-        return None
-
-    total_fraction = Decimal("0.0")
-    weighted_radius_sum = Decimal("0.0")
+def calculate_effective_radius(components, charge, cn):
+    total_fraction = 0
+    weighted_radius_sum = 0
     missing_radius_for_significant_component = False
 
     for comp_data in components:
-        symbol = comp_data.get("symbol")
-        fraction_val = comp_data.get(fraction_key)
-
-        if not symbol:
-            logger.warning(
-                "GEOM_CALC: calculate_effective_radius: Пропущен компонент без символа."
-            )
-            continue
-
-        try:
-            # Доля может быть уже Decimal или строкой (например, из JSON избранного)
-            if isinstance(fraction_val, Decimal):
-                fraction = fraction_val
-            elif fraction_val is not None:
-                fraction = Decimal(str(fraction_val))
-            else:  # fraction_val is None
-                fraction = Decimal("0.0")
-
-            if (
-                fraction < ZERO_THRESHOLD
-            ):  # Пропускаем компоненты с нулевой или незначительной долей
-                continue
-        except (InvalidOperation, TypeError) as e:
-            logger.warning(
-                f"GEOM_CALC: calculate_effective_radius: Некорректная доля '{fraction_val}' для {symbol}. Ошибка: {e}. Пропуск компонента."
-            )
-            continue  # Пропускаем этот компонент
+        name = comp_data.get("symbol")
+        fraction = comp_data.get("fraction")
 
         total_fraction += fraction
-        radius_comp = _get_radius(symbol, charge, cn)
+        radius_comp = get_ionic_radius(name, charge, cn)
 
         if radius_comp is None:
-            logger.warning(
-                f"GEOM_CALC: calculate_effective_radius: Не найден радиус для компонента {symbol} (заряд {charge}, CN {cn}) с долей {fraction}. "
-                "Расчет эффективного радиуса невозможен."
+            show_error( f"GEOM_CALC: calculate_effective_radius: Не найден радиус для компонента {name} (заряд {charge}, CN {cn})"
             )
             missing_radius_for_significant_component = True
-            break  # Если для значимого компонента нет радиуса, дальше считать нет смысла
+            break
         else:
             weighted_radius_sum += fraction * radius_comp
 
     if missing_radius_for_significant_component:
         return None
 
-    # Проверка суммы долей (должна быть близка к 1.0 для корректного расчета)
-    # Допуск 0.01 (1%)
-    if abs(total_fraction - Decimal("1.0")) > Decimal("0.01"):
-        logger.warning(
-            f"GEOM_CALC: calculate_effective_radius: Сумма долей ({total_fraction:.4f}) для расчета эффективного радиуса "
-            f"существенно отличается от 1.0. Результат может быть неточным."
-        )
-        # Можно решить, возвращать ли None или результат "как есть".
-        # Если сумма долей 0, то делить нельзя.
-        if total_fraction <= ZERO_THRESHOLD:
-            logger.error(
-                "GEOM_CALC: Сумма долей равна нулю, невозможно рассчитать эффективный радиус."
-            )
-            return None
-    elif (
-        total_fraction <= ZERO_THRESHOLD
-    ):  # Если сумма долей 0, но прошла проверку выше (маловероятно)
-        logger.warning(
-            "GEOM_CALC: calculate_effective_radius: Общая доля компонентов равна нулю. Невозможно рассчитать радиус."
-        )
-        return None
-
-    # Нормализация не требуется, если мы используем r_eff = sum(x_i * r_i),
-    # и сумма x_i предполагается равной 1. Если она не равна 1, это проблема входных данных.
-    # Однако, если мы все же хотим получить результат, можно раскомментировать нормализацию:
-    # effective_radius = weighted_radius_sum / total_fraction
-    # Но лучше, чтобы данные были корректны на входе.
-    # Сейчас мы просто возвращаем сумму произведений долей на радиусы.
     effective_radius = weighted_radius_sum
     return effective_radius
 
 
-def _calculate_goldschmidt_factor(
-    rA: Decimal, rB: Decimal, rX: Decimal
-) -> Optional[Decimal]:
+def _calculate_goldschmidt_factor(rA, rB, rX):
     """Рассчитывает фактор толерантности Гольдшмидта t = (rA + rX) / (sqrt(2) * (rB + rX))."""
-    denominator_sum = rB + rX
-    if abs(denominator_sum) < ZERO_THRESHOLD:
-        logger.error(
-            "GEOM_CALC: _calculate_goldschmidt_factor: Сумма (rB + rX) близка к нулю. Делитель будет нулевым."
-        )
-        return None
-
-    denominator = denominator_sum * Decimal(str(math.sqrt(2)))
-    if abs(denominator) < ZERO_THRESHOLD:  # Дополнительная проверка на всякий случай
-        logger.error(
-            "GEOM_CALC: _calculate_goldschmidt_factor: Делитель (rB + rX) * sqrt(2) близок к нулю. Невозможно рассчитать t."
-        )
-        return None
+    denominator = (rB + rX) * math.sqrt(2)
     try:
         t_factor = (rA + rX) / denominator
-        return t_factor  # Округление будет в вызывающей функции или при форматировании
-    except (
-        Exception
-    ) as e:  # Ловим возможные ошибки деления, хотя проверки выше должны их предотвратить
-        logger.error(
+        return t_factor
+    except Exception as e:
+        show_error(
             f"GEOM_CALC: _calculate_goldschmidt_factor: Ошибка при расчете t: {e}"
         )
         return None
 
 
-def _calculate_octahedral_factor(rB: Decimal, rX: Decimal) -> Optional[Decimal]:
+def _calculate_octahedral_factor(rB, rX):
     """Рассчитывает октаэдрический фактор μ = rB / rX."""
-    if abs(rX) < ZERO_THRESHOLD:
-        logger.error(
-            "GEOM_CALC: _calculate_octahedral_factor: Радиус аниона rX близок к нулю. Невозможно рассчитать μ."
-        )
-        return None
     try:
         mu_factor = rB / rX
-        return mu_factor  # Округление в вызывающей функции или при форматировании
+        return mu_factor
     except Exception as e:
-        logger.error(
+        show_error(
             f"GEOM_CALC: _calculate_octahedral_factor: Ошибка при расчете μ: {e}"
         )
         return None
 
 
-def calculate_geometry_factors(
-    cation_config: Dict[str, List[Dict[str, Any]]],
-    anion_config: Dict[str, Any],
-    template_data: Dict[str, Any],
-) -> Dict[str, Union[Decimal, str, None]]:
+def calculate_geometry_factors(cation_config, anion_config, template_data):
     """
     Рассчитывает геометрические факторы (t, μ) для заданного состава и шаблона.
 
@@ -221,97 +79,58 @@ def calculate_geometry_factors(
                  {'t': "N/A", 'mu': Decimal('0.600')}
                  {'t': None, 'mu': None, 'mu_prime': None, 'mu_double_prime': None, 'error': "Сообщение об ошибке"}
     """
-    results: Dict[str, Union[Decimal, str, None]] = {
+    results = {
         "t": None,
         "mu": None,
         "mu_prime": None,
         "mu_double_prime": None,
     }
-    # Сообщение об ошибке, если что-то пойдет не так
-    error_message: Optional[str] = None
 
-    if not template_data or not cation_config or not anion_config:
-        logger.error(
-            "GEOM_CALC: calculate_geometry_factors: Отсутствуют входные данные (конфиг или шаблон)."
-        )
-        results["error"] = "Отсутствуют входные данные для расчета геом. факторов."
-        return results  # Не можем продолжать
+    error_message = None
 
     dimensionality = template_data.get("dimensionality")
     sites_info_from_template = template_data.get("sites", {})
     anion_mix_list = anion_config.get("anion_mix", [])
 
     # --- 1. Расчет эффективного радиуса аниона rX ---
-    # Предполагается, что anion_mix_list содержит доли как Decimal
-    rX_eff = calculate_effective_radius(
-        anion_mix_list, charge=-1, cn=DEFAULT_CN_X, fraction_key="fraction"
-    )
-    if rX_eff is None:
-        error_message = "Не удалось рассчитать эффективный радиус аниона rX."
-        logger.error(f"GEOM_CALC: {error_message}")
-        results["error"] = error_message
-        return results  # Критическая ошибка, без rX ничего не посчитать
+    rX_eff = calculate_effective_radius(anion_mix_list, charge=-1, cn=DEFAULT_CN_X)
 
     # --- 2. Определение ключевых сайтов из шаблона ---
     # (используем .lower() для большей гибкости к регистру ключей в JSON)
-    a_site_key_config = next(
-        (k for k in sites_info_from_template if k.lower().startswith("a_site")), None
-    )
-    spacer_site_key_config = next(
-        (k for k in sites_info_from_template if k.lower().startswith("spacer")), None
-    )
-    # Для B-сайтов ищем более точные совпадения
-    b_site_key_config = next(
-        (k for k in sites_info_from_template if k.lower() == "b_site"), None
-    )
-    b_prime_key_config = next(
-        (k for k in sites_info_from_template if k.lower().startswith("b_prime")), None
-    )
-    b_double_prime_key_config = next(
-        (k for k in sites_info_from_template if k.lower().startswith("b_double_prime")),
-        None,
-    )
+    a_site_config, spacer_config, b_site_config, b_double_config = get_template_site_types(template_id)
 
     # --- 3. Расчет эффективных радиусов катионов ---
-    rA_eff: Optional[Decimal] = None
-    rB_eff: Optional[Decimal] = None  # Для обычного B-сайта
-    rB_prime_eff: Optional[Decimal] = None  # Для B' в двойных
-    rB_double_prime_eff: Optional[Decimal] = None  # Для B'' в двойных
-    rB_overall_avg_for_t: Optional[Decimal] = None  # Средний B для расчета t в двойных
+    rA_eff = None
+    rB_eff = None  # Для обычного B-сайта
+    rB_prime_eff = None  # Для B' в двойных
+    rB_double_prime_eff = None  # Для B'' в двойных
+    rB_overall_avg_for_t = None  # Средний B для расчета t в двойных
 
-    # A-сайт (или Spacer-сайт, если A-сайта нет но есть спейсер)
     # Радиус A нужен для фактора Гольдшмидта (t)
-    actual_a_site_key_for_radius = a_site_key_config or spacer_site_key_config
+    actual_a_site_key_for_radius = a_site_config or spacer_config
 
     if actual_a_site_key_for_radius and actual_a_site_key_for_radius in cation_config:
         a_components_list = cation_config[actual_a_site_key_for_radius]
-        # Берем первый разрешенный заряд для A-сайта из шаблона
-        a_charge = sites_info_from_template[actual_a_site_key_for_radius].get(
-            "allowed_valences", [0]
-        )[0]
+        a_charge = get_template_site_valences(template_id, "a_site")
         if a_charge > 0:
             rA_eff = calculate_effective_radius(
                 a_components_list, charge=a_charge, cn=DEFAULT_CN_A
             )
             if rA_eff is None:
-                logger.warning(
+                show_error(
                     f"GEOM_CALC: Не удалось рассчитать rA для сайта {actual_a_site_key_for_radius}. Фактор 't' может быть не рассчитан."
                 )
         else:
-            logger.warning(
+            show_error(
                 f"GEOM_CALC: Некорректный или отсутствующий заряд для A-сайта {actual_a_site_key_for_radius} в шаблоне."
             )
-    elif dimensionality == 3:  # Если 3D, а A-катиона нет в конфиге или шаблоне
-        logger.warning(
-            "GEOM_CALC: Для 3D структуры не найден A-сайт в конфигурации или шаблоне. Фактор 't' не будет рассчитан."
-        )
 
     # B-сайты (обычный или двойной)
-    is_double_perovskite_structure = b_prime_key_config and b_double_prime_key_config
+    is_double_perovskite_structure = b_site_config and b_double_config
 
     if is_double_perovskite_structure:
         # B' сайт
-        if b_prime_key_config in cation_config:
+        if b_site_config in cation_config:
             bp_components = cation_config[b_prime_key_config]
             bp_charge = sites_info_from_template[b_prime_key_config].get(
                 "allowed_valences", [0]
