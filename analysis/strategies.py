@@ -1,22 +1,19 @@
-import logging
-from decimal import ROUND_HALF_UP, Decimal
+
 from itertools import combinations
-from typing import Any, Dict, List, Optional, Tuple
 
 from analysis.chemistry_utils import get_salt_formula
 from analysis.geometry_calculator import show_error
+import constants
 
 ANION_REQ_ZERO_THRESHOLD = 1e-6
 COEFF_ZERO_THRESH = 1e-6
 ZERO_THRESHOLD = 1e-9
 COEFF_QUANT_PREC = 0.00001
 
-halides = ["Cl", "Br", "I"]
-
 class StrategyCalculationError(ValueError):
     pass
 
-def calculate_coefficients_all_flexible(flexible_cations, anions):
+def _calculate_coefficients_all_flexible(flexible_cations, anions):
     coeffs_all_flex = {}
     error_msg = None
     active_target_anions = {
@@ -32,8 +29,8 @@ def calculate_coefficients_all_flexible(flexible_cations, anions):
     for cation_data in flexible_cations:
         cs, csip, cv = (
             cation_data["symbol"],
-            cation_data["real_stoichiometry"],
-            cation_data["valence"],
+            float(cation_data["real_stoichiometry"]),
+            int(cation_data["valence"]),
         )
         for hs, tmh in active_target_anions.items():
             anion_frac = tmh / total_active_target_anion_moles
@@ -49,20 +46,20 @@ def calculate_coefficients_all_flexible(flexible_cations, anions):
     return (None, error_msg) if error_msg else (coeffs_all_flex, None)
 
 
-def calculate_coefficients_compensatory(rigid_cations, flexible_cations,
+def _calculate_coefficients_compensatory(rigid_cations, flexible_cations,
                                          base_X_anion_for_rigid,
                                          target_anion_moles_map):
     coeffs = {}
     error_msg = None
     anions_provided_by_rigid = {
-        h: 0 for h in halides
+        h: 0 for h in constants.halides
     }
 
     for rc_data in rigid_cations:
         rcs, rcsip, rcv = (
             rc_data["symbol"],
-            rc_data["real_stoichiometry"],
-            rc_data["valence"],
+            float(rc_data["real_stoichiometry"]),
+            int(rc_data["valence"]),
         )
         rc_sc = rcsip
         try:
@@ -78,7 +75,7 @@ def calculate_coefficients_compensatory(rigid_cations, flexible_cations,
 
     required_anions_from_flex = {}
     possible = True
-    for hs in halides:
+    for hs in constants.halides:
         target = float(target_anion_moles_map.get(hs, 0.0))
         provided = float(anions_provided_by_rigid.get(hs, 0.0))
         required = target - provided
@@ -104,7 +101,7 @@ def calculate_coefficients_compensatory(rigid_cations, flexible_cations,
         return coeffs, None
 
     anions_actually_provided_by_flex = {
-        h: 0 for h in halides
+        h: 0 for h in constants.halides
     }
 
     # --- ИСПРАВЛЕННАЯ ЛОГИКА ДЛЯ ГИБКИХ КАТИОНОВ ---
@@ -116,8 +113,8 @@ def calculate_coefficients_compensatory(rigid_cations, flexible_cations,
     for fc_data in flexible_cations:
         fcs, fcsip, fcv = (
             fc_data["symbol"],
-            fc_data["real_stoichiometry"],
-            fc_data["valence"],
+            float(fc_data["real_stoichiometry"]),
+            int(fc_data["valence"]),
         )
         # if total_remaining_anion_need_from_flex <= 1e-9:
         #     # Если анионы от гибких не нужны, но сами гибкие катионы нужны (fcsip > 0),
@@ -250,9 +247,7 @@ def calculate_strategies_coefficients(active_cations_details,
             if current_coeffs is not None:
                 for salt, coeff_val in current_coeffs.items():
                     if abs(coeff_val) >= COEFF_ZERO_THRESH:
-                        quantized_coeff = coeff_val.quantize(
-                            COEFF_QUANT_PREC, ROUND_HALF_UP
-                        )
+                        quantized_coeff = round(coeff_val / COEFF_QUANT_PREC) * COEFF_QUANT_PREC
                         if abs(quantized_coeff) > ZERO_THRESHOLD:
                             final_coeffs_for_strategy[salt] = quantized_coeff
 

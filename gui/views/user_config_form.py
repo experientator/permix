@@ -4,8 +4,8 @@ from tkinter import ttk
 from analysis.database_utils import (get_templates_list, get_template_id, get_template_sites,
                                      get_candidate_cations, get_solvents, get_anion_stoichiometry)
 from analysis.chemistry_utils import get_salt_formula, calculate_target_anion_moles
-from analysis.strategies import calculate_coefficients_all_flexible
 from gui.controllers.templates_check import TemplatesCheckController
+from analysis.strategies import calculate_strategies_coefficients
 
 class UserConfigView(tk.Toplevel):
     def __init__(self, parent, controller):
@@ -230,8 +230,10 @@ class UserConfigView(tk.Toplevel):
     def create_k_factors_frame(self):
         self.salt_formulas = []
         cations, anions = self.get_structure_data()
-        anions_listt = calculate_target_anion_moles(anions, self.anion_stoichiometry)
-        print(calculate_coefficients_all_flexible(cations, anions_listt))
+        target_anion_moles_map = calculate_target_anion_moles(anions, self.anion_stoichiometry)
+        print(calculate_strategies_coefficients(cations,
+                                          target_anion_moles_map,
+                                          "Cl"))
         cation_valences = [cation["valence"] for cation in cations]
         cation_symbols = [cation["symbol"] for cation in cations]
         anion_symbols = [anion["symbol"] for anion in anions]
@@ -278,7 +280,7 @@ class UserConfigView(tk.Toplevel):
                     "symbol": widget["symbol"].get(),
                     "fraction": widget["fraction"].get(),
                     "valence": valence,
-                    "real_stoichiometry": float(stoichiometry)*float(valence)
+                    "real_stoichiometry": float(stoichiometry)*float(widget["fraction"].get())
                 })
 
         num_anions = int(self.site_widgets["anion"]["combobox_num"].get())

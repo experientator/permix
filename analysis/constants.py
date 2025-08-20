@@ -1,0 +1,1 @@
+halides = ["Cl", "Br", "I"]
