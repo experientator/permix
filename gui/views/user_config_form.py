@@ -3,7 +3,7 @@ from tkinter import ttk
 
 from analysis.database_utils import (get_templates_list, get_template_id, get_template_sites,
                                      get_candidate_cations, get_solvents, get_anion_stoichiometry)
-from analysis.chemistry_utils import get_salt_formula, calculate_target_anion_moles
+from analysis.chemistry_utils import get_salt_formula, calculate_target_anion_moles, generate_formula_string
 from gui.controllers.templates_check import TemplatesCheckController
 from analysis.strategies import calculate_strategies_coefficients
 
@@ -234,6 +234,7 @@ class UserConfigView(tk.Toplevel):
         print(calculate_strategies_coefficients(cations,
                                           target_anion_moles_map,
                                           "Cl"))
+        print(generate_formula_string(cations, anions, self.anion_stoichiometry))
         cation_valences = [cation["valence"] for cation in cations]
         cation_symbols = [cation["symbol"] for cation in cations]
         anion_symbols = [anion["symbol"] for anion in anions]
@@ -280,6 +281,7 @@ class UserConfigView(tk.Toplevel):
                     "symbol": widget["symbol"].get(),
                     "fraction": widget["fraction"].get(),
                     "valence": valence,
+                    "stoichiometry": float(stoichiometry),
                     "real_stoichiometry": float(stoichiometry)*float(widget["fraction"].get())
                 })
 

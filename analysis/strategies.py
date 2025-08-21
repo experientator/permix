@@ -3,7 +3,7 @@ from itertools import combinations
 
 from analysis.chemistry_utils import get_salt_formula
 from analysis.geometry_calculator import show_error
-import constants
+import analysis.constants as constants
 
 ANION_REQ_ZERO_THRESHOLD = 1e-6
 COEFF_ZERO_THRESH = 1e-6

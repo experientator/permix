@@ -2,7 +2,7 @@ import re
 import periodictable
 from analysis.database_utils import get_cation_formula
 from analysis.geometry_calculator import show_error
-import constants
+import analysis.constants as constants
 
 def calculate_formula_molar_mass(formula_str):
     try:
@@ -100,17 +100,19 @@ def determine_base_anion_for_rigid_cations(anions_moles):
 
     return base_X_rigid
 
+def round_cations(cations_site):
+    return "(" + cations_site + ")"
+
 def generate_formula_string(cations_config,
                             anions_config,
-                            template_sites_info,
                             anion_stoichiometry):
     SITE_DISPLAY_ORDER = [
         "a_site",
         "spacer",
         "b_site",
         "b_double",
+        "anion"
     ]
-    full_cation_formula_parts = []
 
     cations_by_site = {site_type: [] for site_type in SITE_DISPLAY_ORDER}
 
@@ -119,78 +121,38 @@ def generate_formula_string(cations_config,
         if site_type in cations_by_site:
             cations_by_site[site_type].append(cation)
 
-    full_cation_formula_parts = []
+    full_cation_formula = ""
+    site_cation_parts = ""
+    round_flag = 0
+    site_stoich: str
+    anion_flag = 0
 
     for site_key_ordered in SITE_DISPLAY_ORDER:
-        components_on_this_site = cations_by_site[site_key_ordered]
+        if site_key_ordered == "anion":
+            components_on_this_site = anions_config
+            anion_flag = 1
+        else:
+            components_on_this_site = cations_by_site[site_key_ordered]
+        components_on_this_site.sort(key=lambda x: float(x["fraction"]), reverse=True)
         if not components_on_this_site:
             continue
+        for component in components_on_this_site:
+            if anion_flag == 1:
+                site_stoich = str(anion_stoichiometry)
+            else:
+                site_stoich = str(component["stoichiometry"])
+            if float(component["fraction"]) == 1:
+                site_cation_parts += component["symbol"]
+                round_flag = 1
+            else:
+                site_cation_parts += component["symbol"]
+                site_cation_parts += str(round(float(component["fraction"]), 3))
+        if round_flag == 0:
+            site_cation_parts = round_cations(site_cation_parts)
+        full_cation_formula += site_cation_parts
+        site_cation_parts = ""
+        round_flag = 0
+        if float(site_stoich) != 1.0:
+            full_cation_formula += str(int(float(site_stoich)))
 
-            site_cation_parts_str_list = []
-            base_stoich_for_this_site_from_template = 1.0
-            site_info_from_tpl = template_sites_info.get(site_key_ordered)
-
-            if site_info_from_tpl and isinstance(site_info_from_tpl, dict):
-                base_stoich_val = site_info_from_tpl.get("base_stoichiometry", "1.0")
-
-            needs_site_parentheses = (len(components_on_this_site) > 1) or (
-                len(components_on_this_site) == 1
-                and abs(base_stoich_for_this_site_from_template - 1.0)
-                > 1e-9
-            )
-
-            for component_data in components_on_this_site:
-                symbol = component_data.get("symbol")
-                fraction_on_site_dec = component_data.get("fraction_on_site")
-
-                formatted_fraction_str = format_coefficient(
-                    fraction_on_site_dec, precision=2
-                )
-                site_cation_parts_str_list.append(
-                    f"{symbol}{formatted_fraction_str if formatted_fraction_str else ''}"
-                )
-
-            if site_cation_parts_str_list:
-                concatenated_site_cations_str = "".join(site_cation_parts_str_list)
-                if needs_site_parentheses:
-                    concatenated_site_cations_str = f"({concatenated_site_cations_str})"
-
-                formatted_site_stoich_str = format_coefficient(
-                    base_stoich_for_this_site_from_template, precision=2
-                )
-                if formatted_site_stoich_str:
-                    concatenated_site_cations_str += formatted_site_stoich_str
-                full_cation_formula_parts.append(concatenated_site_cations_str)
-
-    full_cation_str = "".join(full_cation_formula_parts)
-    if not full_cation_str:
-        full_cation_str = "[Катионы?]"
-
-    anion_formula_part_str = ""
-
-    if len(anions_config) == 1:
-        anion_formula_part_str = anions_config[0]["symbol"]
-    else:
-        halide_order_map = {h: i for i, h in enumerate(constants.halides)}
-        anions_config.sort(
-            key=lambda x: halide_order_map.get(x["symbol"], 99)
-        )
-        anion_parts_list = []
-        for anion_data in anions_config:
-            symbol = anion_data["symbol"]
-            fraction = anion_data["fraction"]
-            formatted_fraction_str = format_coefficient(fraction, precision=2)
-            anion_parts_list.append(
-                f"{symbol}{formatted_fraction_str if formatted_fraction_str else ''}"
-            )
-        anion_formula_part_str = f"({''.join(anion_parts_list)})"
-
-    formatted_total_anion_stoich_str = format_coefficient(
-        anion_stoichiometry, precision=2
-    )
-    if formatted_total_anion_stoich_str:
-        anion_formula_part_str += formatted_total_anion_stoich_str
-
-    final_formula = f"{full_cation_str}{anion_formula_part_str}"
-    logger.info(f"DISPLAY_FORMATTERS: Сгенерированная формула: {final_formula}")
-    return final_formula
+    return full_cation_formula
