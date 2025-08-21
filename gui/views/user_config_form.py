@@ -1,11 +1,15 @@
 import tkinter as tk
+import tkinter.messagebox as mb
 from tkinter import ttk
+
+from Lib.tkinter import IntVar
 
 from analysis.database_utils import (get_templates_list, get_template_id, get_template_sites,
                                      get_candidate_cations, get_solvents, get_anion_stoichiometry)
 from analysis.chemistry_utils import get_salt_formula, calculate_target_anion_moles, generate_formula_string
 from gui.controllers.templates_check import TemplatesCheckController
 from analysis.strategies import calculate_strategies_coefficients
+from analysis.masses_calculator import calculate_precursor_masses
 
 class UserConfigView(tk.Toplevel):
     def __init__(self, parent, controller):
@@ -50,9 +54,9 @@ class UserConfigView(tk.Toplevel):
         self.sites_frame.pack(fill='x', pady=5)
 
         self.name = self.phase_template.get()
-        template_id = get_template_id(self.name)
-        sites_data = get_template_sites(template_id)
-        self.anion_stoichiometry = get_anion_stoichiometry(template_id)
+        self.template_id = get_template_id(self.name)
+        sites_data = get_template_sites(self.template_id)
+        self.anion_stoichiometry = get_anion_stoichiometry(self.template_id)
         values_sites = ["1", "2", "3", "4"]
 
         for field in self.sites_frame.winfo_children():
@@ -120,7 +124,10 @@ class UserConfigView(tk.Toplevel):
             "dynamic_widgets": []
         }
         self._update_site(site_type, 0)
-
+        self.antisolv_check = IntVar(self)
+        self.anticolvents_cb = tk.Checkbutton(self.first_column, text = "Наличие антирастворителей",
+                                              variable = self.antisolv_check)
+        self.anticolvents_cb.pack(fill='x', pady=5)
         self.upload_button = tk.Button(self.first_column, text = "подтвердить состав", command = self.create_solvents)
         self.upload_button.pack(fill='x', pady=5)
 
@@ -183,10 +190,14 @@ class UserConfigView(tk.Toplevel):
 
     def create_solvents(self):
         self.upload_button["state"] = "disabled"
+        self.anticolvents_cb["state"] = "disabled"
         self.solvents_frame = tk.LabelFrame(self.first_column, text="растворители")
         self.solvents_frame.pack(fill='x', pady=5)
 
-        solvent_type = ["solvent", "antisolvent"]
+        if self.antisolv_check.get() == 1:
+            self.solvent_type = ["solvent", "antisolvent"]
+        else: self.solvent_type = ["solvent"]
+
         values_solvents = ["1", "2"]
 
         for field in self.solvents_frame.winfo_children():
@@ -200,7 +211,7 @@ class UserConfigView(tk.Toplevel):
 
         self.solvents_widgets = {}
 
-        for type in solvent_type:
+        for type in self.solvent_type:
             current_row = self.get_next_row(self.solvents_widgets)
             label_solvent = tk.Label(self.solvents_frame, text=type)
             label_solvent.grid(row=current_row, column=0, padx=5, pady=2)
@@ -246,12 +257,41 @@ class UserConfigView(tk.Toplevel):
         self.k_factors_frame = tk.LabelFrame(self.first_column, text="K-факторы")
         self.k_factors_frame.pack(fill='x', pady=5)
         tk.Button(self.k_factors_frame, text="Просмотр возможных солей",
-                  command = self.create_k_factors_widgets).grid(row=0, column=0)
+                  command = self.show_salts_info).grid(row=0, column=0)
         tk.Button(self.k_factors_frame, text="Добавить k-фактор",
                   command = self.create_k_factors_widgets).grid(row=0, column=1)
         tk.Label(self.k_factors_frame, text="Соль").grid(row=1, column=0)
         tk.Label(self.k_factors_frame, text="К-фактор").grid(row=1, column=1)
         self.k_factors_widgets = {}
+        self.k_factors_widgets = {
+            "dynamic_widgets": []
+        }
+        self.data_button()
+
+    def data_button(self):
+        self.data_apply_button_frame = tk.LabelFrame(self.first_column)
+        self.data_apply_button_frame.pack(fill='x', pady=5)
+        self.data_apply_button = tk.Button(self.data_apply_button_frame, text = "Начать расчет", command = self.calculations_function)
+        self.data_apply_button.pack(fill='x', pady=5)
+
+    def calculations_function(self):
+        cations, anions = self.get_structure_data()
+        solvents, solution_info = self.get_solution_data()
+        k_factors = self.get_k_factors_data()
+
+        print(calculate_precursor_masses(
+                self.template_id, cations,
+                anions, self.anion_stoichiometry,
+                solution_info, solvents,
+                k_factors))
+
+    def show_salts_info(self):
+        salt_text = ""
+        for salt in self.salt_formulas:
+            salt_text += salt
+            salt_text += ", "
+        salt_text = salt_text[:-2]
+        mb.showinfo("Список солей", f"Список возможных солей для данного соединения:{salt_text}")
 
     def create_k_factors_widgets(self):
         self.current_row+=1
@@ -265,6 +305,41 @@ class UserConfigView(tk.Toplevel):
         combobox_salts.grid(row=self.current_row, column=0, padx=5, pady=2)
         entry_k_factor = tk.Entry(self.k_factors_frame, width=10)
         entry_k_factor.grid(row=self.current_row, column=1, padx=5, pady=2)
+        self.k_factors_widgets["dynamic_widgets"].append({
+            "salt": combobox_salts,
+            "k_factor": entry_k_factor
+        })
+
+    def get_solution_data(self):
+        solvents = []
+        for idx, solvent_type in enumerate(self.solvent_type):
+            num_solvents = int(self.solvents_widgets[solvent_type]["combobox_num"].get())
+            for i in range(num_solvents):
+                widget = self.solvents_widgets[solvent_type]["dynamic_widgets"][i]
+                solvents.append({
+                    "solvent_type": solvent_type,
+                    "symbol": widget["symbol"].get(),
+                    "fraction": widget["fraction"].get(),
+                })
+        solution_info = {
+            "v_solvent": float(self.entry_v_solvent.get()),
+            "c_solvent": float(self.entry_c_solvent.get()),
+            "v_antisolvent": 0.0
+        }
+        if self.antisolv_check.get() == 1:
+            solution_info["v_antisolvent"] = float(self.entry_v_antisolvent.get())
+        return solvents, solution_info
+
+    def get_k_factors_data(self):
+        k_factors = []
+        num_k_factors = len(self.k_factors_widgets["dynamic_widgets"])
+        for i in range(num_k_factors):
+            widget = self.k_factors_widgets["dynamic_widgets"][i]
+            k_factors.append({
+                "salt": widget["salt"].get(),
+                "k_factor": widget["k_factor"].get(),
+            })
+        return k_factors
 
     def get_structure_data(self):
         cations = []
@@ -329,11 +404,13 @@ class UserConfigView(tk.Toplevel):
         self.propereties_frame.pack(fill='x', pady=5)
         tk.Label(self.propereties_frame, text="Объем раствора").grid(row=0, column=0)
         tk.Label(self.propereties_frame, text="Концентрация раствора").grid(row=0, column=1)
-        tk.Label(self.propereties_frame, text="Объем антирастворителя").grid(row=0, column=2)
+        if self.antisolv_check.get() == 1:
+            tk.Label(self.propereties_frame, text="Объем антирастворителя").grid(row=0, column=2)
 
         self.entry_v_solvent = tk.Entry(self.propereties_frame, width=10)
         self.entry_v_solvent.grid(row=1, column=0, padx=5, pady=2)
         self.entry_c_solvent = tk.Entry(self.propereties_frame, width=10)
         self.entry_c_solvent.grid(row=1, column=1, padx=5, pady=2)
-        self.entry_v_antisolvent = tk.Entry(self.propereties_frame, width=10)
-        self.entry_v_antisolvent.grid(row=1, column=2, padx=5, pady=2)
+        if self.antisolv_check.get() == 1:
+            self.entry_v_antisolvent = tk.Entry(self.propereties_frame, width=10)
+            self.entry_v_antisolvent.grid(row=1, column=2, padx=5, pady=2)

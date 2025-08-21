@@ -1,8 +1,10 @@
 import re
 import periodictable
 from analysis.database_utils import get_cation_formula
-from analysis.geometry_calculator import show_error
 import analysis.constants as constants
+
+def show_error(message):
+    mb.showerror(title="error", message=message)
 
 def calculate_formula_molar_mass(formula_str):
     try:
@@ -103,23 +105,20 @@ def determine_base_anion_for_rigid_cations(anions_moles):
 def round_cations(cations_site):
     return "(" + cations_site + ")"
 
-def generate_formula_string(cations_config,
-                            anions_config,
-                            anion_stoichiometry):
-    SITE_DISPLAY_ORDER = [
-        "a_site",
-        "spacer",
-        "b_site",
-        "b_double",
-        "anion"
-    ]
-
-    cations_by_site = {site_type: [] for site_type in SITE_DISPLAY_ORDER}
-
+def separate_cations_by_site(cations_config):
+    cations_by_site = {site_type: [] for site_type in constants.SITE_DISPLAY_ORDER}
     for cation in cations_config:
         site_type = cation["structure_type"]
         if site_type in cations_by_site:
             cations_by_site[site_type].append(cation)
+
+    return cations_by_site
+
+def generate_formula_string(cations_config,
+                            anions_config,
+                            anion_stoichiometry):
+
+    cations_by_site = separate_cations_by_site(cations_config)
 
     full_cation_formula = ""
     site_cation_parts = ""
@@ -127,7 +126,7 @@ def generate_formula_string(cations_config,
     site_stoich: str
     anion_flag = 0
 
-    for site_key_ordered in SITE_DISPLAY_ORDER:
+    for site_key_ordered in constants.SITE_DISPLAY_ORDER:
         if site_key_ordered == "anion":
             components_on_this_site = anions_config
             anion_flag = 1
@@ -142,10 +141,10 @@ def generate_formula_string(cations_config,
             else:
                 site_stoich = str(component["stoichiometry"])
             if float(component["fraction"]) == 1:
-                site_cation_parts += component["symbol"]
+                site_cation_parts += str(component["symbol"])
                 round_flag = 1
             else:
-                site_cation_parts += component["symbol"]
+                site_cation_parts += str(component["symbol"])
                 site_cation_parts += str(round(float(component["fraction"]), 3))
         if round_flag == 0:
             site_cation_parts = round_cations(site_cation_parts)

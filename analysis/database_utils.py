@@ -34,6 +34,14 @@ def get_anion_stoichiometry(id_template):
     conn.close()
     return int(anion_stoichiometry[0])
 
+def get_dimensionality(id_template):
+    conn = sqlite3.connect("data.db")
+    cursor = conn.cursor()
+    cursor.execute(f"SELECT dimensionality FROM Phase_templates WHERE id = ?", (id_template,))
+    dimensionality = cursor.fetchone()
+    conn.close()
+    return int(dimensionality[0])
+
 def get_template_id(name):
     conn = sqlite3.connect("data.db")
     cursor = conn.cursor()
