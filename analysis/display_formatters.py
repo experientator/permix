@@ -1,7 +1,27 @@
+import analysis.constants as constants
+import re
+from analysis.database_utils import get_cation_list_by_key
+
+def sort_key_salt(salt_formula_str):
+    match = re.match(r"([A-Z][a-zA-Z0-9_]*)(Cl|Br|I)(\d*)$", salt_formula_str.strip())
+
+    cation_key = match.group(1)
+    halide = match.group(2)
+    halide_index_str = match.group(3)
+    valence = int(halide_index_str) if halide_index_str else 1
+
+    category_priority = 2
+    if cation_key in get_cation_list_by_key("a_site_val_1"):
+        category_priority = 0
+    elif cation_key in get_cation_list_by_key(
+            "spacer_val_1"
+    ) or cation_key in get_cation_list_by_key("spacer_val_2"):
+        category_priority = 1
+
+    halide_priority = {"Cl": 0, "Br": 1, "I": 2}.get(halide, 9)
+    return (category_priority, valence, cation_key, halide_priority)
+
 def generate_reaction_equations_display(
-    phase_components_for_formula,
-    phase_anion_config_for_formula,
-    phase_template_sites_info_for_formula,
     calculation_results,
     sorted_equation_keys = None,
 ):
@@ -16,20 +36,20 @@ def generate_reaction_equations_display(
 
     input_summary = calculation_results.get("input_summary", {})
 
-    main_solvents_input: List[Dict[str, str]] = input_summary.get(
+    main_solvents_input = input_summary.get(
         "main_solvents_mix_input", []
     )
-    antisolvents_input: List[Dict[str, str]] = input_summary.get(
+    antisolvents_input = input_summary.get(
         "antisolvents_mix_input", []
     )
-    v_antisolvent_ml_input: Decimal = input_summary.get(
-        "V_antisolvent_ml_input", Decimal("0.0")
+    v_antisolvent_ml_input = input_summary.get(
+        "V_antisolvent_ml_input", 0.0
     )
-    v_main_solution_ml_input: Decimal = input_summary.get(
-        "V_solution_ml", Decimal("0.0")
+    v_main_solution_ml_input = input_summary.get(
+        "V_solution_ml", 0.0
     )
 
-    keys_to_iterate: List[str] = (
+    keys_to_iterate = (
         sorted_equation_keys
         if sorted_equation_keys is not None
         else sorted(
@@ -59,140 +79,81 @@ def generate_reaction_equations_display(
             )
             continue
 
-        reactants_parts_str_list: List[str] = []
+        reactants_parts_str_list = []
         sorted_salt_keys_for_eq_display = sorted(
             coefficients_map_for_eq.keys(), key=sort_key_salt
         )
 
         for salt_formula in sorted_salt_keys_for_eq_display:
-            coeff_val_decimal = coefficients_map_for_eq.get(salt_formula)
+            coeff_val = coefficients_map_for_eq.get(salt_formula)
             if (
-                coeff_val_decimal is None
-                or abs(coeff_val_decimal) < constants.ZERO_THRESHOLD
+                coeff_val is None
             ):
                 continue
-            formatted_coeff_str = format_coefficient(coeff_val_decimal, precision=3)
-            if formatted_coeff_str is None:
+            if coeff_val is None:
                 continue
             coeff_display_part = (
-                f"{formatted_coeff_str} " if formatted_coeff_str.strip() else ""
+                f"{coeff_val} "
             )
             reactants_parts_str_list.append(f"{coeff_display_part}{salt_formula}")
 
-        total_cost_val = eq_data.get(
-            "total_cost_final_k"
-        )  # Общая стоимость в target_currency
-        cost_str_part = ""
-
-        if total_cost_val is not None:
-            cost_display_parts = []
-            if target_currency == "USD":
-                cost_display_parts.append(f"{total_cost_val:.2f} USD")
-                if usd_to_rub_rate:
-                    rub_equiv = (total_cost_val * usd_to_rub_rate).quantize(
-                        Decimal("0.01"), ROUND_HALF_UP
-                    )
-                    cost_display_parts.append(f"{rub_equiv:.2f} RUB")
-            elif target_currency == "RUB":
-                cost_display_parts.append(f"{total_cost_val:.2f} RUB")
-                if usd_to_rub_rate:
-                    usd_equiv = (total_cost_val / usd_to_rub_rate).quantize(
-                        Decimal("0.01"), ROUND_HALF_UP
-                    )
-                    cost_display_parts.append(f"{usd_equiv:.2f} USD")
-            else:  # На случай, если target_currency не USD/RUB, хотя это не должно происходить
-                cost_display_parts.append(f"{total_cost_val:.2f} {target_currency}")
-
-            cost_str_part = f"  (Общ. стоимость: {' / '.join(cost_display_parts)})"
-
-        elif (
-            eq_data.get("num_reagents_with_cost", 0) < eq_data.get("num_reagents", 0)
-            or eq_data.get("num_solvents_with_cost", 0)
-            < (
-                len(main_solvents_input)
-                + (len(antisolvents_input) if v_antisolvent_ml_input > 0 else 0)
-            )
-        ) and (
-            eq_data.get("num_reagents", 0) > 0
-            or (
-                len(main_solvents_input)
-                + (len(antisolvents_input) if v_antisolvent_ml_input > 0 else 0)
-            )
-            > 0
-        ):
-            cost_str_part = "  (Общ. стоимость: N/A - не все цены известны)"
 
         solvent_info_str_part = ""
         main_solvent_details_parts = []
-        if main_solvents_input and v_main_solution_ml_input > Decimal("0"):
+        if main_solvents_input and float(v_main_solution_ml_input) > 0:
             for ms_info in main_solvents_input:
                 ms_sym = ms_info.get("symbol")
-                ms_fr_str = ms_info.get("fraction")
+                ms_fr = float(ms_info.get("fraction"))
                 try:
-                    ms_fr_dec = Decimal(ms_fr_str)
-                    ms_vol = v_main_solution_ml_input * ms_fr_dec
-                    if ms_vol > constants.ZERO_THRESHOLD:
-                        formatted_frac = format_coefficient(ms_fr_dec, precision=2)
-                        main_solvent_details_parts.append(
-                            f"{ms_sym}{formatted_frac if formatted_frac else ''} [{ms_vol:.2f}мл]"
-                        )
+                    ms_vol = v_main_solution_ml_input * ms_fr
+                    main_solvent_details_parts.append(
+                        f"{ms_sym}{ms_fr if ms_fr else ''} [{ms_vol:.2f}мл]"
+                    )
                 except:
-                    main_solvent_details_parts.append(f"{ms_sym}({ms_fr_str})")
+                    main_solvent_details_parts.append(f"{ms_sym}({ms_fr})")
         if main_solvent_details_parts:
             solvent_info_str_part += (
                 f" | Раств-ль: {', '.join(main_solvent_details_parts)}"
             )
 
         antisolvent_details_parts = []
-        if antisolvents_input and v_antisolvent_ml_input > Decimal("0"):
+        if antisolvents_input and float(v_antisolvent_ml_input) > 0:
             for as_info in antisolvents_input:
                 as_sym = as_info.get("symbol")
-                as_fr_str = as_info.get("fraction")
+                as_fr = float(as_info.get("fraction"))
                 try:
-                    as_fr_dec = Decimal(as_fr_str)
-                    as_vol = v_antisolvent_ml_input * as_fr_dec
-                    if as_vol > constants.ZERO_THRESHOLD:
-                        formatted_frac = format_coefficient(as_fr_dec, precision=2)
-                        antisolvent_details_parts.append(
-                            f"{as_sym}{formatted_frac if formatted_frac else ''} [{as_vol:.2f}мл]"
-                        )
+                    as_vol = v_antisolvent_ml_input * as_fr
+                    antisolvent_details_parts.append(
+                        f"{as_sym}{as_fr if as_fr else ''} [{as_vol:.2f}мл]"
+                    )
                 except:
-                    antisolvent_details_parts.append(f"{as_sym}({as_fr_str})")
+                    antisolvent_details_parts.append(f"{as_sym}({as_fr})")
+
         if antisolvent_details_parts:
             solvent_info_str_part += f" | Антираств-ль ({v_antisolvent_ml_input:.2f}мл общ.): {', '.join(antisolvent_details_parts)}"
 
         if reactants_parts_str_list:
             reactants_str = " + ".join(reactants_parts_str_list)
             output_lines.append(
-                f"{eq_key} ({eq_data.get('description', 'N/A')}): {reactants_str}  ⟶  {product_formula_str}{cost_str_part}{solvent_info_str_part}\n"
+                f"{eq_key} ({eq_data.get('description', 'N/A')}): {reactants_str}  ⟶  {product_formula_str}{solvent_info_str_part}\n"
             )
         else:
             output_lines.append(
-                f"{eq_key} ({eq_data.get('description', 'N/A')}): [Нет знач. реагентов]  ⟶  {product_formula_str}{cost_str_part}{solvent_info_str_part}\n"
+                f"{eq_key} ({eq_data.get('description', 'N/A')}): [Нет знач. реагентов]  ⟶  {product_formula_str}{solvent_info_str_part}\n"
             )
 
     return (
         "".join(output_lines) if output_lines else "Не найдено применимых уравнений.\n"
     )
 
-
 def format_results_mass_table(
-    calculation_results: Dict[str, Any],
-    sorted_equation_keys: Optional[List[str]] = None,
-    authoritative_salt_list: Optional[List[str]] = None,
-) -> str:
-    if not calculation_results or not calculation_results.get("equations"):
-        return "Нет данных для таблицы масс и цен."
+    calculation_results,
+    sorted_equation_keys = None,
+    authoritative_salt_list = None):
 
     equations_data_map = calculation_results["equations"]
-    target_currency = calculation_results.get("input_summary", {}).get(
-        "target_currency_for_costs", "USD"
-    )
-    currency_symbol = (
-        "$" if target_currency == "USD" else "₽"
-    )  # Для таблицы пока одна валюта
 
-    keys_to_process: List[str] = (
+    keys_to_process = (
         sorted_equation_keys
         if sorted_equation_keys is not None
         else sorted(
@@ -207,7 +168,7 @@ def format_results_mass_table(
         )
     )
 
-    valid_equations_for_table: List[str] = []
+    valid_equations_for_table = []
     for eq_key in keys_to_process:
         eq_data = equations_data_map.get(eq_key)
         if (
@@ -218,12 +179,9 @@ def format_results_mass_table(
             valid_equations_for_table.append(eq_key)
 
     if not valid_equations_for_table:
-        return f"\nТаблица Масс (г) и Общей Стоимости ({currency_symbol}):\nНет валидных уравнений для отображения."
+        return f"\nТаблица Масс (г):\nНет валидных уравнений для отображения."
 
     if authoritative_salt_list is None:
-        logger.warning(
-            "format_results_mass_table: authoritative_salt_list не предоставлен. Формирую из уравнений."
-        )
         temp_header_salts_set: set = set()
         for eq_key_fb in valid_equations_for_table:
             eq_data_fb = equations_data_map.get(eq_key_fb)
@@ -233,33 +191,30 @@ def format_results_mass_table(
                     if (
                         isinstance(salt_fb, str)
                         and coeff_val_fb is not None
-                        and abs(coeff_val_fb) > constants.ZERO_THRESHOLD
                     ):
                         temp_header_salts_set.add(salt_fb)
-        header_salts_sorted_list: List[str] = sorted(
+        header_salts_sorted_list = sorted(
             list(temp_header_salts_set), key=sort_key_salt
         )
     else:
         header_salts_sorted_list = authoritative_salt_list
 
     if not header_salts_sorted_list:
-        return f"\nТаблица Масс (г) и Общей Стоимости ({currency_symbol}):\nНет солей для отображения в таблице."
+        return f"\nТаблица Масс (г):\nНет солей для отображения в таблице."
 
-    cell_width = app_config.TABLE_CELL_WIDTH
-    header_cell_format = app_config.TABLE_CELL_FORMAT
+    cell_width = constants.TABLE_CELL_WIDTH
+    header_cell_format = constants.TABLE_CELL_FORMAT
     first_col_width = 10
 
-    cost_column_header = f"Ст-ть({currency_symbol})"[:cell_width]
     header_parts = ["{:<{width}}".format("Уравнение", width=first_col_width)]
     for salt_in_header in header_salts_sorted_list:
         display_salt_name = salt_in_header[:cell_width]
         header_parts.append(header_cell_format.format(display_salt_name))
-    header_parts.append(header_cell_format.format(cost_column_header))
     header_line_str = "".join(header_parts)
     table_separator_str = "=" * len(header_line_str)
 
-    output_lines: List[str] = [
-        f"\nТаблица Масс (г) и Общей Стоимости ({currency_symbol}):",
+    output_lines = [
+        f"\nТаблица Масс (г):",
         table_separator_str,
         header_line_str,
         table_separator_str,
@@ -276,28 +231,13 @@ def format_results_mass_table(
 
         for salt_in_header in header_salts_sorted_list:
             mass_val = mass_dict_final.get(salt_in_header)
-            is_error_cell = mass_val == app_config.MASS_ERROR_MARKER
-            row_str_parts.append(
-                format_value_for_cell(
-                    mass_val, is_error=is_error_cell, is_cost_value=False
-                )
-            )
-
-        row_str_parts.append(
-            format_value_for_cell(
-                total_cost_final_val,
-                is_error=False,
-                is_cost_value=True,
-                target_currency_symbol=currency_symbol,
-            )
-        )
-        output_lines.append("".join(row_str_parts))
+            is_error_cell = mass_val == constants.MASS_ERROR_MARKER
 
     output_lines.append(table_separator_str)
     return "\n".join(output_lines)
 
 
-def format_geometry_factors(factors_dict: Optional[Dict[str, Any]]) -> str:
+def format_geometry_factors(factors_dict):
     if not factors_dict:
         return "Геометрические факторы: Н/Д"
     if "error" in factors_dict:
@@ -307,7 +247,7 @@ def format_geometry_factors(factors_dict: Optional[Dict[str, Any]]) -> str:
     t_val = factors_dict.get("t")
     if t_val == "N/A":
         parts.append("t = N/A")
-    elif isinstance(t_val, Decimal):
+    elif isinstance(t_val, str):
         parts.append(f"t = {t_val:.3f}")
     elif t_val is None and ("mu" in factors_dict or "mu_prime" in factors_dict):
         parts.append("t = ?")
@@ -316,18 +256,18 @@ def format_geometry_factors(factors_dict: Optional[Dict[str, Any]]) -> str:
     mu_p_val = factors_dict.get("mu_prime")
     mu_dp_val = factors_dict.get("mu_double_prime")
 
-    if isinstance(mu_val, Decimal):
+    if isinstance(mu_val, str):
         parts.append(f"μ = {mu_val:.3f}")
     elif mu_val is None and "t" in factors_dict and factors_dict.get("t") != "N/A":
         parts.append("μ = ?")
 
     if mu_p_val is not None:
-        mu_prime_str = f"{mu_p_val:.3f}" if isinstance(mu_p_val, Decimal) else "?"
+        mu_prime_str = f"{mu_p_val:.3f}" if isinstance(mu_p_val, str) else "?"
         parts.append(f"μ' = {mu_prime_str}")
 
     if mu_dp_val is not None:
         mu_double_prime_str = (
-            f"{mu_dp_val:.3f}" if isinstance(mu_dp_val, Decimal) else "?"
+            f"{mu_dp_val:.3f}" if isinstance(mu_dp_val, str) else "?"
         )
         parts.append(f"μ'' = {mu_double_prime_str}")
 

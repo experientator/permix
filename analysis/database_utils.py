@@ -1,6 +1,14 @@
 import sqlite3
 import pandas as pd
 
+def get_cation_list_by_key(key):
+    conn = sqlite3.connect("data.db")
+    cursor = conn.cursor()
+    cursor.execute(f"SELECT cations FROM Candidate_cations WHERE name = ?", (key,))
+    cations = cursor.fetchone()
+    conn.close()
+    return cations[0]
+
 def get_ionic_radius(name, charge, cn):
     with sqlite3.connect("data.db") as conn:
         cursor = conn.cursor()
@@ -76,17 +84,18 @@ def get_template_site_types(template_id):
         if "b_site" in results: b_site_config = True
         if "b_double" in results: b_double_config = True
 
-        return(a_site_config, spacer_config, b_site_config, b_double_config)
+        return a_site_config, spacer_config, b_site_config, b_double_config
 
 def get_template_site_valences(template_id, site_type):
-    with sqlite3.connect("data.db") as conn:
-        cursor = conn.cursor()
-        cursor.execute(
-            "SELECT valence FROM Template_sites WHERE id_phase = ? AND type = ?",
-            (template_id, site_type)
-        )
-        results_cursor = cursor.fetchall()
-        return results_cursor[0]
+    conn = sqlite3.connect("data.db")
+    cursor = conn.cursor()
+    cursor.execute(
+        f"SELECT valence FROM Template_sites WHERE id_phase = ? AND type = ?",
+        (template_id, site_type)
+    )
+    results_cursor = cursor.fetchone()
+    conn.close()
+    return float(results_cursor[0])
 
 def get_candidate_cations(name):
     conn = sqlite3.connect("data.db")

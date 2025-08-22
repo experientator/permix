@@ -65,19 +65,14 @@ def _calculate_octahedral_factor(rB, rX):
 
 def get_effective_geometry_radius(cations_by_site, site_name, template_id):
     components_list = cations_by_site[site_name]
-    charge = float(get_template_site_valences(template_id, site_name))
+    charge = get_template_site_valences(template_id, site_name)
 
-    if charge > 0:
-        r_eff = calculate_effective_radius(
-            components_list, charge=charge, cn=DEFAULT_CN_A
-        )
-        if r_eff is None:
-            show_error(
-                f"GEOM_CALC: Не удалось рассчитать r для сайта {site_name}. Фактор 't' может быть не рассчитан."
-            )
-    else:
+    r_eff = calculate_effective_radius(
+        components_list, charge=charge, cn=DEFAULT_CN_A
+    )
+    if r_eff is None:
         show_error(
-            f"GEOM_CALC: Некорректный или отсутствующий заряд для {site_name} в шаблоне."
+            f"GEOM_CALC: Не удалось рассчитать r для сайта {site_name}. Фактор 't' может быть не рассчитан."
         )
     return r_eff
 
@@ -110,7 +105,7 @@ def calculate_geometry_factors(cation_config, anion_config, template_id):
     dimensionality = get_dimensionality(template_id)
 
     # --- 1. Расчет эффективного радиуса аниона rX ---
-    rX_eff = calculate_effective_radius(anion_config, charge=-1, cn=DEFAULT_CN_X)
+    rX_eff = calculate_effective_radius(anion_config, charge=1, cn=DEFAULT_CN_X)
 
     # --- 2. Определение ключевых сайтов из шаблона ---
     # будет true or false

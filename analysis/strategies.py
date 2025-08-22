@@ -64,7 +64,7 @@ def _calculate_coefficients_compensatory(rigid_cations, flexible_cations,
         rc_sc = rcsip
         try:
             rc_sf = get_salt_formula(rcs, base_X_anion_for_rigid, rcv)
-            coeffs[rc_sf] = coeffs.get(rc_sf, 0) + rc_sc
+            coeffs[rc_sf] = round(coeffs.get(rc_sf, 0) + rc_sc)
             if base_X_anion_for_rigid in anions_provided_by_rigid:
                 anions_provided_by_rigid[base_X_anion_for_rigid] += rc_sc * rcv
         except ValueError as e:
@@ -131,7 +131,7 @@ def _calculate_coefficients_compensatory(rigid_cations, flexible_cations,
             fc_salt_coeff = fcsip
             try:
                 fc_sf = get_salt_formula(fcs, chosen_anion, fcv)
-                coeffs[fc_sf] = coeffs.get(fc_sf, 0) + fc_salt_coeff
+                coeffs[fc_sf] = round(coeffs.get(fc_sf, 0) + fc_salt_coeff)
                 anions_actually_provided_by_flex[
                     chosen_anion
                 ] += fc_salt_coeff * fcv
@@ -160,7 +160,7 @@ def _calculate_coefficients_compensatory(rigid_cations, flexible_cations,
                     fc_sf_partial = get_salt_formula(
                         fcs, req_anion, fcv
                     )
-                    coeffs[fc_sf_partial] = (
+                    coeffs[fc_sf_partial] = round(
                         coeffs.get(fc_sf_partial, 0) + partial_salt_coeff
                     )
                     anions_actually_provided_by_flex[
@@ -247,7 +247,7 @@ def calculate_strategies_coefficients(active_cations_details,
             if current_coeffs is not None:
                 for salt, coeff_val in current_coeffs.items():
                     if abs(coeff_val) >= COEFF_ZERO_THRESH:
-                        quantized_coeff = round(coeff_val / COEFF_QUANT_PREC) * COEFF_QUANT_PREC
+                        quantized_coeff = round((coeff_val / COEFF_QUANT_PREC) * COEFF_QUANT_PREC)
                         if abs(quantized_coeff) > ZERO_THRESHOLD:
                             final_coeffs_for_strategy[salt] = quantized_coeff
 

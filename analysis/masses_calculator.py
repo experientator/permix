@@ -60,7 +60,7 @@ def calculate_precursor_masses(
             mass_g_stoich = n_target_product_moles * float(coeff_val) * molar_mass_salt
             for k_factor_salt in k_factors:
                 if k_factor_salt["salt"] == salt_formula:
-                    k_for_this_salt = float(k_factors["k_factor"])
+                    k_for_this_salt = float(k_factor_salt["k_factor"])
             calculated_mass_g_with_k = mass_g_stoich * k_for_this_salt
 
             current_eq_masses_final_k_filtered[salt_formula] = calculated_mass_g_with_k
@@ -111,7 +111,7 @@ def calculate_precursor_masses(
             f"MASS_CALC_CORE: Ошибка генерации строки формулы продукта: {e_formula}"
         )
         results["product_formula_display"] = "[Ошибка генерации формулы]"
-
+    #
     try:
         geometry_factors_res = calculate_geometry_factors(
             cation_config=cations,

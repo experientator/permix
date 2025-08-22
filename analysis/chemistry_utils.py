@@ -2,6 +2,7 @@ import re
 import periodictable
 from analysis.database_utils import get_cation_formula
 import analysis.constants as constants
+import tkinter.messagebox as mb
 
 def show_error(message):
     mb.showerror(title="error", message=message)
@@ -12,7 +13,6 @@ def calculate_formula_molar_mass(formula_str):
         return float(parsed_entity.mass)
     except ValueError as ve:
         return None
-
 
 def get_molar_mass_of_salt(salt_formula_str):
     match = re.match(r"([A-Z][a-zA-Z0-9_]*)(Cl|Br|I)(\d*)$", salt_formula_str.strip())
@@ -31,7 +31,7 @@ def get_molar_mass_of_salt(salt_formula_str):
         return calculate_formula_molar_mass(salt_formula_str)
 
 def get_salt_formula(cation_name, halide, valence):
-    return f"{cation_name}{halide}" if valence == "1" else f"{cation_name}{halide}{valence}"
+    return f"{cation_name}{halide}" if valence == 1 or valence == "1" else f"{cation_name}{halide}{valence}"
 
 def calculate_target_product_moles(c_solution_molar, v_solution_ml):
     n_perovskite_target_moles = c_solution_molar * (v_solution_ml / 1000.0)
@@ -52,7 +52,7 @@ def calculate_target_anion_moles(anions, total_anion_stoich):
         current_sum_fractions += float(item.get("fraction"))
         hal_symbol = item["symbol"]
         fraction = float(item["fraction"])
-        moles_of_hal = int(total_anion_stoich) * fraction
+        moles_of_hal = round(int(total_anion_stoich) * fraction)
 
         target_moles[hal_symbol] = (
             moles_of_hal
@@ -95,7 +95,7 @@ def determine_base_anion_for_rigid_cations(anions_moles):
     ]
 
     if len(candidate_halides) > 1:
-        halide_order_map = {hal: i for i, hal in enumerate(constants.halides())}
+        halide_order_map = {hal: i for i, hal in enumerate(constants.halides)}
         candidate_halides.sort(key=lambda h_cand: halide_order_map.get(h_cand, 99))
 
     base_X_rigid = candidate_halides[0]

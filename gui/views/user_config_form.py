@@ -10,6 +10,7 @@ from analysis.chemistry_utils import get_salt_formula, calculate_target_anion_mo
 from gui.controllers.templates_check import TemplatesCheckController
 from analysis.strategies import calculate_strategies_coefficients
 from analysis.masses_calculator import calculate_precursor_masses
+from analysis.display_formatters import generate_reaction_equations_display
 
 class UserConfigView(tk.Toplevel):
     def __init__(self, parent, controller):
@@ -278,12 +279,13 @@ class UserConfigView(tk.Toplevel):
         cations, anions = self.get_structure_data()
         solvents, solution_info = self.get_solution_data()
         k_factors = self.get_k_factors_data()
-
-        print(calculate_precursor_masses(
+        calculations = calculate_precursor_masses(
                 self.template_id, cations,
                 anions, self.anion_stoichiometry,
                 solution_info, solvents,
-                k_factors))
+                k_factors)
+        print(generate_reaction_equations_display(calculations))
+
 
     def show_salts_info(self):
         salt_text = ""
