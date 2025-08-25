@@ -10,13 +10,22 @@ from gui.controllers.phase_template_form import TemplateController
 from gui.controllers.candidates_form import CandidatesFormController
 from gui.controllers.templates_check import TemplatesCheckController
 from gui.controllers.user_config_form import UserConfigController
+from gui.views.user_config_form import UserConfigView
 
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
+        self.title("PerMix")
+        self.wm_attributes('-fullscreen',True)
         menu = tk.Menu(self)
+        self.main_frame = ttk.Frame(self)
+        self.main_frame.pack(fill=tk.BOTH, expand=True)
+
         upload_menu = tk.Menu(menu, tearoff=0)
         view_menu = tk.Menu(menu, tearoff=0)
+
+        self.calc_view = UserConfigView(self.main_frame)
+        self.calc_view.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
         upload_menu.add_command(label="Загрузить структуру", command=self.open_comp_form)
         upload_menu.add_command(label="Загрузить растворитель", command=self.open_solv_form)
@@ -32,7 +41,6 @@ class App(tk.Tk):
         menu.add_cascade(label="Загрузить", menu=upload_menu)
         menu.add_cascade(label="Просмотреть", menu=view_menu)
         menu.add_command(label="О программе", command= self.program_info)
-        menu.add_command(label="Калькулятор", command=self.get_user_config)
         menu.add_command(label="Выйти", command=self.destroy)
         self.config(menu=menu)
 

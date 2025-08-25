@@ -10,11 +10,9 @@ from analysis.masses_calculator import calculate_precursor_masses
 from analysis.display_formatters import generate_reaction_equations_display, format_results_mass_table
 from gui.default_style import AppStyles
 
-class UserConfigView(tk.Toplevel):
-    def __init__(self, parent, controller):
+class UserConfigView(tk.Frame):
+    def __init__(self, parent):
         super().__init__(parent)
-        self.controller = controller
-        self.title("Основной калькулятор")
         self.configure(bg=AppStyles.BACKGROUND_COLOR)
         self.styles = AppStyles()
         self.build_ui()
