@@ -6,14 +6,18 @@ class IonsFormView(tk.Toplevel):
     def __init__(self, parent, controller):
         super().__init__(parent)
         self.controller = controller
-        self.title("Add new ion")
+        self.title("Добавить новый ион")
         self.configure(bg=AppStyles.BACKGROUND_COLOR)
         self.styles = AppStyles()
+        self.wm_attributes('-fullscreen', True)
+        menu = tk.Menu(self)
+        menu.add_command(label="Выйти", command=self.destroy)
+        self.config(menu=menu)
         self.create_widgets()
 
     def create_widgets(self):
         ion_frame = tk.LabelFrame(self, **AppStyles.frame_style())
-        ion_frame.grid(row=0, column=0, sticky="news", padx=20, pady=10)
+        ion_frame.grid(row=0, column=0)
 
         tk.Label(ion_frame, text="Название",
                  **AppStyles.label_style()).grid(row=0, column=0)
@@ -25,6 +29,7 @@ class IonsFormView(tk.Toplevel):
         self.box_ion_type = ttk.Combobox(ion_frame,
                                          values=["анион", "катион"],
                                          **AppStyles.combobox_config())
+        self.box_ion_type.current(0)
         self.box_ion_type.grid(row=1, column=1)
 
         tk.Label(ion_frame, text="Формула",
@@ -40,7 +45,7 @@ class IonsFormView(tk.Toplevel):
 
         tk.Button(self, text="Добавить ион",
                   **AppStyles.button_style(),
-                  command=self.on_submit).grid(row=1, column=0, sticky="news", padx=20, pady=10)
+                  command=self.on_submit).grid(row=1, column=0)
 
     def on_submit(self):
         type = ""

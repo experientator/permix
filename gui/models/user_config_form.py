@@ -16,9 +16,10 @@ class UserConfigModel:
                            (id INTEGER PRIMARY KEY,
                             name TEXT NULL, 
                             id_phase INT,
-                            V_antisolvent FLOAT,
+                            V_solution FLOAT,
+                            V_antisolvent FLOAT NULL,
                             C_solution FLOAT,  
-                            notes TEXT,
+                            notes TEXT NULL,
                             FOREIGN KEY (id_phase) REFERENCES Phase_templates (id))''')
 
             cursor.execute('''CREATE TABLE IF NOT EXISTS Compositions_solvents
@@ -42,23 +43,31 @@ class UserConfigModel:
                             FOREIGN KEY (id_fav) REFERENCES Fav_compositions (id),
                             FOREIGN KEY (symbol) REFERENCES Ions (name))''')
 
+            cursor.execute('''CREATE TABLE IF NOT EXISTS K_factors 
+                                                (id_info INT NULL,
+                                                id_fav INT NULL,
+                                                name TEXT,
+                                                k_factor FLOAT,
+                                                FOREIGN KEY (id_info) REFERENCES Compositions_info (id)
+                                                FOREIGN KEY (id_fav) REFERENCES Fav_compositions (id))''')
+
             self.conn.commit()
         except sqlite3.Error as e:
             mb.showerror("Database Error", f"Failed to create tables: {e}")
 
-    def add_favorite_composition(self, name, id_phase, notes, v, c):
+    def add_favorite_composition(self, name, id_phase, notes, v_sol, v_antisol, c_sol):
         try:
             cursor = self.conn.cursor()
             cursor.execute('''INSERT INTO Fav_compositions  
-                          (name, id_phase, notes, V_antisolvent, C_solution) VALUES (?, ?, ?, ?, ?)''',
-                           (name, id_phase, notes, v, c))
+                          (name, id_phase, V_solution, V_antisolvent, C_solution, notes) VALUES (?, ?, ?, ?, ?, ?)''',
+                           (name, id_phase, v_sol, v_antisol, c_sol, notes))
             self.conn.commit()
             return cursor.lastrowid
         except sqlite3.Error as e:
             mb.showerror("Database Error", f"Failed to add composition info: {e}")
             return None
 
-    def add_solvent(self, id_phase, solvent_type, symbol, fraction):
+    def add_solvent(self, id_fav, solvent_type, symbol, fraction):
         try:
             # Проверка существования растворителя
             cursor = self.conn.cursor()
@@ -67,29 +76,41 @@ class UserConfigModel:
                 return False, f"Solvent {symbol} doesn't exist in database"
 
             cursor.execute('''INSERT INTO Compositions_solvents 
-                          (id_phase, solvent_type, symbol, fraction) 
+                          (id_fav, solvent_type, symbol, fraction) 
                           VALUES (?, ?, ?, ?)''',
-                           (id_phase, solvent_type, symbol, fraction))
+                           (id_fav, solvent_type, symbol, fraction))
             self.conn.commit()
             return True, "Solvent added successfully"
         except sqlite3.Error as e:
             return False, f"Database error: {e}"
 
-    def add_structure(self, id_phase, structure_type, symbol, fraction, valence):
+    def add_structure(self, id_fav, structure_type, symbol, fraction, valence):
         try:
             ion_type = "anion" if structure_type == "anion" else "cation"
             cursor = self.conn.cursor()
-            cursor.execute("SELECT 1 FROM Ions WHERE name = ? AND ion_type = ?",
+            cursor.execute("SELECT 1 FROM Ions WHERE name = ? AND type = ?",
                            (symbol, ion_type))
             if not cursor.fetchone():
                 return False, f"Ion {symbol} doesn't exist in database"
 
             cursor.execute('''INSERT INTO Compositions_structure 
-                          (id_phase, structure_type, symbol, fraction, valence) 
+                          (id_fav, structure_type, symbol, fraction, valence) 
                           VALUES (?, ?, ?, ?, ?)''',
-                           (id_phase, structure_type, symbol, fraction, valence))
+                           (id_fav, structure_type, symbol, fraction, valence))
             self.conn.commit()
             return True, "Structure element added successfully"
+        except sqlite3.Error as e:
+            return False, f"Database error: {e}"
+
+    def add_k_factors(self, id_fav, salt, k_factor):
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute('''INSERT INTO K_factors 
+                          (id_fav, name, k_factor) 
+                          VALUES (?, ?, ?)''',
+                           (id_fav, salt, k_factor))
+            self.conn.commit()
+            return True, "K-factors added successfully"
         except sqlite3.Error as e:
             return False, f"Database error: {e}"
 

@@ -9,6 +9,10 @@ class SolventFormView(tk.Toplevel):
         self.controller = controller
         self.title("Добавить новый растворитель")
         self.configure(bg=AppStyles.BACKGROUND_COLOR)
+        self.wm_attributes('-fullscreen', True)
+        menu = tk.Menu(self)
+        menu.add_command(label="Выйти", command=self.destroy)
+        self.config(menu=menu)
         self.styles = AppStyles()
         self.build_ui()
 
@@ -23,8 +27,11 @@ class SolventFormView(tk.Toplevel):
         self.entry_name.grid(row=1, column=0)
         tk.Label(solv_frame, text="Тип",
                  **AppStyles.label_style()).grid(row=0, column=1)
-        self.box_solvent_type = ttk.Combobox(solv_frame, values=["Растворитель", "Антирастворитель"])
+        self.box_solvent_type = ttk.Combobox(solv_frame,
+                                             values=["Растворитель", "Антирастворитель"],
+                                             **AppStyles.combobox_config())
         self.box_solvent_type.grid(row=1, column=1)
+        self.box_solvent_type.current(0)
         tk.Label(solv_frame, text="Формула",
                  **AppStyles.label_style()).grid(row=0, column=2)
         self.entry_formula = tk.Entry(solv_frame,
@@ -48,7 +55,7 @@ class SolventFormView(tk.Toplevel):
 
         tk.Button(self, text="Загрузить данные",
                   command=self.on_submit,
-                 **AppStyles.button_style()).grid(row=1, column=0, sticky="news")
+                 **AppStyles.button_style()).grid(row=1, column=0)
 
     def on_submit(self):
         type = ""

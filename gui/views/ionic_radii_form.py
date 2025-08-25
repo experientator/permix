@@ -6,6 +6,11 @@ class IonicRadiiView(tk.Toplevel):
     def __init__(self, parent, controller):
         super().__init__(parent)
         self.controller = controller
+        self.configure(bg=AppStyles.BACKGROUND_COLOR)
+        self.wm_attributes('-fullscreen', True)
+        menu = tk.Menu(self)
+        menu.add_command(label="Выйти", command=self.destroy)
+        self.config(menu=menu)
         self.title("Добавить новый ионный радиус")
         self.styles = AppStyles()
         self.build_ui()
@@ -18,8 +23,9 @@ class IonicRadiiView(tk.Toplevel):
         self.entry_name = tk.Entry(ion_frame, **AppStyles.entry_style())
         self.entry_name.grid(row=1, column=0)
         tk.Label(ion_frame, text="Тип иона", **AppStyles.label_style()).grid(row=0, column=1)
-        self.ion_box = ttk.Combobox(ion_frame, values=["cation", "anion"], **AppStyles.combobox_config())
+        self.ion_box = ttk.Combobox(ion_frame, values=["катион", "анион"], **AppStyles.combobox_config())
         self.ion_box.grid(row=1, column=1)
+        self.ion_box.current(0)
         tk.Label(ion_frame, text="Заряд", **AppStyles.label_style()).grid(row=0, column=2)
         self.entry_charge = tk.Entry(ion_frame, **AppStyles.entry_style())
         self.entry_charge.grid(row=1, column=2)
@@ -35,9 +41,14 @@ class IonicRadiiView(tk.Toplevel):
                   , **AppStyles.button_style()).grid(row=1, column=0, sticky="news")
 
     def on_submit(self):
+        ion_type = ""
+        if self.ion_box.get() == "анион":
+            ion_type = "anion"
+        if self.ion_box.get() == "катион":
+            ion_type = "cation"
         data = {
             'name': self.entry_name.get(),
-            'ion_type': self.ion_box.get(),
+            'ion_type': ion_type,
             'charge': self.entry_charge.get(),
             'CN': self.entry_CN.get(),
             'ionic_radii': self.entry_ionic_radii.get()

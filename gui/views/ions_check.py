@@ -8,7 +8,10 @@ class IonsCheckView(tkinter.Toplevel):
         super().__init__(parent)
         self.title("Ионные радиусы")
         self.configure(bg=AppStyles.BACKGROUND_COLOR)
-        self.geometry("800x600")
+        self.wm_attributes('-fullscreen', True)
+        menu = Menu(self)
+        menu.add_command(label="Выйти", command=self.destroy)
+        self.config(menu=menu)
         self.styles = AppStyles()
         self.create_widgets()
 
@@ -38,7 +41,7 @@ class IonsCheckView(tkinter.Toplevel):
         ions_scroll.pack(side=RIGHT, fill=Y)
 
         radii_frame = LabelFrame(main_frame, text="Ионные радиусы", **AppStyles.labelframe_style())
-        radii_frame.pack(side=RIGHT, fill=BOTH, expand=True, padx=5, pady=5)
+        radii_frame.pack(side=RIGHT, fill=BOTH, expand=True)
 
         self.radii_tree = ttk.Treeview(
             radii_frame,

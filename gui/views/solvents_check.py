@@ -8,6 +8,10 @@ class SolventsCheckView(tk.Toplevel):
         self.controller = controller
         self.configure(bg=AppStyles.BACKGROUND_COLOR)
         self.styles = AppStyles()
+        self.wm_attributes('-fullscreen', True)
+        menu = tk.Menu(self)
+        menu.add_command(label="Выйти", command=self.destroy)
+        self.config(menu=menu)
         self.title("Solvents viewer")
 
         self.create_widgets()
@@ -21,7 +25,8 @@ class SolventsCheckView(tk.Toplevel):
                                **AppStyles.button_style())
         delete_btn.grid(row=0, column=1, padx=5)
 
-        self.tree = ttk.Treeview(self, columns=('name', 'type', 'formula', 'density', 'boiling_point', 'notes'), show='headings')
+        self.tree = ttk.Treeview(self, columns=('name', 'type', 'formula', 'density', 'boiling_point', 'notes'),
+                                 show='headings', **AppStyles.treeview_config())
 
         self.tree.heading('name', text='название')
         self.tree.heading('type', text='тип')

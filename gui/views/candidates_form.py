@@ -7,6 +7,10 @@ class CandidateFormView(tk.Toplevel):
         self.controller = controller
         self.configure(bg=AppStyles.BACKGROUND_COLOR)
         self.title("Add new candidates")
+        self.wm_attributes('-fullscreen', True)
+        menu = tk.Menu(self)
+        menu.add_command(label="Выйти", command=self.destroy)
+        self.config(menu=menu)
 
         self.create_widgets()
 

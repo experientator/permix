@@ -58,6 +58,14 @@ def get_template_id(name):
     conn.close()
     return int(id_phase[0])
 
+def get_fav_id(name):
+    conn = sqlite3.connect("data.db")
+    cursor = conn.cursor()
+    cursor.execute(f"SELECT id FROM Fav_compositions WHERE name = ?", (name,))
+    id_fav = cursor.fetchone()
+    conn.close()
+    return int(id_fav[0])
+
 def get_template_sites(template_id):
     conn = sqlite3.connect("data.db")
     sites_data = pd.read_sql_query(f"SELECT type, name_candidate, stoichiometry, valence "

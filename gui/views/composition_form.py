@@ -8,10 +8,14 @@ class CompositionView(tk.Toplevel):
     def __init__(self, parent, controller):
         super().__init__(parent)
         self.controller = controller
-        self.title("Add new composition")
+        self.title("Добавить новое соединение")
+        self.wm_attributes('-fullscreen', True)
         self.configure(bg=AppStyles.BACKGROUND_COLOR)
         self.build_ui()
         self.dynamic_widgets = []
+        menu = tk.Menu(self)
+        menu.add_command(label="Выйти", command=self.destroy)
+        self.config(menu=menu)
 
     def build_ui(self):
         self.container = tk.Frame(self, **AppStyles.frame_style())
@@ -29,7 +33,7 @@ class CompositionView(tk.Toplevel):
         self.create_info_frame()
         self.first_button = tk.Button(
             self.first_column.inner_frame,
-            text="Enter info",
+            text="Добавить общую информацию",
             command=self.on_info_submit,
             **AppStyles.button_style()
         )
@@ -62,36 +66,44 @@ class CompositionView(tk.Toplevel):
 
     def create_info_frame(self):
         info_frame = tk.LabelFrame(self.first_column.inner_frame,
-                                   text="Composition information",**AppStyles.labelframe_style())  # Изменено на inner_frame
+                                   text="Общая информация",**AppStyles.labelframe_style())
         info_frame.pack(side="top", fill='x', padx=5, pady=5)
 
         tk.Label(info_frame, text="doi",**AppStyles.label_style()).grid(row=0, column=0)
         self.entry_doi = tk.Entry(info_frame,**AppStyles.entry_style())
         self.entry_doi.grid(row=1, column=0)
 
-        tk.Label(info_frame, text="data type",**AppStyles.label_style()).grid(row=0, column=1)
-        self.data_box = ttk.Combobox(info_frame, values=["", "experimental", "theoretical", "modelling"])
+        tk.Label(info_frame, text="Тип данных",**AppStyles.label_style()).grid(row=0, column=1)
+        self.data_box = ttk.Combobox(info_frame, values=["", "экспериментальные", "теоретические", "расчетные"],
+                                     **AppStyles.combobox_config())
         self.data_box.grid(row=1, column=1)
 
-        tk.Label(info_frame, text="notes",**AppStyles.label_style()).grid(row=0, column=2)
+        tk.Label(info_frame, text="Заметки",
+                 **AppStyles.label_style()).grid(row=0, column=2)
         self.entry_notes = tk.Entry(info_frame, **AppStyles.entry_style())
         self.entry_notes.grid(row=1, column=2)
 
         phase_t = get_templates_list()
 
-        tk.Label(info_frame, text="phase template",**AppStyles.label_style()).grid(row=2, column=0)
-        self.phase_template = ttk.Combobox(info_frame, values = phase_t)
+        tk.Label(info_frame, text="Шаблон соединения",
+                 **AppStyles.label_style()).grid(row=2, column=0)
+        self.phase_template = ttk.Combobox(info_frame, values = phase_t,
+                                           **AppStyles.combobox_config())
         self.phase_template.grid(row=3, column=0)
+        self.phase_template.current(0)
 
-        tk.Label(info_frame, text="number of elements", **AppStyles.label_style()).grid(row=2, column=1)
+        tk.Label(info_frame, text="Кол-во различных эл-тов",
+                 **AppStyles.label_style()).grid(row=2, column=1)
         self.entry_num_elements = tk.Entry(info_frame, **AppStyles.entry_style())
         self.entry_num_elements.grid(row=3, column=1)
 
-        tk.Label(info_frame, text="number of solvents", **AppStyles.label_style()).grid(row=2, column=2)
+        tk.Label(info_frame, text="Кол-во растворителей \n(антирастворителей)",
+                 **AppStyles.label_style()).grid(row=2, column=2)
         self.entry_num_solv = tk.Entry(info_frame,**AppStyles.entry_style())
         self.entry_num_solv.grid(row=3, column=2)
 
-        tk.Label(info_frame, text="number of k-factors",**AppStyles.label_style()).grid(row=4, column=1)
+        tk.Label(info_frame, text="Количество K-факторов",
+                 **AppStyles.label_style()).grid(row=4, column=1)
         self.entry_k_fact = tk.Entry(info_frame, **AppStyles.entry_style())
         self.entry_k_fact.grid(row=5, column=1)
 
@@ -102,43 +114,50 @@ class CompositionView(tk.Toplevel):
         self.dynamic_widgets = []
 
     def create_dynamic_widgets(self, num_elements, num_solvents, num_k):
-
         self.clear_dynamic_widgets()
-
         self.tot_anion_s_label = tk.Label(self.sec_column.inner_frame,
-                                          text="total anion stoichiometry",
+                                          text="Общая стехиометрия ионов",
                                           **AppStyles.label_style())
         self.tot_anion_s_label.pack(fill='x')
-        self.tot_anion_s_entry = tk.Entry(self.sec_column.inner_frame, **AppStyles.entry_style())
+        self.tot_anion_s_entry = tk.Entry(self.sec_column.inner_frame,
+                                          **AppStyles.entry_style())
         self.tot_anion_s_entry.pack(fill='x')
 
-        struct_frame = tk.LabelFrame(self.sec_column.inner_frame, text = "structure"
-                                     ,**AppStyles.labelframe_style())
-        struct_frame.pack(side="top", fill='x', padx=5, pady=5)
+        struct_frame = tk.LabelFrame(self.sec_column.inner_frame,
+                                     text = "Структура",
+                                     **AppStyles.labelframe_style())
+        struct_frame.pack(side="top", fill='x')
 
         struct_frame.columnconfigure(0, weight=1)
         struct_frame.columnconfigure(1, weight=1)
         struct_frame.columnconfigure(2, weight=1)
         struct_frame.columnconfigure(3, weight=1)
 
-        tk.Label(struct_frame, text="structure type", **AppStyles.label_style()).grid(row=0, column=0, sticky="ew", padx=2, pady=2)
-        tk.Label(struct_frame, text="symbol", **AppStyles.label_style()).grid(row=0, column=1, sticky="ew", padx=2, pady=2)
-        tk.Label(struct_frame, text="fraction", **AppStyles.label_style()).grid(row=0, column=2, sticky="ew", padx=2, pady=2)
-        tk.Label(struct_frame, text="valence", **AppStyles.label_style()).grid(row=0, column=3, sticky="ew", padx=2, pady=2)
+        tk.Label(struct_frame, text="Структурный тип",
+                 **AppStyles.label_style()).grid(row=0, column=0)
+        tk.Label(struct_frame, text="Символ",
+                 **AppStyles.label_style()).grid(row=0, column=1)
+        tk.Label(struct_frame, text="Доля",
+                 **AppStyles.label_style()).grid(row=0, column=2)
+        tk.Label(struct_frame, text="Валентность",
+                 **AppStyles.label_style()).grid(row=0, column=3)
 
         for i in range(num_elements):
 
-            structure_box = ttk.Combobox(struct_frame, values=["A_site", "B_site", "B_double", "spacer_site", "anion"])
-            structure_box.grid(row=i+1, column=0, sticky="ew", padx=2, pady=2)
+            structure_box = ttk.Combobox(struct_frame,
+                                         values=["А-катион", "B-катион", "B-катион(двойной)", "Спейсер", "Анион"],
+                                         **AppStyles.combobox_config())
+            structure_box.current(0)
+            structure_box.grid(row=i+1, column=0)
 
             entry_symbol = tk.Entry(struct_frame, **AppStyles.entry_style())
-            entry_symbol.grid(row=i+1, column=1, sticky="ew", padx=2, pady=2)
+            entry_symbol.grid(row=i+1, column=1)
 
             entry_fraction = tk.Entry(struct_frame, **AppStyles.entry_style())
-            entry_fraction.grid(row=i+1, column=2, sticky="ew", padx=2, pady=2)
+            entry_fraction.grid(row=i+1, column=2)
 
             entry_valence = tk.Entry(struct_frame, **AppStyles.entry_style())
-            entry_valence.grid(row=i+1, column=3, sticky="ew", padx=2, pady=2)
+            entry_valence.grid(row=i+1, column=3)
 
             self.dynamic_widgets.append({
                 'frame': struct_frame,
@@ -151,42 +170,52 @@ class CompositionView(tk.Toplevel):
                 }
             })
 
-        self.v_solution_label = tk.Label(self.sec_column.inner_frame, text="V solution", **AppStyles.label_style())
+        self.v_solution_label = tk.Label(self.sec_column.inner_frame,
+                                         text="Объем раствора, мл", **AppStyles.label_style())
         self.v_solution_label.pack(fill='x')
         self.v_solution_entry = tk.Entry(self.sec_column.inner_frame, **AppStyles.entry_style())
         self.v_solution_entry.pack(fill='x')
 
-        self.c_solution_label = tk.Label(self.sec_column.inner_frame, text="C solution", **AppStyles.label_style())
+        self.c_solution_label = tk.Label(self.sec_column.inner_frame,
+                                         text="Концентрация р-ра, \nмоль/л", **AppStyles.label_style())
         self.c_solution_label.pack(fill='x')
         self.c_solution_entry = tk.Entry(self.sec_column.inner_frame, **AppStyles.entry_style())
         self.c_solution_entry.pack(fill='x')
 
-        self.v_antisolvent_label = tk.Label(self.sec_column.inner_frame, text="V antisolvent", **AppStyles.label_style())
+        self.v_antisolvent_label = tk.Label(self.sec_column.inner_frame,
+                                            text="Объем антирастворителя", **AppStyles.label_style())
         self.v_antisolvent_label.pack(fill='x')
         self.v_antisolvent_entry = tk.Entry(self.sec_column.inner_frame, **AppStyles.entry_style())
         self.v_antisolvent_entry.pack(fill='x')
 
-        solv_frame = tk.LabelFrame(self.sec_column.inner_frame, text = "solvents", **AppStyles.labelframe_style())
+        solv_frame = tk.LabelFrame(self.sec_column.inner_frame,
+                                   text = "Растворители", **AppStyles.labelframe_style())
         solv_frame.pack(side="top", fill='x')
 
         solv_frame.columnconfigure(0, weight=1)
         solv_frame.columnconfigure(1, weight=1)
         solv_frame.columnconfigure(2, weight=1)
 
-        tk.Label(solv_frame, text="type", **AppStyles.label_style()).grid(row=0, column=0, sticky="ew")
-        tk.Label(solv_frame, text="symbol", **AppStyles.label_style()).grid(row=0, column=1, sticky="ew")
-        tk.Label(solv_frame, text="fraction", **AppStyles.label_style()).grid(row=0, column=2, sticky="ew")
+        tk.Label(solv_frame, text="Тип растворителя",
+                 **AppStyles.label_style()).grid(row=0, column=0)
+        tk.Label(solv_frame, text="Название",
+                 **AppStyles.label_style()).grid(row=0, column=1)
+        tk.Label(solv_frame, text="Доля",
+                 **AppStyles.label_style()).grid(row=0, column=2)
 
         for i in range(num_solvents):
 
-            type_box = ttk.Combobox(solv_frame, values=["solvent", "antisolvent"])
-            type_box.grid(row=i+1, column=0, sticky="ew", padx=2, pady=2)
+            type_box = ttk.Combobox(solv_frame,
+                                    values=["Растворитель", "Антирастворитель"],
+                                    **AppStyles.combobox_config())
+            type_box.grid(row=i+1, column=0)
+            type_box.current(0)
 
             entry_symbol = tk.Entry(solv_frame, **AppStyles.entry_style())
-            entry_symbol.grid(row=i+1, column=1, sticky="ew", padx=2, pady=2)
+            entry_symbol.grid(row=i+1, column=1)
 
             entry_fraction = tk.Entry(solv_frame, **AppStyles.entry_style())
-            entry_fraction.grid(row=i+1, column=2, sticky="ew", padx=2, pady=2)
+            entry_fraction.grid(row=i+1, column=2)
 
             self.dynamic_widgets.append({
                 'frame': solv_frame,
@@ -198,65 +227,67 @@ class CompositionView(tk.Toplevel):
                 }
             })
         self.method_description_label = tk.Label(self.sec_column.inner_frame,
-                                                 text="method_description")
+                                                 text="Описание метода",
+                                                 **AppStyles.entry_style())
         self.method_description_label.pack(fill='x')
         self.method_description_entry = tk.Entry(self.sec_column.inner_frame,
                                                  **AppStyles.entry_style())
         self.method_description_entry.pack(fill='x')
 
         properties_frame = tk.LabelFrame(self.first_column.inner_frame,
-                                         text="Properties"
+                                         text="Свойства"
                                          , **AppStyles.labelframe_style())
         properties_frame.pack(side="top", fill='x')
 
-        tk.Label(properties_frame, text="band gap, eV",
+        tk.Label(properties_frame, text="Ширина запрещенной зоны, эВ",
                  **AppStyles.label_style()).grid(row=0, column=0)
         self.entry_bg = tk.Entry(properties_frame, **AppStyles.entry_style())
         self.entry_bg.grid(row=1, column=0)
 
-        (tk.Label(properties_frame, text="pce percent",
+        (tk.Label(properties_frame, text="PCE процент",
                   **AppStyles.label_style()).grid(row=0, column=1))
         self.entry_pp = tk.Entry(properties_frame, **AppStyles.entry_style())
         self.entry_pp.grid(row=1, column=1)
 
-        tk.Label(properties_frame, text="voc, V",
+        tk.Label(properties_frame, text="Напряжение холостого хода, В",
                  **AppStyles.label_style()).grid(row=0, column=2)
         self.entry_voc = tk.Entry(properties_frame, **AppStyles.entry_style())
         self.entry_voc.grid(row=1, column=2)
 
-        tk.Label(properties_frame, text="jsc, mA/cm^2",
+        tk.Label(properties_frame, text="Плотность тока КЗ, мA/cм^2",
                  **AppStyles.label_style()).grid(row=2, column=0)
         self.entry_jsc = tk.Entry(properties_frame, **AppStyles.entry_style())
         self.entry_jsc.grid(row=3, column=0)
 
-        tk.Label(properties_frame, text="ff percent",
+        tk.Label(properties_frame, text="FF процент",
                  **AppStyles.label_style()).grid(row=2, column=1)
         self.entry_ff_percent = tk.Entry(properties_frame, **AppStyles.entry_style())
         self.entry_ff_percent.grid(row=3, column=1)
 
-        tk.Label(properties_frame, text="stability notes",
+        tk.Label(properties_frame, text="Заметки о стабильности",
                  **AppStyles.label_style()).grid(row=2, column=2)
         self.entry_stability_notes = tk.Entry(properties_frame, **AppStyles.entry_style())
         self.entry_stability_notes.grid(row=3, column=2)
 
-        k_frame = tk.LabelFrame(self.first_column.inner_frame, text = "k-factors", **AppStyles.labelframe_style())
+        k_frame = tk.LabelFrame(self.first_column.inner_frame,
+                                text = "K-факторы", **AppStyles.labelframe_style())
         k_frame.pack(side="top", fill='x')
 
         k_frame.columnconfigure(0, weight=1)
         k_frame.columnconfigure(1, weight=1)
 
-        tk.Label(k_frame, text="precursor",
-                 **AppStyles.label_style()).grid(row=0, column=0, sticky="ew", padx=2, pady=2)
-        tk.Label(k_frame, text="k-factor",
-                 **AppStyles.label_style()).grid(row=0, column=1, sticky="ew", padx=2, pady=2)
+        tk.Label(k_frame, text="Прекурсор",
+                 **AppStyles.label_style()).grid(row=0, column=0)
+        tk.Label(k_frame, text="К-фактор",
+                 **AppStyles.label_style()).grid(row=0, column=1)
 
         for i in range(num_k):
 
             entry_precursor = tk.Entry(k_frame,**AppStyles.entry_style())
-            entry_precursor.grid(row=i+1, column=0, sticky="ew", padx=2, pady=2)
+            entry_precursor.grid(row=i+1, column=0)
 
             entry_k_factor = tk.Entry(k_frame,**AppStyles.entry_style())
-            entry_k_factor.grid(row=i+1, column=1, sticky="ew", padx=2, pady=2)
+            entry_k_factor.grid(row=i+1, column=1)
 
             self.dynamic_widgets.append({
                 'frame': k_frame,
@@ -275,7 +306,7 @@ class CompositionView(tk.Toplevel):
 
         self.main_button = tk.Button(
             self.button_frame,
-            text="Enter data",
+            text="Загрузить данные",
             command=self.on_main_submit,
             **AppStyles.button_style()
         )
@@ -297,11 +328,19 @@ class CompositionView(tk.Toplevel):
         ])
 
     def on_info_submit(self):
+        self.first_button["state"] = "disabled"
         name_phase = self.phase_template.get()
         id_template = get_template_id(name_phase)
+        data_type = ""
+        if self.data_box.get() == "экспериментальные":
+            data_type = "experimental"
+        if self.data_box.get() == "теоретические":
+            data_type = "theoretical"
+        if self.data_box.get() == "расчетные":
+            data_type = "modelling"
         data = {
             'doi': self.entry_doi.get(),
-            'data_type': self.data_box.get(),
+            'data_type': data_type,
             'notes': self.entry_notes.get(),
             'id_template': id_template,
             'num_elements': self.entry_num_elements.get(),
@@ -314,8 +353,19 @@ class CompositionView(tk.Toplevel):
         structure_data = []
         for widget in self.dynamic_widgets:
             if widget['type'] == 'structure':
+                structure_type = ""
+                if widget['widgets']['structure_type'].get() == "А-катион":
+                    structure_type = "A_site"
+                if widget['widgets']['structure_type'].get() == "B-катион":
+                    structure_type = "B_site"
+                if widget['widgets']['structure_type'].get() == "B-катион(двойной)":
+                    structure_type = "B_double_site"
+                if widget['widgets']['structure_type'].get() == "Спейсер":
+                    structure_type = "spacer-site"
+                if widget['widgets']['structure_type'].get() == "Анион":
+                    structure_type = "anion"
                 data = {
-                    'structure_type': widget['widgets']['structure_type'].get(),
+                    'structure_type': structure_type,
                     'symbol': widget['widgets']['symbol'].get(),
                     'fraction': widget['widgets']['fraction'].get(),
                     'valence': widget['widgets']['valence'].get()
@@ -325,8 +375,13 @@ class CompositionView(tk.Toplevel):
         solvent_data = []
         for widget in self.dynamic_widgets:
             if widget['type'] == 'solvent':
+                solvent_type = ""
+                if widget['widgets']['solvent_type'].get() == "Растворитель":
+                    solvent_type = "solvent"
+                if widget['widgets']['solvent_type'].get() == "Антирастворитель":
+                    solvent_type = "antisolvent"
                 data = {
-                    'solvent_type': widget['widgets']['solvent_type'].get(),
+                    'solvent_type': solvent_type,
                     'symbol': widget['widgets']['symbol'].get(),
                     'fraction': widget['widgets']['fraction'].get()
                 }

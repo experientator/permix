@@ -7,6 +7,10 @@ class TemplateView(tk.Toplevel):
         super().__init__(parent)
         self.controller = controller
         self.title("Add new phase template")
+        self.wm_attributes('-fullscreen', True)
+        menu = tk.Menu(self)
+        menu.add_command(label="Выйти", command=self.destroy)
+        self.config(menu=menu)
         self.build_ui()
         self.configure(bg=AppStyles.BACKGROUND_COLOR)
         self.styles = AppStyles()
@@ -16,7 +20,7 @@ class TemplateView(tk.Toplevel):
 
         info_frame = tk.LabelFrame(self, text="Шаблоны перовскитов",
                                    **AppStyles.labelframe_style())
-        info_frame.grid(row=0, column=0, columnspan=4, sticky="ew", padx=20, pady=10)
+        info_frame.grid(row=0, column=0, columnspan=4)
 
         tk.Label(info_frame, text="Название шаблона",
                  **AppStyles.label_style()).grid(row=0, column=0)
@@ -38,8 +42,8 @@ class TemplateView(tk.Toplevel):
         self.entry_anion_stoich = tk.Entry(info_frame, **AppStyles.entry_style())
         self.entry_anion_stoich.grid(row=1, column=3)
 
-        sites_frame = tk.Frame(self)
-        sites_frame.grid(row=1, column=0, columnspan=4, sticky="ew", padx=20, pady=10)
+        sites_frame = tk.Frame(self, **AppStyles.frame_style())
+        sites_frame.grid(row=1, column=0, columnspan=4)
 
         tk.Label(sites_frame, text="Выберите типы катионов:",
                  **AppStyles.label_style()).pack()
@@ -51,14 +55,21 @@ class TemplateView(tk.Toplevel):
             'spacer': tk.IntVar()
         }
 
-        ttk.Checkbutton(sites_frame, text="A-катион", variable=self.site_vars['a_site']).pack(side='left', padx=5)
-        ttk.Checkbutton(sites_frame, text="B-катион", variable=self.site_vars['b_site']).pack(side='left', padx=5)
-        ttk.Checkbutton(sites_frame, text="B-катион (двойной)", variable=self.site_vars['b_double']).pack(side='left',
-                                                                                     padx=5)
-        ttk.Checkbutton(sites_frame, text="Спейсер", variable=self.site_vars['spacer']).pack(side='left', padx=5)
+        tk.Checkbutton(sites_frame, text="A-катион",
+                        variable=self.site_vars['a_site'],
+                        **AppStyles.checkbutton_style()).pack(side='left', padx=5)
+        tk.Checkbutton(sites_frame, text="B-катион",
+                       variable=self.site_vars['b_site'],
+                        **AppStyles.checkbutton_style()).pack(side='left', padx=5)
+        tk.Checkbutton(sites_frame, text="B-катион (двойной)",
+                       variable=self.site_vars['b_double'],
+                        **AppStyles.checkbutton_style()).pack(side='left', padx=5)
+        tk.Checkbutton(sites_frame, text="Спейсер",
+                       variable=self.site_vars['spacer'],
+                        **AppStyles.checkbutton_style()).pack(side='left', padx=5)
 
-        button_frame = tk.Frame(self)
-        button_frame.grid(row=2, column=0, columnspan=4, sticky="ew", padx=20, pady=10)
+        button_frame = tk.Frame(self, **AppStyles.frame_style())
+        button_frame.grid(row=2, column=0, columnspan=4)
 
         self.btn_add_sites = tk.Button(button_frame, text="Добавить элементы структуры",
                                        command=self.on_add_sites)

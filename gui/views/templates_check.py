@@ -7,7 +7,10 @@ class TemplatesCheckView(tkinter.Toplevel):
     def __init__(self, parent):
         super().__init__(parent)
         self.title("Шаблоны")
-        self.geometry("800x600")
+        self.wm_attributes('-fullscreen', True)
+        menu = Menu(self)
+        menu.add_command(label="Выйти", command=self.destroy)
+        self.config(menu=menu)
         self.configure(bg=AppStyles.BACKGROUND_COLOR)
         self.styles = AppStyles()
         self.create_widgets()
@@ -46,13 +49,14 @@ class TemplatesCheckView(tkinter.Toplevel):
 
         sites_frame = LabelFrame(main_frame, text="структура",
                  **AppStyles.labelframe_style())
-        sites_frame.pack(side=RIGHT, fill=BOTH, expand=True, padx=5, pady=5)
+        sites_frame.pack(side=RIGHT, fill=BOTH, expand=True)
 
         self.sites_tree = ttk.Treeview(
             sites_frame,
             columns=('type', 'stoichiometry', 'valence'),
             show='headings',
-            height=20
+            height=20,
+            **AppStyles.treeview_config()
         )
         self.sites_tree.heading('type', text='тип')
         self.sites_tree.heading('stoichiometry', text='стехиометрия')

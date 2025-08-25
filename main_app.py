@@ -24,7 +24,8 @@ class App(tk.Tk):
         upload_menu = tk.Menu(menu, tearoff=0)
         view_menu = tk.Menu(menu, tearoff=0)
 
-        self.calc_view = UserConfigView(self.main_frame)
+        self.calc_controller = UserConfigController(self.main_frame)
+        self.calc_view = UserConfigView(self.main_frame, self.calc_controller)
         self.calc_view.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
         upload_menu.add_command(label="Загрузить структуру", command=self.open_comp_form)

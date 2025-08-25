@@ -4,33 +4,50 @@ from tkinter import ttk, scrolledtext
 
 from analysis.database_utils import (get_templates_list, get_template_id, get_template_sites,
                                      get_candidate_cations, get_solvents, get_anion_stoichiometry)
-from analysis.chemistry_utils import get_salt_formula, calculate_target_anion_moles, generate_formula_string
+from analysis.chemistry_utils import get_salt_formula, calculate_target_anion_moles
 from gui.controllers.templates_check import TemplatesCheckController
 from analysis.masses_calculator import calculate_precursor_masses
-from analysis.display_formatters import generate_reaction_equations_display, format_results_mass_table
+from analysis.display_formatters import format_results_mass_table, generate_reaction_equations_display
 from gui.default_style import AppStyles
 
 class UserConfigView(tk.Frame):
-    def __init__(self, parent):
+    def __init__(self, parent, controller):
         super().__init__(parent)
+        self.controller = controller
         self.configure(bg=AppStyles.BACKGROUND_COLOR)
         self.styles = AppStyles()
         self.build_ui()
         self.create_template_frame()
         self.dynamic_widgets = []
 
+    def on_frame_configure(self, event=None):
+        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+
     def build_ui(self):
-        self.container = tk.Frame(self, **AppStyles.frame_style())
-        self.container.pack(expand=True, fill='both')
+        # self.container = tk.Frame(self, **AppStyles.frame_style())
+        # self.container.pack(expand=True, fill='both')
 
-        self.first_column = tk.Frame(self.container, **AppStyles.frame_style())
-        self.sec_column = tk.Frame(self.container, **AppStyles.frame_style())
+        self.canvas = tk.Canvas(self, borderwidth=0)
+        self.canvas.pack(fill="both", expand=True)
 
-        self.button_frame = tk.Frame(self, **AppStyles.frame_style())
-        self.button_frame.pack(fill='x', pady=10)
+        scrollbar = tk.Scrollbar(self.canvas, command=self.canvas.yview)
+        scrollbar.pack(side="right", fill="y")
+        self.canvas.configure(yscrollcommand=scrollbar.set)
 
-        self.first_column.pack(side='left', fill='both', expand=True, padx=5)
-        self.sec_column.pack(side='right', fill='both', expand=True, padx=5)
+        self.scrollable_frame = tk.Frame(self.canvas, **AppStyles.frame_style())
+        self.canvas.create_window((0, 0), window=self.scrollable_frame)
+
+        self.first_column = tk.Frame(self.scrollable_frame, **AppStyles.frame_style())
+        self.first_column.pack(side="left", fill="both", expand=True, padx=10)
+
+        self.sec_column = tk.Frame(self.scrollable_frame, **AppStyles.frame_style())
+        self.sec_column.pack(side="left", fill="both", expand=True, padx=10)
+
+        self.scrollable_frame.bind("<Configure>", self.on_frame_configure)
+
+        # self.first_column.pack(side='left', fill='both', expand=True, padx=5)
+        # self.sec_column.pack(side='right', fill='both', expand=True, padx=5)
+
 
     def open_template_form(self):
         TemplatesCheckController(self)
@@ -47,13 +64,15 @@ class UserConfigView(tk.Frame):
                  **AppStyles.label_style()).pack(fill='x', pady=5)
         self.phase_template = ttk.Combobox(info_frame, values=get_templates_list(),
                                            **AppStyles.combobox_config())
+        self.phase_template.current(0)
         self.phase_template.pack(fill='x', pady=5)
 
         tk.Button(info_frame, text="Просмотр шаблонов",
-                 **AppStyles.button_style(), command = self.open_template_form).pack(side="right", pady = 5)
+                 **AppStyles.button_style(),
+                  command = self.open_template_form).pack(side="right", pady = 5, fill = 'x')
         self.button_entry = tk.Button(info_frame, text="Подтвердить",
                  **AppStyles.button_style(), command=self.create_sites)
-        self.button_entry.pack(side="left", pady = 5)
+        self.button_entry.pack(side="left", pady = 5, fill = 'x')
 
     def create_sites(self):
         self.button_entry["state"] = "disabled"
@@ -214,8 +233,8 @@ class UserConfigView(tk.Frame):
         self.solvents_frame.pack(fill='x', pady=5)
 
         if self.antisolv_check.get() == 1:
-            self.solvent_type = ["solvent", "antisolvent"]
-        else: self.solvent_type = ["solvent"]
+            self.solvent_types = ["solvent", "antisolvent"]
+        else: self.solvent_types = ["solvent"]
 
         values_solvents = ["1", "2"]
 
@@ -234,7 +253,7 @@ class UserConfigView(tk.Frame):
 
         self.solvents_widgets = {}
 
-        for type in self.solvent_type:
+        for type in self.solvent_types:
             current_row = self.get_next_row(self.solvents_widgets)
             label_solvent = tk.Label(self.solvents_frame, text=type,
                  **AppStyles.label_style())
@@ -266,7 +285,7 @@ class UserConfigView(tk.Frame):
     def create_k_factors_frame(self):
         self.salt_formulas = []
         cations, anions = self.get_structure_data()
-        target_anion_moles_map = calculate_target_anion_moles(anions, self.anion_stoichiometry)
+        self.target_anion_moles_map = calculate_target_anion_moles(anions, self.anion_stoichiometry)
         cation_valences = [cation["valence"] for cation in cations]
         cation_symbols = [cation["symbol"] for cation in cations]
         anion_symbols = [anion["symbol"] for anion in anions]
@@ -304,14 +323,14 @@ class UserConfigView(tk.Frame):
         self.data_apply_button.pack(fill='x')
 
     def calculations_function(self):
-        cations, anions = self.get_structure_data()
-        solvents, solution_info = self.get_solution_data()
-        k_factors = self.get_k_factors_data()
+        self.cations_data, self.anions_data = self.get_structure_data()
+        self.solvents_data, self.solution_info = self.get_solution_data()
+        self.k_factors = self.get_k_factors_data()
         calculations = calculate_precursor_masses(
-                self.template_id, cations,
-                anions, self.anion_stoichiometry,
-                solution_info, solvents,
-                k_factors)
+                self.template_id, self.cations_data,
+                self.anions_data, self.anion_stoichiometry,
+                self.solution_info, self.solvents_data,
+                self.k_factors)
         self.console_text = scrolledtext.ScrolledText(
             self.results_frame,
             wrap=tk.WORD,
@@ -324,20 +343,51 @@ class UserConfigView(tk.Frame):
 
         self.console_text.config(state=tk.DISABLED)
 
-        clear_btn = ttk.Button(self.results_frame, text="Очистить", command=self.clear_console)
+        clear_btn = tk.Button(self.results_frame, text="Очистить",
+                              command=self.clear_console, **AppStyles.button_style())
         clear_btn.pack(pady=5)
 
-        self.add_text(format_results_mass_table(calculations))
-        print(generate_reaction_equations_display(calculations))
-        print(format_results_mass_table(calculations))
+        self.fav_button = tk.Button(self.first_column, text="Сохранить конфигурацию",
+                                    command=self.save_config, **AppStyles.button_style())
+        self.fav_button.pack(pady=5)
 
+        self.add_text(generate_reaction_equations_display(calculations))
+        self.add_text(format_results_mass_table(calculations))
+
+    def save_config(self):
+        self.top_window = tk.Toplevel(self)
+        self.top_window.title("Ввод данных")
+        self.top_window.geometry("300x300")  # Размер окна
+
+        tk.Label(self.top_window, text="Название конфигурации",
+                 **AppStyles.label_style()).pack(pady=10)
+
+        self.input_name = tk.Entry(self.top_window, width=30, **AppStyles.entry_style())
+        self.input_name.pack(pady=5)
+
+        tk.Label(self.top_window, text="Описание конфигурации",
+                 **AppStyles.label_style()).pack(pady=10)
+
+        self.input_notes = tk.Entry(self.top_window, width=30, **AppStyles.entry_style())
+        self.input_notes.pack(pady=5)
+
+        submit_button = tk.Button(self.top_window, text="Подтвердить",
+                                  command=self.get_and_close, **AppStyles.button_style())
+        submit_button.pack(pady=10)
+
+    def get_and_close(self):
+        self.name_fav = self.input_name.get()
+        self.notes_fav = self.input_name.get()
+        self.controller.handle_main_submit(self.name_fav, self.notes_fav, self.solvents_data,
+                                           self.cations_data, self.anions_data, self.k_factors,
+                                           self.solution_info, self.template_id)
+        self.top_window.destroy()
 
     def add_text(self, text):
         self.console_text.config(state=tk.NORMAL)
         self.console_text.insert(tk.END, text)
         self.console_text.see(tk.END)
         self.console_text.config(state=tk.DISABLED)
-
 
     def clear_console(self):
         self.console_text.destroy()
@@ -371,7 +421,7 @@ class UserConfigView(tk.Frame):
 
     def get_solution_data(self):
         solvents = []
-        for idx, solvent_type in enumerate(self.solvent_type):
+        for idx, solvent_type in enumerate(self.solvent_types):
             num_solvents = int(self.solvents_widgets[solvent_type]["combobox_num"].get())
             for i in range(num_solvents):
                 widget = self.solvents_widgets[solvent_type]["dynamic_widgets"][i]
