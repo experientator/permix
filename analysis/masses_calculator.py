@@ -33,6 +33,7 @@ def calculate_precursor_masses(
     solvents_by_type = {solvent_type: [] for solvent_type in ["solvent", "antisolvent"]}
 
     equation_counter = 0
+    unique_strategies = {}
     for strategy_desc, strategy_data in calculated_strategies.items():
         strategy_coeffs = strategy_data.get("coefficients")
         strategy_error = strategy_data.get("error_message")
@@ -42,6 +43,14 @@ def calculate_precursor_masses(
                 f"MASS_CALC_CORE: Стратегия '{strategy_desc}' пропущена: {strategy_error}"
             )
             continue
+
+        if strategy_coeffs:
+            coeffs_tuple = tuple(sorted(strategy_coeffs.items()))
+            strategy_key = f"strategy_{hash(coeffs_tuple)}"
+
+            if strategy_key in unique_strategies:
+                continue
+            unique_strategies[strategy_key] = True
 
         current_eq_masses_final_k_filtered = {}
 
@@ -61,7 +70,10 @@ def calculate_precursor_masses(
             for k_factor_salt in k_factors:
                 if k_factor_salt["salt"] == salt_formula:
                     k_for_this_salt = float(k_factor_salt["k_factor"])
-            calculated_mass_g_with_k = mass_g_stoich * k_for_this_salt
+            if k_for_this_salt:
+                calculated_mass_g_with_k = mass_g_stoich * k_for_this_salt
+            else:
+                calculated_mass_g_with_k = mass_g_stoich
 
             current_eq_masses_final_k_filtered[salt_formula] = calculated_mass_g_with_k
             total_mass_g_final_k_significant += calculated_mass_g_with_k

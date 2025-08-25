@@ -1,6 +1,75 @@
 import analysis.constants as constants
 import re
 from analysis.database_utils import get_cation_list_by_key
+import decimal
+from decimal import Decimal, ROUND_HALF_UP
+
+def format_value_for_cell(
+    value,
+    is_error = False,
+    is_cost_value = False):
+    cell_width = constants.TABLE_CELL_WIDTH
+    final_cell_format = constants.TABLE_CELL_FORMAT
+
+    try:
+        value_dec = Decimal(str(value))
+    except (decimal.InvalidOperation, TypeError, ValueError):
+        error_text = "Inv.Val"
+        return final_cell_format.format(error_text[:cell_width])
+
+    precision = 4
+
+    if Decimal("0") < abs(value_dec) < Decimal("1e-4"):
+        precision = 5
+    elif abs(value_dec) >= Decimal("10000"):
+        precision = 2
+    elif abs(value_dec) >= Decimal("100"):
+        precision = 3
+
+    if abs(value_dec) >= Decimal("1000") and not is_cost_value:
+        int_candidate = value_dec.quantize(Decimal("1"), rounding=ROUND_HALF_UP)
+        if abs(int_candidate - value_dec) < Decimal("1e-3"):
+            formatted_int_str = format(int_candidate, ".0f")
+            if len(formatted_int_str) <= cell_width:
+                return final_cell_format.format(formatted_int_str)
+
+    quantizer = Decimal("1e-" + str(precision))
+    rounded_dec = value_dec.quantize(quantizer, rounding=ROUND_HALF_UP)
+    formatted_val_str = f"{rounded_dec:.{precision}f}".rstrip("0").rstrip(".")
+    if formatted_val_str == "-0":
+        formatted_val_str = "0"
+    if not formatted_val_str:
+        formatted_val_str = "0"
+
+    if len(formatted_val_str) > cell_width:
+        sci_precision = 2
+        temp_sci_formatted = ""
+        while sci_precision >= 0:
+            try:
+                sci_formatted_candidate = format(value_dec, f".{sci_precision}E")
+                sci_formatted_candidate = sci_formatted_candidate.replace(
+                    "E+0", "E+"
+                ).replace("E-0", "E-")
+                if len(sci_formatted_candidate) <= cell_width:
+                    temp_sci_formatted = sci_formatted_candidate
+                    break
+                elif not temp_sci_formatted or len(sci_formatted_candidate) < len(
+                    temp_sci_formatted
+                ):
+                    temp_sci_formatted = sci_formatted_candidate
+                sci_precision -= 1
+            except Exception:
+                temp_sci_formatted = "Overflow"
+                break
+        if temp_sci_formatted and len(temp_sci_formatted) <= cell_width:
+            formatted_val_str = temp_sci_formatted
+        elif temp_sci_formatted:
+            formatted_val_str = temp_sci_formatted[: cell_width - 1] + "~"
+        else:
+            formatted_val_str = formatted_val_str[: cell_width - 1] + "~"
+
+    final_output = formatted_val_str[:cell_width]
+    return final_cell_format.format(final_output)
 
 def sort_key_salt(salt_formula_str):
     match = re.match(r"([A-Z][a-zA-Z0-9_]*)(Cl|Br|I)(\d*)$", salt_formula_str.strip())
@@ -57,7 +126,6 @@ def generate_reaction_equations_display(
             key=lambda k: (
                 int(k.split(" ")[1])
                 if k.startswith("Equation ")
-                and len(k.split(" ")) > 1
                 and k.split(" ")[1].isdigit()
                 else 9999
             ),
@@ -73,11 +141,11 @@ def generate_reaction_equations_display(
             continue
 
         coefficients_map_for_eq = eq_data.get("coefficients_detailed")
-        if not isinstance(coefficients_map_for_eq, dict) or not coefficients_map_for_eq:
-            output_lines.append(
-                f"{eq_key} ({eq_data.get('description', 'N/A')}): [Ошибка: нет коэфф.]  ⟶  {product_formula_str}\n"
-            )
-            continue
+        # if not isinstance(coefficients_map_for_eq, dict) or not coefficients_map_for_eq:
+        #     output_lines.append(
+        #         f"{eq_key} ({eq_data.get('description', 'N/A')}): [Ошибка: нет коэфф.]  ⟶  {product_formula_str}\n"
+        #     )
+        #     continue
 
         reactants_parts_str_list = []
         sorted_salt_keys_for_eq_display = sorted(
@@ -150,6 +218,8 @@ def format_results_mass_table(
     calculation_results,
     sorted_equation_keys = None,
     authoritative_salt_list = None):
+    if not calculation_results or not calculation_results.get("equations"):
+        return "Нет данных для таблицы масс"
 
     equations_data_map = calculation_results["equations"]
 
@@ -161,7 +231,6 @@ def format_results_mass_table(
             key=lambda k: (
                 int(k.split(" ")[1])
                 if k.startswith("Equation ")
-                and len(k.split(" ")) > 1
                 and k.split(" ")[1].isdigit()
                 else 9999
             ),
@@ -179,7 +248,7 @@ def format_results_mass_table(
             valid_equations_for_table.append(eq_key)
 
     if not valid_equations_for_table:
-        return f"\nТаблица Масс (г):\nНет валидных уравнений для отображения."
+        return f"\nТаблица Масс (г)):\nНет валидных уравнений для отображения."
 
     if authoritative_salt_list is None:
         temp_header_salts_set: set = set()
@@ -223,7 +292,6 @@ def format_results_mass_table(
     for eq_key in valid_equations_for_table:
         eq_data = equations_data_map[eq_key]
         mass_dict_final = eq_data.get("masses_g_final_k", {})
-        total_cost_final_val = eq_data.get("total_cost_final_k")
 
         eq_num_str = eq_key.split(" ")[1] if eq_key.startswith("Equation ") else eq_key
         row_name_str = f"Eq {eq_num_str}"[:first_col_width]
@@ -232,10 +300,16 @@ def format_results_mass_table(
         for salt_in_header in header_salts_sorted_list:
             mass_val = mass_dict_final.get(salt_in_header)
             is_error_cell = mass_val == constants.MASS_ERROR_MARKER
+            row_str_parts.append(
+                format_value_for_cell(
+                    mass_val, is_error=is_error_cell, is_cost_value=False
+                )
+            )
+
+        output_lines.append("".join(row_str_parts))
 
     output_lines.append(table_separator_str)
     return "\n".join(output_lines)
-
 
 def format_geometry_factors(factors_dict):
     if not factors_dict:

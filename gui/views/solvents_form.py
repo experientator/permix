@@ -1,44 +1,64 @@
 import tkinter as tk
 import tkinter.messagebox as mb
 import tkinter.ttk as ttk
+from gui.default_style import AppStyles
 
 class SolventFormView(tk.Toplevel):
     def __init__(self, parent, controller):
         super().__init__(parent)
         self.controller = controller
-        self.title("Add new solvent")
+        self.title("Добавить новый растворитель")
+        self.configure(bg=AppStyles.BACKGROUND_COLOR)
+        self.styles = AppStyles()
         self.build_ui()
 
     def build_ui(self):
 
-        solv_frame = tk.LabelFrame(self)
-        solv_frame.grid(row=0, column=0, sticky="news", padx=20, pady=10)
-        tk.Label(solv_frame, text="name").grid(row=0, column=0)
-        self.entry_name = tk.Entry(solv_frame)
+        solv_frame = tk.LabelFrame(self, **AppStyles.frame_style())
+        solv_frame.grid(row=0, column=0, sticky="news")
+        tk.Label(solv_frame, text="Название",
+                 **AppStyles.label_style()).grid(row=0, column=0)
+        self.entry_name = tk.Entry(solv_frame,
+                 **AppStyles.entry_style())
         self.entry_name.grid(row=1, column=0)
-        tk.Label(solv_frame, text="type").grid(row=0, column=1)
-        self.box_solvent_type = ttk.Combobox(solv_frame, values=["solvent", "antisolvent"])
+        tk.Label(solv_frame, text="Тип",
+                 **AppStyles.label_style()).grid(row=0, column=1)
+        self.box_solvent_type = ttk.Combobox(solv_frame, values=["Растворитель", "Антирастворитель"])
         self.box_solvent_type.grid(row=1, column=1)
-        tk.Label(solv_frame, text="formula").grid(row=0, column=2)
-        self.entry_formula = tk.Entry(solv_frame)
+        tk.Label(solv_frame, text="Формула",
+                 **AppStyles.label_style()).grid(row=0, column=2)
+        self.entry_formula = tk.Entry(solv_frame,
+                 **AppStyles.entry_style())
         self.entry_formula.grid(row=1, column=2)
-        tk.Label(solv_frame, text="density, g/ml").grid(row=0, column=3)
-        self.entry_density = tk.Entry(solv_frame)
+        tk.Label(solv_frame, text="Плотность, г/мл",
+                 **AppStyles.label_style()).grid(row=0, column=3)
+        self.entry_density = tk.Entry(solv_frame,
+                 **AppStyles.entry_style())
         self.entry_density.grid(row=1, column=3)
-        tk.Label(solv_frame, text="boiling point, C").grid(row=0, column=4)
-        self.entry_bp = tk.Entry(solv_frame)
+        tk.Label(solv_frame, text="Температура кипения, C",
+                 **AppStyles.label_style()).grid(row=0, column=4)
+        self.entry_bp = tk.Entry(solv_frame,
+                 **AppStyles.entry_style())
         self.entry_bp.grid(row=1, column=4)
-        tk.Label(solv_frame, text="notes").grid(row=0, column=5)
-        self.entry_notes = tk.Entry(solv_frame)
+        tk.Label(solv_frame, text="Заметки",
+                 **AppStyles.label_style()).grid(row=0, column=5)
+        self.entry_notes = tk.Entry(solv_frame,
+                 **AppStyles.entry_style())
         self.entry_notes.grid(row=1, column=5)
 
-        tk.Button(self, text="Enter data",
-                  command=self.on_submit).grid(row=1, column=0, sticky="news", padx=20, pady=10)
+        tk.Button(self, text="Загрузить данные",
+                  command=self.on_submit,
+                 **AppStyles.button_style()).grid(row=1, column=0, sticky="news")
 
     def on_submit(self):
+        type = ""
+        if self.box_solvent_type.get() == "Растворитель":
+            type = "solvent"
+        if self.box_solvent_type.get() == "Антирастворитель":
+            type = "antisolvent"
         data = {
             'name': self.entry_name.get(),
-            'type': self.box_solvent_type.get(),
+            'type': type,
             'formula': self.entry_formula.get(),
             'density': self.entry_density.get(),
             'boiling_point': self.entry_bp.get(),

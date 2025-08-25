@@ -1,27 +1,29 @@
 import tkinter as tk
+from gui.default_style import AppStyles
 
 class CandidateFormView(tk.Toplevel):
     def __init__(self, parent, controller):
         super().__init__(parent)
         self.controller = controller
+        self.configure(bg=AppStyles.BACKGROUND_COLOR)
         self.title("Add new candidates")
 
         self.create_widgets()
 
     def create_widgets(self):
-        ion_frame = tk.LabelFrame(self)
-        ion_frame.grid(row=0, column=0, sticky="news", padx=20, pady=10)
+        ion_frame = tk.LabelFrame(self, **AppStyles.frame_style())
+        ion_frame.grid(row=0, column=0, sticky="news")
 
-        tk.Label(ion_frame, text="name").grid(row=0, column=0)
-        self.entry_name = tk.Entry(ion_frame)
+        tk.Label(ion_frame, text="Ключ", **AppStyles.label_style()).grid(row=0, column=0)
+        self.entry_name = tk.Entry(ion_frame, **AppStyles.entry_style())
         self.entry_name.grid(row=1, column=0)
 
-        tk.Label(ion_frame, text="cations").grid(row=0, column=3)
-        self.entry_candidates = tk.Entry(ion_frame)
+        tk.Label(ion_frame, text="Катионы", **AppStyles.label_style()).grid(row=0, column=3)
+        self.entry_candidates = tk.Entry(ion_frame, **AppStyles.entry_style())
         self.entry_candidates.grid(row=1, column=3)
 
         tk.Button(self, text="Enter data",
-                  command=self.on_submit).grid(row=1, column=0, sticky="news", padx=20, pady=10)
+                  command=self.on_submit, **AppStyles.button_style()).grid(row=1, column=0, sticky="news")
 
     def on_submit(self):
         data = {

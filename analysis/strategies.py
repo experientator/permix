@@ -1,4 +1,4 @@
-
+import tkinter.messagebox
 from itertools import combinations
 
 from analysis.chemistry_utils import get_salt_formula
@@ -64,7 +64,7 @@ def _calculate_coefficients_compensatory(rigid_cations, flexible_cations,
         rc_sc = rcsip
         try:
             rc_sf = get_salt_formula(rcs, base_X_anion_for_rigid, rcv)
-            coeffs[rc_sf] = round(coeffs.get(rc_sf, 0) + rc_sc)
+            coeffs[rc_sf] = round(coeffs.get(rc_sf, 0) + rc_sc, 3)
             if base_X_anion_for_rigid in anions_provided_by_rigid:
                 anions_provided_by_rigid[base_X_anion_for_rigid] += rc_sc * rcv
         except ValueError as e:
@@ -131,7 +131,7 @@ def _calculate_coefficients_compensatory(rigid_cations, flexible_cations,
             fc_salt_coeff = fcsip
             try:
                 fc_sf = get_salt_formula(fcs, chosen_anion, fcv)
-                coeffs[fc_sf] = round(coeffs.get(fc_sf, 0) + fc_salt_coeff)
+                coeffs[fc_sf] = round(coeffs.get(fc_sf, 0) + fc_salt_coeff, 3)
                 anions_actually_provided_by_flex[
                     chosen_anion
                 ] += fc_salt_coeff * fcv
@@ -161,7 +161,7 @@ def _calculate_coefficients_compensatory(rigid_cations, flexible_cations,
                         fcs, req_anion, fcv
                     )
                     coeffs[fc_sf_partial] = round(
-                        coeffs.get(fc_sf_partial, 0) + partial_salt_coeff
+                        coeffs.get(fc_sf_partial, 0) + partial_salt_coeff, 3
                     )
                     anions_actually_provided_by_flex[
                         req_anion
@@ -174,18 +174,17 @@ def _calculate_coefficients_compensatory(rigid_cations, flexible_cations,
             # Это условие уже было обработано проверкой total_remaining_anion_need_from_flex <= 0
             pass
 
-    # Финальная проверка баланса анионов (суммируем то, что принесли гибкие, и сравниваем с тем, что требовалось от них)
-    # for hs_check in halides:
-    #     needed_from_flex = required_anions_from_flex.get(hs_check, Decimal(0))
-    #     provided_by_fc_total = anions_actually_provided_by_flex.get(
-    #         hs_check, Decimal(0)
-    #     )
-    #     if abs(needed_from_flex - provided_by_fc_total) > ANION_REQ_ZERO_THRESHOLD:
-    #         logger.debug(
-    #             f"STRAT_CALC: _compensatory: Дисбаланс для аниона {hs_check} от гибких катионов. "
-    #             f"Требовалось от гибких: {needed_from_flex:.4f}, предоставлено гибкими: {provided_by_fc_total:.4f}. Стратегия невалидна."
-    #         )
-    #         return {}, None
+    for hs_check in constants.halides:
+        needed_from_flex = required_anions_from_flex.get(hs_check, 0)
+        provided_by_fc_total = anions_actually_provided_by_flex.get(
+            hs_check, 0
+        )
+        if abs(needed_from_flex - provided_by_fc_total) > ANION_REQ_ZERO_THRESHOLD:
+            tkinter.messagebox.showinfo(message=
+                f"STRAT_CALC: _compensatory: Дисбаланс для аниона {hs_check} от гибких катионов. "
+                f"Требовалось от гибких: {needed_from_flex:.4f}, предоставлено гибкими: {provided_by_fc_total:.4f}. Стратегия невалидна."
+            )
+            return {}, None
 
     return coeffs, error_msg.strip() if error_msg else None
 
@@ -247,7 +246,7 @@ def calculate_strategies_coefficients(active_cations_details,
             if current_coeffs is not None:
                 for salt, coeff_val in current_coeffs.items():
                     if abs(coeff_val) >= COEFF_ZERO_THRESH:
-                        quantized_coeff = round((coeff_val / COEFF_QUANT_PREC) * COEFF_QUANT_PREC)
+                        quantized_coeff = round((coeff_val / COEFF_QUANT_PREC) * COEFF_QUANT_PREC, 3)
                         if abs(quantized_coeff) > ZERO_THRESHOLD:
                             final_coeffs_for_strategy[salt] = quantized_coeff
 

@@ -52,12 +52,13 @@ def calculate_target_anion_moles(anions, total_anion_stoich):
         current_sum_fractions += float(item.get("fraction"))
         hal_symbol = item["symbol"]
         fraction = float(item["fraction"])
-        moles_of_hal = round(int(total_anion_stoich) * fraction)
+        moles_of_hal = int(total_anion_stoich) * fraction
+
+        calculated_total_moles_check += moles_of_hal
 
         target_moles[hal_symbol] = (
-            moles_of_hal
+            round(moles_of_hal, 3)
         )
-        calculated_total_moles_check += moles_of_hal
 
     relative_tolerance = 1e-7
     absolute_tolerance = 1e-9  # Допуск для проверки суммы молей
@@ -75,7 +76,6 @@ def calculate_target_anion_moles(anions, total_anion_stoich):
             # ИЗМЕНЕНО ЗДЕСЬ:
             f"Разница: {float(diff_check):.2E}"
         )
-    print(target_moles)
     return target_moles
 
 def determine_base_anion_for_rigid_cations(anions_moles):

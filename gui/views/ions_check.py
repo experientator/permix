@@ -1,30 +1,33 @@
 import tkinter
 from tkinter import *
 from tkinter import ttk, messagebox
+from gui.default_style import AppStyles
 
 class IonsCheckView(tkinter.Toplevel):
     def __init__(self, parent):
         super().__init__(parent)
         self.title("Ионные радиусы")
+        self.configure(bg=AppStyles.BACKGROUND_COLOR)
         self.geometry("800x600")
-
+        self.styles = AppStyles()
         self.create_widgets()
 
     def create_widgets(self):
-        main_frame = Frame(self)
-        main_frame.pack(fill=BOTH, expand=True, padx=10, pady=10)
+        main_frame = Frame(self, **AppStyles.frame_style())
+        main_frame.pack(fill=BOTH, expand=True)
 
-        ions_frame = LabelFrame(main_frame, text="Ионы")
-        ions_frame.pack(side=LEFT, fill=Y, padx=5, pady=5)
+        ions_frame = LabelFrame(main_frame, text="Ионы", **AppStyles.labelframe_style())
+        ions_frame.pack(side=LEFT, fill=Y)
 
         self.ions_tree = ttk.Treeview(
             ions_frame,
             columns=('name', 'type'),
             show='headings',
-            height=20
+            height=20,
+            **AppStyles.treeview_config()
         )
-        self.ions_tree.heading('name', text='Ион')
-        self.ions_tree.heading('type', text='Тип')
+        self.ions_tree.heading('name', text='Ион', **AppStyles.treeview_headings_config())
+        self.ions_tree.heading('type', text='Тип', **AppStyles.treeview_headings_config())
         self.ions_tree.column('name', width=100)
         self.ions_tree.column('type', width=100)
 
@@ -34,18 +37,19 @@ class IonsCheckView(tkinter.Toplevel):
         self.ions_tree.pack(side=LEFT, fill=BOTH, expand=True)
         ions_scroll.pack(side=RIGHT, fill=Y)
 
-        radii_frame = LabelFrame(main_frame, text="ионные радиусы")
+        radii_frame = LabelFrame(main_frame, text="Ионные радиусы", **AppStyles.labelframe_style())
         radii_frame.pack(side=RIGHT, fill=BOTH, expand=True, padx=5, pady=5)
 
         self.radii_tree = ttk.Treeview(
             radii_frame,
             columns=('charge', 'CN', 'radius'),
             show='headings',
-            height=20
+            height=20,
+            **AppStyles.treeview_config()
         )
-        self.radii_tree.heading('charge', text='заряд')
-        self.radii_tree.heading('CN', text='КЧ')
-        self.radii_tree.heading('radius', text='радиус')
+        self.radii_tree.heading('charge', text='заряд', **AppStyles.treeview_headings_config())
+        self.radii_tree.heading('CN', text='КЧ', **AppStyles.treeview_headings_config())
+        self.radii_tree.heading('radius', text='радиус', **AppStyles.treeview_headings_config())
         self.radii_tree.column('charge', width=80, anchor=CENTER)
         self.radii_tree.column('CN', width=80, anchor=CENTER)
         self.radii_tree.column('radius', width=120, anchor=CENTER)

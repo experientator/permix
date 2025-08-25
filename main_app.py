@@ -66,9 +66,6 @@ class App(tk.Tk):
     def open_ions_form(self):
         IonsFormController(self)
 
-    def open_prices_form(self):
-        pass
-
     def open_ionic_radii_form(self):
         IonicRadiiController(self)
 

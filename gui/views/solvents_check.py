@@ -1,21 +1,24 @@
-import tkinter
-from tkinter import *
+import tkinter as tk
 from tkinter import ttk, messagebox
+from gui.default_style import AppStyles
 
-
-class SolventsCheckView(tkinter.Toplevel):
+class SolventsCheckView(tk.Toplevel):
     def __init__(self, parent, controller):
         super().__init__(parent)
         self.controller = controller
+        self.configure(bg=AppStyles.BACKGROUND_COLOR)
+        self.styles = AppStyles()
         self.title("Solvents viewer")
 
         self.create_widgets()
 
     def create_widgets(self):
-        button_frame = Frame(self)
+        button_frame = tk.Frame(self, **AppStyles.frame_style())
         button_frame.pack(pady=10)
 
-        delete_btn = Button(button_frame, text="Удалить выбранное", command=self.controller.delete_selected)
+        delete_btn = tk.Button(button_frame, text="Удалить выбранное",
+                               command=self.controller.delete_selected,
+                               **AppStyles.button_style())
         delete_btn.grid(row=0, column=1, padx=5)
 
         self.tree = ttk.Treeview(self, columns=('name', 'type', 'formula', 'density', 'boiling_point', 'notes'), show='headings')

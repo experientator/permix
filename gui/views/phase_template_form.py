@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
+from gui.default_style import AppStyles
 
 class TemplateView(tk.Toplevel):
     def __init__(self, parent, controller):
@@ -7,33 +8,41 @@ class TemplateView(tk.Toplevel):
         self.controller = controller
         self.title("Add new phase template")
         self.build_ui()
+        self.configure(bg=AppStyles.BACKGROUND_COLOR)
+        self.styles = AppStyles()
         self.site_frames = []
 
     def build_ui(self):
 
-        info_frame = tk.LabelFrame(self, text="Phase Template")
+        info_frame = tk.LabelFrame(self, text="Шаблоны перовскитов",
+                                   **AppStyles.labelframe_style())
         info_frame.grid(row=0, column=0, columnspan=4, sticky="ew", padx=20, pady=10)
 
-        tk.Label(info_frame, text="name").grid(row=0, column=0)
-        self.entry_name = tk.Entry(info_frame)
+        tk.Label(info_frame, text="Название шаблона",
+                 **AppStyles.label_style()).grid(row=0, column=0)
+        self.entry_name = tk.Entry(info_frame, **AppStyles.entry_style())
         self.entry_name.grid(row=1, column=0)
 
-        tk.Label(info_frame, text="dimensionality").grid(row=0, column=1)
-        self.entry_dimensionality = tk.Entry(info_frame)
+        tk.Label(info_frame, text="Размерность",
+                 **AppStyles.label_style()).grid(row=0, column=1)
+        self.entry_dimensionality = tk.Entry(info_frame, **AppStyles.entry_style())
         self.entry_dimensionality.grid(row=1, column=1)
 
-        tk.Label(info_frame, text="description").grid(row=0, column=2)
-        self.entry_description = tk.Entry(info_frame)
+        tk.Label(info_frame, text="Описание",
+                 **AppStyles.label_style()).grid(row=0, column=2)
+        self.entry_description = tk.Entry(info_frame, **AppStyles.entry_style())
         self.entry_description.grid(row=1, column=2)
 
-        tk.Label(info_frame, text="anion stoichiometry").grid(row=0, column=3)
-        self.entry_anion_stoich = tk.Entry(info_frame)
+        tk.Label(info_frame, text="Стехиометрия аниона",
+                 **AppStyles.label_style()).grid(row=0, column=3)
+        self.entry_anion_stoich = tk.Entry(info_frame, **AppStyles.entry_style())
         self.entry_anion_stoich.grid(row=1, column=3)
 
         sites_frame = tk.Frame(self)
         sites_frame.grid(row=1, column=0, columnspan=4, sticky="ew", padx=20, pady=10)
 
-        tk.Label(sites_frame, text="Choose site types:").pack()
+        tk.Label(sites_frame, text="Выберите типы катионов:",
+                 **AppStyles.label_style()).pack()
 
         self.site_vars = {
             'a_site': tk.IntVar(),
@@ -42,20 +51,20 @@ class TemplateView(tk.Toplevel):
             'spacer': tk.IntVar()
         }
 
-        ttk.Checkbutton(sites_frame, text="A site", variable=self.site_vars['a_site']).pack(side='left', padx=5)
-        ttk.Checkbutton(sites_frame, text="B site", variable=self.site_vars['b_site']).pack(side='left', padx=5)
-        ttk.Checkbutton(sites_frame, text="B double site", variable=self.site_vars['b_double']).pack(side='left',
+        ttk.Checkbutton(sites_frame, text="A-катион", variable=self.site_vars['a_site']).pack(side='left', padx=5)
+        ttk.Checkbutton(sites_frame, text="B-катион", variable=self.site_vars['b_site']).pack(side='left', padx=5)
+        ttk.Checkbutton(sites_frame, text="B-катион (двойной)", variable=self.site_vars['b_double']).pack(side='left',
                                                                                      padx=5)
-        ttk.Checkbutton(sites_frame, text="Spacer", variable=self.site_vars['spacer']).pack(side='left', padx=5)
+        ttk.Checkbutton(sites_frame, text="Спейсер", variable=self.site_vars['spacer']).pack(side='left', padx=5)
 
         button_frame = tk.Frame(self)
         button_frame.grid(row=2, column=0, columnspan=4, sticky="ew", padx=20, pady=10)
 
-        self.btn_add_sites = tk.Button(button_frame, text="Add Sites",
+        self.btn_add_sites = tk.Button(button_frame, text="Добавить элементы структуры",
                                        command=self.on_add_sites)
         self.btn_add_sites.pack(side='left', padx=5)
 
-        self.btn_submit = tk.Button(button_frame, text="Submit Template",
+        self.btn_submit = tk.Button(button_frame, text="Подтвердить шаблон",
                                     command=self.on_submit_template)
         self.btn_submit.pack(side='left', padx=5)
         self.btn_submit.config(state='disabled')
@@ -127,12 +136,14 @@ class SiteFrame(tk.LabelFrame):
         super().__init__(parent, text=site_type)
         self.site_type = site_type
 
-        tk.Label(self, text="base stoichiometry").grid(row=0, column=0)
-        self.entry_stoich = tk.Entry(self)
+        tk.Label(self, text="Базовая стехиометрия",
+                 **AppStyles.label_style()).grid(row=0, column=0)
+        self.entry_stoich = tk.Entry(self, **AppStyles.entry_style())
         self.entry_stoich.grid(row=1, column=0)
 
-        tk.Label(self, text="base valence").grid(row=0, column=1)
-        self.entry_valence = tk.Entry(self)
+        tk.Label(self, text="Базовая валентность",
+                 **AppStyles.label_style()).grid(row=0, column=1)
+        self.entry_valence = tk.Entry(self, **AppStyles.entry_style())
         self.entry_valence.grid(row=1, column=1)
 
     def get_data(self):

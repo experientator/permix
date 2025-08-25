@@ -1,20 +1,24 @@
 import tkinter
 from tkinter import *
 from tkinter import ttk, messagebox
+from gui.default_style import AppStyles
 
 class TemplatesCheckView(tkinter.Toplevel):
     def __init__(self, parent):
         super().__init__(parent)
         self.title("Шаблоны")
         self.geometry("800x600")
-
+        self.configure(bg=AppStyles.BACKGROUND_COLOR)
+        self.styles = AppStyles()
         self.create_widgets()
 
     def create_widgets(self):
-        main_frame = Frame(self)
+        main_frame = Frame(self,
+                 **AppStyles.frame_style())
         main_frame.pack(fill=BOTH, expand=True, padx=10, pady=10)
 
-        temp_frame = LabelFrame(main_frame, text="Шаблоны")
+        temp_frame = LabelFrame(main_frame, text="Шаблоны",
+                 **AppStyles.labelframe_style())
         temp_frame.pack(side=LEFT, fill=Y, padx=5, pady=5)
 
         self.temp_tree = ttk.Treeview(
@@ -40,7 +44,8 @@ class TemplatesCheckView(tkinter.Toplevel):
         self.temp_tree.pack(side=LEFT, fill=BOTH, expand=True)
         temp_scroll.pack(side=RIGHT, fill=Y)
 
-        sites_frame = LabelFrame(main_frame, text="структура")
+        sites_frame = LabelFrame(main_frame, text="структура",
+                 **AppStyles.labelframe_style())
         sites_frame.pack(side=RIGHT, fill=BOTH, expand=True, padx=5, pady=5)
 
         self.sites_tree = ttk.Treeview(
