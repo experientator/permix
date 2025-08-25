@@ -23,6 +23,25 @@ class UserConfigView(tk.Frame):
     def on_frame_configure(self, event=None):
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
 
+    def fraction_test(self, data, list, type_name):
+        for element in data:
+            try:
+                fraction = float(element['fraction'])
+            except ValueError:
+                self.show_error(title = "error", message = "Fraction must be a float number")
+                return
+
+            if type_name == 'anion':
+                list['anions'] += fraction
+            else:
+                type = element[f'{type_name}']
+                list[type] += fraction
+
+        for type, total in list.items():
+            if total > 0 and not 0.99 <= total <= 1.01:
+                self.show_error(title = "error", message =f"Total fraction for {type} must be 1")
+                return
+
     def build_ui(self):
         # self.container = tk.Frame(self, **AppStyles.frame_style())
         # self.container.pack(expand=True, fill='both')
@@ -326,6 +345,14 @@ class UserConfigView(tk.Frame):
         self.cations_data, self.anions_data = self.get_structure_data()
         self.solvents_data, self.solution_info = self.get_solution_data()
         self.k_factors = self.get_k_factors_data()
+
+        for element in self.k_factors:
+            try:
+                k_factor = float(element['k_factor'])
+            except ValueError:
+                self.show_error(title="error", message="k-факторы должны принимать числовые значения")
+                return
+
         calculations = calculate_precursor_masses(
                 self.template_id, self.cations_data,
                 self.anions_data, self.anion_stoichiometry,
@@ -350,6 +377,12 @@ class UserConfigView(tk.Frame):
         self.fav_button = tk.Button(self.first_column, text="Сохранить конфигурацию",
                                     command=self.save_config, **AppStyles.button_style())
         self.fav_button.pack(pady=5)
+        solvent_fractions = {'solvent': 0, 'antisolvent': 0}
+        self.fraction_test(self.solvents_data, solvent_fractions, 'solvent_type')
+        cation_fractions = {'a_site': 0, 'b_site': 0, 'b_double': 0, 'spacer': 0}
+        self.fraction_test(self.cations_data, cation_fractions, 'structure_type')
+        anions_fractions = {'anions': 0}
+        self.fraction_test(self.anions_data, anions_fractions, 'anion')
 
         self.add_text(generate_reaction_equations_display(calculations))
         self.add_text(format_results_mass_table(calculations))
@@ -430,13 +463,22 @@ class UserConfigView(tk.Frame):
                     "symbol": widget["symbol"].get(),
                     "fraction": widget["fraction"].get(),
                 })
+        try:
+            v_solvent = float(self.entry_v_solvent.get())
+            c_solvent = float(self.entry_c_solvent.get())
+            if self.antisolv_check == 1:
+                v_antisolvent = float(self.entry_v_antisolvent.get())
+        except ValueError:
+            self.show_error(title="error", message="Характеристики раствора должны принимать численные значения")
+            return
+
         solution_info = {
-            "v_solvent": float(self.entry_v_solvent.get()),
-            "c_solvent": float(self.entry_c_solvent.get()),
+            "v_solvent": v_solvent,
+            "c_solvent": c_solvent,
             "v_antisolvent": 0.0
         }
         if self.antisolv_check.get() == 1:
-            solution_info["v_antisolvent"] = float(self.entry_v_antisolvent.get())
+            solution_info["v_antisolvent"] = v_antisolvent
         return solvents, solution_info
 
     def get_k_factors_data(self):
@@ -532,3 +574,5 @@ class UserConfigView(tk.Frame):
                                         **AppStyles.entry_style())
             self.entry_v_antisolvent.grid(row=1, column=2)
 
+    def show_error(self, title, message):
+        tk.messagebox.showerror(title, message)
