@@ -10,6 +10,7 @@ from gui.controllers.phase_template_form import TemplateController
 from gui.controllers.candidates_form import CandidatesFormController
 from gui.controllers.templates_check import TemplatesCheckController
 from gui.controllers.user_config_form import UserConfigController
+from gui.controllers.composition_check import CompositionCheckController
 from gui.views.user_config_form import UserConfigView
 
 class App(tk.Tk):
@@ -38,12 +39,16 @@ class App(tk.Tk):
         view_menu.add_command(label="Просмотр растворителей",  command=self.get_solvents)
         view_menu.add_command(label="Просмотр ионных радиусов",  command=self.get_ionic_radii)
         view_menu.add_command(label="Просмотр шаблонов",  command=self.get_templates)
+        view_menu.add_command(label="Просмотр соединений", command=self.get_compositions)
 
         menu.add_cascade(label="Загрузить", menu=upload_menu)
         menu.add_cascade(label="Просмотреть", menu=view_menu)
         menu.add_command(label="О программе", command= self.program_info)
         menu.add_command(label="Выйти", command=self.destroy)
         self.config(menu=menu)
+
+    def get_compositions(self):
+        CompositionCheckController(self)
 
     def get_user_config(self):
         UserConfigController(self)

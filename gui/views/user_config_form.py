@@ -410,7 +410,7 @@ class UserConfigView(tk.Frame):
 
     def get_and_close(self):
         self.name_fav = self.input_name.get()
-        self.notes_fav = self.input_name.get()
+        self.notes_fav = self.input_notes.get()
         self.controller.handle_main_submit(self.name_fav, self.notes_fav, self.solvents_data,
                                            self.cations_data, self.anions_data, self.k_factors,
                                            self.solution_info, self.template_id)
@@ -478,7 +478,7 @@ class UserConfigView(tk.Frame):
             "v_antisolvent": 0.0
         }
         if self.antisolv_check.get() == 1:
-            solution_info["v_antisolvent"] = v_antisolvent
+            solution_info["v_antisolvent"] = float(self.entry_v_antisolvent.get())
         return solvents, solution_info
 
     def get_k_factors_data(self):

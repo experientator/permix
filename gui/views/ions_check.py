@@ -8,7 +8,7 @@ class IonsCheckView(tkinter.Toplevel):
         super().__init__(parent)
         self.title("Ионные радиусы")
         self.configure(bg=AppStyles.BACKGROUND_COLOR)
-        self.wm_attributes('-fullscreen', True)
+        self.attributes('-fullscreen', True)
         menu = Menu(self)
         menu.add_command(label="Выйти", command=self.destroy)
         self.config(menu=menu)

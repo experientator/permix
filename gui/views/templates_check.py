@@ -4,10 +4,11 @@ from tkinter import ttk, messagebox
 from gui.default_style import AppStyles
 
 class TemplatesCheckView(tkinter.Toplevel):
-    def __init__(self, parent):
+    def __init__(self, parent, controller):
         super().__init__(parent)
         self.title("Шаблоны")
-        self.wm_attributes('-fullscreen', True)
+        self.controller = controller
+        self.attributes('-fullscreen', True)
         menu = Menu(self)
         menu.add_command(label="Выйти", command=self.destroy)
         self.config(menu=menu)
@@ -23,6 +24,11 @@ class TemplatesCheckView(tkinter.Toplevel):
         temp_frame = LabelFrame(main_frame, text="Шаблоны",
                  **AppStyles.labelframe_style())
         temp_frame.pack(side=LEFT, fill=Y, padx=5, pady=5)
+
+        delete_btn = Button(main_frame, text="Удалить выбранное",
+                               command=self.controller.delete_selected,
+                               **AppStyles.button_style())
+        delete_btn.pack(side=BOTTOM, fill=X, padx=5, pady=5)
 
         self.temp_tree = ttk.Treeview(
             temp_frame,
@@ -101,5 +107,11 @@ class TemplatesCheckView(tkinter.Toplevel):
     def show_message(self, title, message):
         messagebox.showinfo(title, message)
 
+    def show_warning(self, title, message):
+        messagebox.showwarning(title, message)
+
     def show_error(self, title, message):
         messagebox.showerror(title, message)
+
+    def ask_confirmation(self, title, message):
+        return messagebox.askyesno(title, message)

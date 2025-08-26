@@ -9,7 +9,7 @@ class CompositionView(tk.Toplevel):
         super().__init__(parent)
         self.controller = controller
         self.title("Добавить новое соединение")
-        self.wm_attributes('-fullscreen', True)
+        self.attributes('-fullscreen', True)
         self.configure(bg=AppStyles.BACKGROUND_COLOR)
         self.build_ui()
         self.dynamic_widgets = []

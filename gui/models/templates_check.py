@@ -28,3 +28,10 @@ class TemplatesCheckModel:
         ORDER BY type
         """, (id_phase,))
         return [dict(row) for row in cursor.fetchall()]
+
+    def delete_template(self, id_phase):
+        cursor = self.conn.cursor()
+        cursor.execute("DELETE FROM Template_sites WHERE id_phase=?", (id_phase,))
+        cursor.execute("DELETE FROM Phase_templates WHERE id=?", (id_phase,))
+        self.conn.commit()
+        return cursor.rowcount > 0

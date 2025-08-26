@@ -7,7 +7,7 @@ class IonicRadiiView(tk.Toplevel):
         super().__init__(parent)
         self.controller = controller
         self.configure(bg=AppStyles.BACKGROUND_COLOR)
-        self.wm_attributes('-fullscreen', True)
+        self.attributes('-fullscreen', True)
         menu = tk.Menu(self)
         menu.add_command(label="Выйти", command=self.destroy)
         self.config(menu=menu)

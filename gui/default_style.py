@@ -2,7 +2,6 @@ from tkinter import font as tkfont
 import tkinter.ttk as ttk
 
 class AppStyles:
-
     def __init__(self):
         self.style = ttk.Style()
         self.configure_styles()

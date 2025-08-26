@@ -9,7 +9,7 @@ class SolventFormView(tk.Toplevel):
         self.controller = controller
         self.title("Добавить новый растворитель")
         self.configure(bg=AppStyles.BACKGROUND_COLOR)
-        self.wm_attributes('-fullscreen', True)
+        self.attributes('-fullscreen', True)
         menu = tk.Menu(self)
         menu.add_command(label="Выйти", command=self.destroy)
         self.config(menu=menu)
