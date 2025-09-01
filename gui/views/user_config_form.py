@@ -5,6 +5,7 @@ from tkinter import ttk, scrolledtext
 from analysis.database_utils import (get_templates_list, get_template_id, get_template_sites,
                                      get_candidate_cations, get_solvents, get_anion_stoichiometry)
 from analysis.chemistry_utils import get_salt_formula, calculate_target_anion_moles
+from analysis.geometry_calculator import show_error
 from gui.controllers.templates_check import TemplatesCheckController
 from analysis.masses_calculator import calculate_precursor_masses
 from analysis.display_formatters import format_results_mass_table, generate_reaction_equations_display
@@ -29,7 +30,7 @@ class UserConfigView(tk.Frame):
                 fraction = float(element['fraction'])
             except ValueError:
                 self.show_error(title = "error", message = "Fraction must be a float number")
-                return
+                raise ValueError
 
             if type_name == 'anion':
                 list['anions'] += fraction
@@ -40,11 +41,9 @@ class UserConfigView(tk.Frame):
         for type, total in list.items():
             if total > 0 and not 0.99 <= total <= 1.01:
                 self.show_error(title = "error", message =f"Total fraction for {type} must be 1")
-                return
+                raise ValueError
 
     def build_ui(self):
-        # self.container = tk.Frame(self, **AppStyles.frame_style())
-        # self.container.pack(expand=True, fill='both')
 
         self.canvas = tk.Canvas(self, borderwidth=0)
         self.canvas.pack(fill="both", expand=True)
@@ -64,17 +63,16 @@ class UserConfigView(tk.Frame):
 
         self.scrollable_frame.bind("<Configure>", self.on_frame_configure)
 
-        # self.first_column.pack(side='left', fill='both', expand=True, padx=5)
-        # self.sec_column.pack(side='right', fill='both', expand=True, padx=5)
-
 
     def open_template_form(self):
         TemplatesCheckController(self)
 
     def create_template_frame(self):
+
         info_frame = tk.LabelFrame(self.first_column,
                                    text="Выбор шаблона", **AppStyles.labelframe_style())
         info_frame.pack(fill='x', pady=5)
+
         self.results_frame = tk.LabelFrame(self.sec_column,
                                            text="Результаты расчетов", **AppStyles.labelframe_style())
         self.results_frame.pack(fill='x', pady=5)
@@ -86,12 +84,20 @@ class UserConfigView(tk.Frame):
         self.phase_template.current(0)
         self.phase_template.pack(fill='x', pady=5)
 
-        tk.Button(info_frame, text="Просмотр шаблонов",
-                 **AppStyles.button_style(),
-                  command = self.open_template_form).pack(side="right", pady = 5, fill = 'x')
-        self.button_entry = tk.Button(info_frame, text="Подтвердить",
-                 **AppStyles.button_style(), command=self.create_sites)
-        self.button_entry.pack(side="left", pady = 5, fill = 'x')
+        button_frame = tk.Frame(info_frame)
+        button_frame.pack(fill='x', pady=5)
+
+        tk.Button(button_frame, text="Просмотр шаблонов",
+                  **AppStyles.button_style(),
+                  command=self.open_template_form).pack(side="right", fill = 'x', padx=2)
+
+        self.button_entry = tk.Button(button_frame, text="Подтвердить",
+                                      **AppStyles.button_style(), command=self.create_sites)
+        self.button_entry.pack(side="right", fill = 'x', padx=2)
+
+        clear_btn = tk.Button(button_frame, text="Очистить форму",
+                              **AppStyles.button_style(), command=self.reset_form)
+        clear_btn.pack(side="right", fill = 'x', padx=2)
 
     def create_sites(self):
         self.button_entry["state"] = "disabled"
@@ -179,9 +185,9 @@ class UserConfigView(tk.Frame):
         }
         self._update_site(site_type, 0)
         self.antisolv_check = tk.IntVar(self)
-        self.anticolvents_cb = tk.Checkbutton(self.first_column, text = "Наличие антирастворителей",
+        self.antisolvents_cb = tk.Checkbutton(self.first_column, text = "Наличие антирастворителей",
                                                variable = self.antisolv_check, **AppStyles.checkbutton_style())
-        self.anticolvents_cb.pack(fill='x', pady=5)
+        self.antisolvents_cb.pack(fill='x', pady=5)
         self.upload_button = tk.Button(self.first_column, text = "подтвердить состав",
                  **AppStyles.button_style(), command = self.create_solvents)
         self.upload_button.pack(fill='x', pady=5)
@@ -245,8 +251,28 @@ class UserConfigView(tk.Frame):
                 current_row += 1
 
     def create_solvents(self):
+        self.salt_formulas = []
+        self.cations_data, self.anions_data = self.get_structure_data()
+
+        cation_fractions = {'a_site': 0, 'b_site': 0, 'b_double': 0, 'spacer': 0}
+        anions_fractions = {'anions': 0}
+
+        try:
+            self.fraction_test(self.cations_data, cation_fractions, 'structure_type')
+            self.fraction_test(self.anions_data, anions_fractions, 'anion')
+        except (ValueError, TypeError):
+            return
+
+        self.target_anion_moles_map = calculate_target_anion_moles(self.anions_data, self.anion_stoichiometry)
+        cation_valences = [cation["valence"] for cation in self.cations_data]
+        cation_symbols = [cation["symbol"] for cation in self.cations_data]
+        anion_symbols = [anion["symbol"] for anion in self.anions_data]
+        for i in range(len(cation_symbols)):
+            for anion_symbol in anion_symbols:
+                self.salt_formulas.append(get_salt_formula(cation_symbols[i], anion_symbol, cation_valences[i]))
+
         self.upload_button["state"] = "disabled"
-        self.anticolvents_cb["state"] = "disabled"
+        self.antisolvents_cb["state"] = "disabled"
         self.solvents_frame = tk.LabelFrame(self.first_column, text="растворители",
                                             **AppStyles.labelframe_style())
         self.solvents_frame.pack(fill='x', pady=5)
@@ -300,37 +326,37 @@ class UserConfigView(tk.Frame):
             self._update_solvent(type)
         self.create_solvent_properties()
         self.create_k_factors_frame()
+        self.data_button()
 
     def create_k_factors_frame(self):
-        self.salt_formulas = []
-        cations, anions = self.get_structure_data()
-        self.target_anion_moles_map = calculate_target_anion_moles(anions, self.anion_stoichiometry)
-        cation_valences = [cation["valence"] for cation in cations]
-        cation_symbols = [cation["symbol"] for cation in cations]
-        anion_symbols = [anion["symbol"] for anion in anions]
-        for i in range(len(cation_symbols)):
-            for anion_symbol in anion_symbols:
-                self.salt_formulas.append(get_salt_formula(cation_symbols[i], anion_symbol, cation_valences[i]))
-        value_salts = list(range(1, len(self.salt_formulas) + 1))
         self.current_row = 1
         self.k_factors_frame = tk.LabelFrame(self.first_column, text="K-факторы",
                                              **AppStyles.labelframe_style())
         self.k_factors_frame.pack(fill='x', pady=5)
-        tk.Button(self.k_factors_frame, text="Просмотр возможных солей",
-                  command = self.show_salts_info,
-                 **AppStyles.button_style()).grid(row=0, column=0)
-        tk.Button(self.k_factors_frame, text="Добавить k-фактор",
-                  command = self.create_k_factors_widgets,
-                 **AppStyles.button_style()).grid(row=0, column=1)
-        tk.Label(self.k_factors_frame, text="Соль",
-                 **AppStyles.label_style()).grid(row=1, column=0)
-        tk.Label(self.k_factors_frame, text="К-фактор",
-                 **AppStyles.label_style()).grid(row=1, column=1)
-        self.k_factors_widgets = {}
+        button_frame = tk.Frame(self.k_factors_frame, **AppStyles.frame_style())
+        button_frame.pack(fill='x', pady=5)
+
+        tk.Button(button_frame, text="Просмотр возможных солей",
+                  command=self.show_salts_info,
+                  **AppStyles.button_style()).pack(side='left', padx=5, fill='x', expand=True)
+
+        tk.Button(button_frame, text="Добавить k-фактор",
+                  command=self.create_k_factors_widgets,
+                  **AppStyles.button_style()).pack(side='left', padx=5, fill='x', expand=True)
+
+        self.header_frame_k = tk.Frame(self.k_factors_frame, **AppStyles.frame_style())
+        self.header_frame_k.pack(fill='x', pady=5)
+
+        tk.Label(self.header_frame_k, text="Соль",
+                 **AppStyles.label_style()).pack(side='left', padx=5, fill='x', expand=True)
+
+        tk.Label(self.header_frame_k, text="К-фактор",
+                 **AppStyles.label_style()).pack(side='left', padx=5, fill='x', expand=True)
+
         self.k_factors_widgets = {
             "dynamic_widgets": []
         }
-        self.data_button()
+
 
     def data_button(self):
         self.data_apply_button_frame = tk.LabelFrame(self.first_column,
@@ -342,7 +368,6 @@ class UserConfigView(tk.Frame):
         self.data_apply_button.pack(fill='x')
 
     def calculations_function(self):
-        self.cations_data, self.anions_data = self.get_structure_data()
         self.solvents_data, self.solution_info = self.get_solution_data()
         self.k_factors = self.get_k_factors_data()
 
@@ -370,20 +395,11 @@ class UserConfigView(tk.Frame):
 
         self.console_text.config(state=tk.DISABLED)
 
-        clear_btn = tk.Button(self.results_frame, text="Очистить",
-                              command=self.clear_console, **AppStyles.button_style())
-        clear_btn.pack(pady=5)
-
         self.fav_button = tk.Button(self.first_column, text="Сохранить конфигурацию",
                                     command=self.save_config, **AppStyles.button_style())
-        self.fav_button.pack(pady=5)
+        self.fav_button.pack(fill = 'x', pady=5)
         solvent_fractions = {'solvent': 0, 'antisolvent': 0}
         self.fraction_test(self.solvents_data, solvent_fractions, 'solvent_type')
-        cation_fractions = {'a_site': 0, 'b_site': 0, 'b_double': 0, 'spacer': 0}
-        self.fraction_test(self.cations_data, cation_fractions, 'structure_type')
-        anions_fractions = {'anions': 0}
-        self.fraction_test(self.anions_data, anions_fractions, 'anion')
-
         self.add_text(generate_reaction_equations_display(calculations))
         self.add_text(format_results_mass_table(calculations))
 
@@ -422,9 +438,6 @@ class UserConfigView(tk.Frame):
         self.console_text.see(tk.END)
         self.console_text.config(state=tk.DISABLED)
 
-    def clear_console(self):
-        self.console_text.destroy()
-
     def show_salts_info(self):
         salt_text = ""
         for salt in self.salt_formulas:
@@ -434,7 +447,9 @@ class UserConfigView(tk.Frame):
         mb.showinfo("Список солей", f"Список возможных солей для данного соединения:{salt_text}")
 
     def create_k_factors_widgets(self):
-        self.current_row+=1
+
+        self.current_row += 1
+
         combobox_salts = ttk.Combobox(
             self.k_factors_frame,
             values=self.salt_formulas,
@@ -443,10 +458,10 @@ class UserConfigView(tk.Frame):
             **AppStyles.combobox_config()
         )
         combobox_salts.current(0)
-        combobox_salts.grid(row=self.current_row, column=0, padx=5, pady=2)
+        combobox_salts.pack(side='left', padx=5, fill='x', expand=True)
         entry_k_factor = tk.Entry(self.k_factors_frame, width=10,
                                   **AppStyles.entry_style())
-        entry_k_factor.grid(row=self.current_row, column=1, padx=5, pady=2)
+        entry_k_factor.pack(side='left', padx=5, fill='x', expand=True)
         self.k_factors_widgets["dynamic_widgets"].append({
             "salt": combobox_salts,
             "k_factor": entry_k_factor
@@ -573,6 +588,34 @@ class UserConfigView(tk.Frame):
             self.entry_v_antisolvent = tk.Entry(self.propereties_frame, width=10,
                                         **AppStyles.entry_style())
             self.entry_v_antisolvent.grid(row=1, column=2)
+
+    def reset_form(self):
+
+        for widget in self.first_column.winfo_children():
+            widget.destroy()
+
+        for widget in self.sec_column.winfo_children():
+            widget.destroy()
+
+        self.first_column.update()
+        self.sec_column.update()
+
+        for attr in ['sites_frame', 'solvents_frame', 'propereties_frame',
+                     'k_factors_frame', 'data_apply_button_frame', 'results_frame',
+                     'console_text', 'fav_button']:
+            if hasattr(self, attr):
+                delattr(self, attr)
+
+        self.site_widgets = {}
+        self.solvents_widgets = {}
+        self.k_factors_widgets = {}
+        self.dynamic_widgets = []
+        self.create_template_frame()
+        self.update()
+        self.canvas.update()
+        self.canvas.yview_moveto(0.0)
+        self.on_frame_configure()
+        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
 
     def show_error(self, title, message):
         tk.messagebox.showerror(title, message)
