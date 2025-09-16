@@ -1,88 +1,230 @@
-import tkinter
-from tkinter import *
+import tkinter as tk
 from tkinter import ttk, messagebox
 from gui.default_style import AppStyles
 
-class TemplatesCheckView(tkinter.Toplevel):
+class TemplatesCheckView(tk.Toplevel):
     def __init__(self, parent, controller):
         super().__init__(parent)
-        self.title("Шаблоны")
         self.controller = controller
+        self.title("Управление шаблонами перовскитов")
         self.attributes('-fullscreen', True)
-        menu = Menu(self)
+        menu = tk.Menu(self)
         menu.add_command(label="Выйти", command=self.destroy)
         self.config(menu=menu)
         self.configure(bg=AppStyles.BACKGROUND_COLOR)
         self.styles = AppStyles()
-        self.create_widgets()
+        self.site_frames = []
 
-    def create_widgets(self):
-        main_frame = Frame(self,
-                 **AppStyles.frame_style())
-        main_frame.pack(fill=BOTH, expand=True, padx=10, pady=10)
+        self.build_ui()
 
-        temp_frame = LabelFrame(main_frame, text="Шаблоны",
-                 **AppStyles.labelframe_style())
-        temp_frame.pack(side=LEFT, fill=Y, padx=5, pady=5)
+    def bind_template_selection(self, callback):
+        self.temp_tree.bind('<<TreeviewSelect>>', callback)
 
-        delete_btn = Button(main_frame, text="Удалить выбранное",
-                               command=self.controller.delete_selected,
-                               **AppStyles.button_style())
-        delete_btn.pack(side=BOTTOM, fill=X, padx=5, pady=5)
+    def build_ui(self):
+        main_paned = ttk.PanedWindow(self, orient=tk.HORIZONTAL)
+        main_paned.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+
+        left_frame = tk.Frame(main_paned, **AppStyles.frame_style())
+        main_paned.add(left_frame, weight=7)
+
+        right_frame = tk.Frame(main_paned, **AppStyles.frame_style())
+        main_paned.add(right_frame, weight=1)
+
+        temp_frame = tk.LabelFrame(left_frame, text="Существующие шаблоны",
+                                   **AppStyles.labelframe_style())
+        temp_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
 
         self.temp_tree = ttk.Treeview(
             temp_frame,
             columns=('id', 'name', 'anion_stoichiometry', 'dimensionality', 'description'),
             show='headings',
-            height=20
+            height=15
         )
-        self.temp_tree.heading('id', text='id')
-        self.temp_tree.heading('name', text='имя')
-        self.temp_tree.heading('anion_stoichiometry', text='стехиометрия аниона')
-        self.temp_tree.heading('dimensionality', text='размерность')
-        self.temp_tree.heading('description', text='описание')
-        self.temp_tree.column('id', width=100)
-        self.temp_tree.column('name', width=100)
-        self.temp_tree.column('anion_stoichiometry', width=100)
-        self.temp_tree.column('dimensionality', width=100)
-        self.temp_tree.column('description', width=100)
+        self.temp_tree.heading('id', text='ID')
+        self.temp_tree.heading('name', text='Имя')
+        self.temp_tree.heading('anion_stoichiometry', text='Стехиометрия аниона')
+        self.temp_tree.heading('dimensionality', text='Размерность')
+        self.temp_tree.heading('description', text='Описание')
 
-        temp_scroll = ttk.Scrollbar(temp_frame, orient=VERTICAL, command=self.temp_tree.yview)
+        for col in ('id', 'name', 'anion_stoichiometry', 'dimensionality', 'description'):
+            self.temp_tree.column(col, width=100, anchor=tk.CENTER)
+
+        temp_scroll = ttk.Scrollbar(temp_frame, orient=tk.VERTICAL, command=self.temp_tree.yview)
         self.temp_tree.configure(yscrollcommand=temp_scroll.set)
 
-        self.temp_tree.pack(side=LEFT, fill=BOTH, expand=True)
-        temp_scroll.pack(side=RIGHT, fill=Y)
+        self.temp_tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        temp_scroll.pack(side=tk.RIGHT, fill=tk.Y)
 
-        sites_frame = LabelFrame(main_frame, text="структура",
-                 **AppStyles.labelframe_style())
-        sites_frame.pack(side=RIGHT, fill=BOTH, expand=True)
+        button_frame_left = tk.Frame(left_frame, **AppStyles.frame_style())
+        button_frame_left.pack(fill=tk.X, padx=5, pady=2)
+
+        delete_btn = tk.Button(button_frame_left, text="Удалить выбранное",
+                               command=self.controller.delete_selected,
+                               **AppStyles.button_style())
+        delete_btn.pack(side = "left",fill="x", padx=5, expand = True)
+
+        details_frame = tk.LabelFrame(right_frame, text="Детали выбранного шаблона",
+                                      **AppStyles.labelframe_style())
+        details_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=2)
 
         self.sites_tree = ttk.Treeview(
-            sites_frame,
+            details_frame,
             columns=('type', 'stoichiometry', 'valence'),
             show='headings',
-            height=20,
-            **AppStyles.treeview_config()
+            height=10
         )
-        self.sites_tree.heading('type', text='тип')
-        self.sites_tree.heading('stoichiometry', text='стехиометрия')
-        self.sites_tree.heading('valence', text='валентность')
-        self.sites_tree.column('type', width=80, anchor=CENTER)
-        self.sites_tree.column('stoichiometry', width=80, anchor=CENTER)
-        self.sites_tree.column('valence', width=120, anchor=CENTER)
+        self.sites_tree.heading('type', text='Тип')
+        self.sites_tree.heading('stoichiometry', text='Стехиометрия')
+        self.sites_tree.heading('valence', text='Валентность')
 
-        sites_scroll = ttk.Scrollbar(sites_frame, orient=VERTICAL, command=self.sites_tree.yview)
+        for col in ('type', 'stoichiometry', 'valence'):
+            self.sites_tree.column(col, width=100, anchor=tk.CENTER)
+
+        sites_scroll = ttk.Scrollbar(details_frame, orient=tk.VERTICAL, command=self.sites_tree.yview)
         self.sites_tree.configure(yscrollcommand=sites_scroll.set)
 
-        self.sites_tree.pack(side=LEFT, fill=BOTH, expand=True)
-        sites_scroll.pack(side=RIGHT, fill=Y)
+        self.sites_tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        sites_scroll.pack(side=tk.RIGHT, fill=tk.Y)
+
+        # Привязка событий
+        self.temp_tree.bind('<<TreeviewSelect>>', self.on_template_select)
+
+        form_frame = tk.LabelFrame(right_frame, text="Добавить новый шаблон",
+                                   **AppStyles.labelframe_style())
+        form_frame.pack(expand = True, fill="x", padx=5, pady=2, anchor = "nw")
+
+        # Поля формы
+        info_frame = tk.Frame(form_frame, **AppStyles.frame_style())
+        info_frame.pack(expand = True, fill="x", padx=5, pady=2, anchor = "nw")
+        info_frame.columnconfigure(0, weight=1)
+        info_frame.columnconfigure(1, weight=1)
+        info_frame.columnconfigure(2, weight=1)
+        info_frame.columnconfigure(3, weight=1)
+
+        tk.Label(info_frame, text="Название шаблона",
+                 **AppStyles.label_style()).grid(row=0, column=0, sticky = 'ew', padx=5, pady=2)
+        self.entry_name = tk.Entry(info_frame, **AppStyles.entry_style())
+        self.entry_name.grid(row=1, column=0, sticky = 'ew', padx=5, pady=2)
+
+        tk.Label(info_frame, text="Размерность",
+                 **AppStyles.label_style()).grid(row=0, column=1, sticky = 'ew', padx=5, pady=2)
+        self.entry_dimensionality = tk.Entry(info_frame, **AppStyles.entry_style())
+        self.entry_dimensionality.grid(row=1, column=1, sticky = 'ew', padx=5, pady=2)
+
+        tk.Label(info_frame, text="Описание",
+                 **AppStyles.label_style()).grid(row=0, column=2, sticky = 'ew', padx=5, pady=2)
+        self.entry_description = tk.Entry(info_frame, **AppStyles.entry_style())
+        self.entry_description.grid(row=1, column=2, sticky = 'ew', padx=5, pady=2)
+
+        tk.Label(info_frame, text="Стехиометрия аниона",
+                 **AppStyles.label_style()).grid(row=0, column=3, sticky = 'ew', padx=5, pady=2)
+        self.entry_anion_stoich = tk.Entry(info_frame, **AppStyles.entry_style())
+        self.entry_anion_stoich.grid(row=1, column=3, sticky = 'ew', padx=5, pady=2)
+
+        tk.Label(form_frame, text="Выберите типы катионов:",
+                 **AppStyles.label_style()).pack(fill="x", pady=2, expand = True, anchor = "nw")
+
+        self.site_vars = {
+            'a_site': tk.IntVar(),
+            'b_site': tk.IntVar(),
+            'b_double': tk.IntVar(),
+            'spacer': tk.IntVar()
+        }
+
+        check_frame = tk.Frame(form_frame, **AppStyles.frame_style())
+        check_frame.pack(fill="x", pady=2, expand = True, anchor = "nw")
+
+        tk.Checkbutton(check_frame, text="A-катион",
+                       variable=self.site_vars['a_site'],
+                       **AppStyles.checkbutton_style()).pack(side = "left", fill="x", padx=5, expand = True)
+        tk.Checkbutton(check_frame, text="B-катион",
+                       variable=self.site_vars['b_site'],
+                       **AppStyles.checkbutton_style()).pack(side = "left",fill="x", padx=5, expand = True)
+        tk.Checkbutton(check_frame, text="B-катион (двойной)",
+                       variable=self.site_vars['b_double'],
+                       **AppStyles.checkbutton_style()).pack(side = "left",fill="x", padx=5, expand = True)
+        tk.Checkbutton(check_frame, text="Спейсер",
+                       variable=self.site_vars['spacer'],
+                       **AppStyles.checkbutton_style()).pack(side = "left",fill="x", padx=5, expand = True)
+
+        button_frame_form = tk.Frame(form_frame, **AppStyles.frame_style())
+        button_frame_form.pack(fill="x", pady=2, expand = True, anchor = "nw")
+
+        self.btn_add_sites = tk.Button(button_frame_form, text="Добавить элементы структуры",
+                                       command=self.on_add_sites,
+                                       **AppStyles.button_style())
+        self.btn_add_sites.pack(side = "left",fill="x", padx=5, expand = True)
+
+        self.btn_submit = tk.Button(button_frame_form, text="Подтвердить шаблон",
+                                    command=self.on_submit_template,
+                                    **AppStyles.button_style())
+        self.btn_submit.pack(side = "left",fill="x", padx=5, expand = True)
+        self.btn_submit.config(state='disabled')
+
+        # Область для фреймов сайтов
+        self.sites_container = tk.Frame(form_frame, **AppStyles.frame_style())
+        self.sites_container.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+
+    def on_add_sites(self):
+        self.controller.handle_add_sites({
+            'name': self.entry_name.get(),
+            'dimensionality': self.entry_dimensionality.get(),
+            'description': self.entry_description.get(),
+            'anion_stoich': self.entry_anion_stoich.get(),
+            'site_types': {k: v.get() for k, v in self.site_vars.items()}
+        })
+
+    def create_site_frames(self):
+        for widget in self.sites_container.winfo_children():
+            widget.destroy()
+        self.site_frames = []
+
+        for site_type, var in self.site_vars.items():
+            if var.get():
+                frame = SiteFrame(self.sites_container, site_type.replace('_', ' ').title())
+                frame.pack(fill=tk.X, padx=5, pady=2)
+                self.site_frames.append(frame)
+
+        if self.site_frames:
+            self.btn_submit.config(state='normal')
+
+    def on_submit_template(self):
+        site_data = []
+        for frame in self.site_frames:
+            data = frame.get_data()
+            if data:
+                site_dict = {
+                    'type': frame.site_type.lower().replace(' ', '_'),
+                    'stoichiometry': data[0],
+                    'valence': data[1]
+                }
+                site_data.append(site_dict)
+
+        self.controller.handle_submit_template(site_data)
+
+        self.controller.handle_submit_template({
+            'name': self.entry_name.get(),
+            'dimensionality': self.entry_dimensionality.get(),
+            'description': self.entry_description.get(),
+            'anion_stoich': self.entry_anion_stoich.get(),
+            'sites': site_data
+        })
+
+    def on_template_select(self, event):
+        selected = self.temp_tree.selection()
+        if selected:
+            item = self.temp_tree.item(selected[0])
+            template_id = item['values'][0]
+            self.controller.load_template_details(template_id)
 
     def show_template(self, templates):
         self.temp_tree.delete(*self.temp_tree.get_children())
         for template in templates:
-            self.temp_tree.insert('', 'end', values=(template['id'], template['name'],
-                                                     template['anion_stoichiometry'],
-                                                     template['dimensionality'], template['description']))
+            self.temp_tree.insert('', 'end', values=(
+                template['id'], template['name'],
+                template['anion_stoichiometry'],
+                template['dimensionality'], template['description']
+            ))
 
     def show_sites(self, sites):
         self.sites_tree.delete(*self.sites_tree.get_children())
@@ -93,9 +235,6 @@ class TemplatesCheckView(tkinter.Toplevel):
                 site['valence']
             ))
 
-    def bind_template_selection(self, callback):
-        self.temp_tree.bind('<<TreeviewSelect>>', callback)
-
     def get_selected_template(self):
         selected = self.temp_tree.selection()
         if not selected:
@@ -105,13 +244,57 @@ class TemplatesCheckView(tkinter.Toplevel):
                 item['values'][3], item['values'][4])
 
     def show_message(self, title, message):
-        messagebox.showinfo(title, message)
+        tk.messagebox.showinfo(title, message)
 
     def show_warning(self, title, message):
-        messagebox.showwarning(title, message)
+        tk.messagebox.showwarning(title, message)
 
     def show_error(self, title, message):
-        messagebox.showerror(title, message)
+        tk.messagebox.showerror(title, message)
 
     def ask_confirmation(self, title, message):
-        return messagebox.askyesno(title, message)
+        return tk.messagebox.askyesno(title, message)
+
+    def show_success(self, message):
+        self.show_message("Success", message)
+        self.clear_form()
+
+    def clear_form(self):
+        self.entry_name.delete(0, tk.END)
+        self.entry_dimensionality.delete(0, tk.END)
+        self.entry_description.delete(0, tk.END)
+        self.entry_anion_stoich.delete(0, tk.END)
+
+        for var in self.site_vars.values():
+            var.set(0)
+
+        for widget in self.sites_container.winfo_children():
+            widget.destroy()
+        self.site_frames = []
+
+        self.btn_submit.config(state='disabled')
+        self.sites_tree.delete(*self.sites_tree.get_children())
+
+class SiteFrame(tk.LabelFrame):
+    def __init__(self, parent, site_type):
+        super().__init__(parent, text=site_type, **AppStyles.labelframe_style())
+        self.site_type = site_type
+
+        tk.Label(self, text="Базовая стехиометрия",
+                 **AppStyles.label_style()).grid(row=0, column=0, sticky = 'ew', padx=5, pady=2)
+        self.entry_stoich = tk.Entry(self, **AppStyles.entry_style())
+        self.entry_stoich.grid(row=1, column=0, sticky = 'ew', padx=5, pady=2)
+
+        tk.Label(self, text="Базовая валентность",
+                 **AppStyles.label_style()).grid(row=0, column=1, sticky = 'ew', padx=5, pady=2)
+        self.entry_valence = tk.Entry(self, **AppStyles.entry_style())
+        self.entry_valence.grid(row=1, column=1, sticky = 'ew', padx=5, pady=2)
+
+    def get_data(self):
+        stoich = self.entry_stoich.get()
+        valence = self.entry_valence.get()
+
+        if not all([stoich, valence]):
+            return None
+
+        return stoich, valence

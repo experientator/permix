@@ -8,6 +8,62 @@ class TemplatesCheckController:
         self.load_templates()
         self.view.bind_template_selection(self.on_template_selected)
         self.load_templates()
+        self.current_template_id = None
+
+    def handle_add_sites(self, data):
+        if not all([data['name'], data['dimensionality'], data['anion_stoich']]):
+            self.view.show_error("Ошибка", "Название, размерность и стехиометрия анионов должны быть введены")
+            return None
+
+        try:
+            dimensionality = int(data['dimensionality'])
+            anion_stoich = int(data['anion_stoich'])
+        except ValueError:
+            self.view.show_error("Ошибка","Размерность и стехиометрия анионов должны быть целыми числами")
+            return None
+
+        template_id, message = self.model.add_template(
+            data['name'],
+            data['description'],
+            anion_stoich,
+            dimensionality
+        )
+
+        if not template_id:
+            self.view.show_error("Ошибка", message)
+            return None
+
+        self.current_template_id = template_id
+
+        self.view.create_site_frames()
+
+    def handle_submit_template(self, site_data):
+        if not self.current_template_id:
+            self.view.show_error("Ошибка", "Шаблон не выбран")
+            return None
+
+        for site in site_data:
+            try:
+                stoichiometry = int(site['stoichiometry'])
+                valence = int(site['valence'])
+            except ValueError:
+                self.view.show_error("Ошибка", "Стехиометрия и валетность должны быть целыми числами")
+                return None
+
+        for site in site_data:
+            success, message = self.model.add_site(
+                self.current_template_id,
+                int(site['stoichiometry']),
+                site['type'],
+                site['valence']
+            )
+
+            if not success:
+                self.view.show_error("Ошибка",message)
+                return None
+
+        self.view.show_success("Template with sites successfully uploaded")
+        self.current_template_id = None
 
     def load_templates(self):
         try:
@@ -46,9 +102,6 @@ class TemplatesCheckController:
                     self.view.show_error("Ошибка", "Не удалось удалить запись")
             except Exception as e:
                 self.view.show_error("Ошибка", f"Ошибка при удалении: {str(e)}")
-
-    def __del__(self):
-        self.model.close()
 
     def __del__(self):
         self.model.close()
