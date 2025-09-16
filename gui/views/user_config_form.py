@@ -5,9 +5,9 @@ from tkinter import ttk, scrolledtext
 from analysis.database_utils import (get_templates_list, get_template_id, get_template_sites,
                                      get_candidate_cations, get_solvents, get_anion_stoichiometry)
 from analysis.chemistry_utils import get_salt_formula, calculate_target_anion_moles
-from analysis.geometry_calculator import show_error
 from gui.controllers.templates_check import TemplatesCheckController
 from analysis.masses_calculator import calculate_precursor_masses
+from analysis.calculation_tests import fraction_test, float_test
 from analysis.display_formatters import format_results_mass_table, generate_reaction_equations_display
 from gui.default_style import AppStyles
 
@@ -21,48 +21,46 @@ class UserConfigView(tk.Frame):
         self.create_template_frame()
         self.dynamic_widgets = []
 
-    def on_frame_configure(self, event=None):
-        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
-
-    def fraction_test(self, data, list, type_name):
-        for element in data:
-            try:
-                fraction = float(element['fraction'])
-            except ValueError:
-                self.show_error(title = "error", message = "Fraction must be a float number")
-                raise ValueError
-
-            if type_name == 'anion':
-                list['anions'] += fraction
-            else:
-                type = element[f'{type_name}']
-                list[type] += fraction
-
-        for type, total in list.items():
-            if total > 0 and not 0.99 <= total <= 1.01:
-                self.show_error(title = "error", message =f"Total fraction for {type} must be 1")
-                raise ValueError
-
     def build_ui(self):
+        main_frame = tk.Frame(self, **AppStyles.frame_style())
+        main_frame.pack(fill="both", expand=True)
 
-        self.canvas = tk.Canvas(self, borderwidth=0)
-        self.canvas.pack(fill="both", expand=True)
+        # Убираем общий скроллбар и канву
+        self.paned_window = ttk.PanedWindow(main_frame, orient=tk.HORIZONTAL)
+        self.paned_window.pack(fill="both", expand=True, padx=10, pady=5)
 
-        scrollbar = tk.Scrollbar(self.canvas, command=self.canvas.yview)
+        # ПЕРВАЯ КОЛОНКА - со скроллом
+        first_column_container = tk.Frame(self.paned_window, **AppStyles.frame_style())
+        self.paned_window.add(first_column_container, weight=1)
+
+        # Канва и скроллбар только для первой колонки
+        canvas = tk.Canvas(first_column_container, borderwidth=0, highlightthickness=0)
+        scrollbar = tk.Scrollbar(first_column_container, orient="vertical", command=canvas.yview)
+
         scrollbar.pack(side="right", fill="y")
-        self.canvas.configure(yscrollcommand=scrollbar.set)
+        canvas.pack(side="left", fill="both", expand=True)
+        canvas.configure(yscrollcommand=scrollbar.set)
 
-        self.scrollable_frame = tk.Frame(self.canvas, **AppStyles.frame_style())
-        self.canvas.create_window((0, 0), window=self.scrollable_frame)
+        self.first_column = tk.Frame(canvas, **AppStyles.frame_style())
+        canvas_window = canvas.create_window((0, 0), window=self.first_column, anchor="nw")
 
-        self.first_column = tk.Frame(self.scrollable_frame, **AppStyles.frame_style())
-        self.first_column.pack(side="left", fill="both", expand=True, padx=10)
+        # Привязка событий для первой колонки
+        self.first_column.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+        canvas.bind("<Configure>", lambda e: canvas.itemconfig(canvas_window, width=e.width))
 
-        self.sec_column = tk.Frame(self.scrollable_frame, **AppStyles.frame_style())
-        self.sec_column.pack(side="left", fill="both", expand=True, padx=10)
+        # Привязка колесика мыши только к первой колонке
+        def bind_mousewheel(event):
+            canvas.bind_all("<MouseWheel>", lambda e: canvas.yview_scroll(int(-1 * (e.delta / 120)), "units"))
 
-        self.scrollable_frame.bind("<Configure>", self.on_frame_configure)
+        def unbind_mousewheel(event):
+            canvas.unbind_all("<MouseWheel>")
 
+        self.first_column.bind("<Enter>", bind_mousewheel)
+        self.first_column.bind("<Leave>", unbind_mousewheel)
+
+        # ВТОРАЯ КОЛОНКА - без скролла
+        self.sec_column = tk.Frame(self.paned_window, **AppStyles.frame_style())
+        self.paned_window.add(self.sec_column, weight=3)
 
     def open_template_form(self):
         TemplatesCheckController(self)
@@ -79,7 +77,9 @@ class UserConfigView(tk.Frame):
 
         tk.Label(info_frame, text="Шаблон фазы",
                  **AppStyles.label_style()).pack(fill='x', pady=5)
-        self.phase_template = ttk.Combobox(info_frame, values=get_templates_list(),
+        self.phase_template = ttk.Combobox(info_frame,
+                                           values=get_templates_list(),
+                                           state="readonly",
                                            **AppStyles.combobox_config())
         self.phase_template.current(0)
         self.phase_template.pack(fill='x', pady=5)
@@ -89,21 +89,21 @@ class UserConfigView(tk.Frame):
 
         tk.Button(button_frame, text="Просмотр шаблонов",
                   **AppStyles.button_style(),
-                  command=self.open_template_form).pack(side="right", fill = 'x', padx=2)
+                  command=self.open_template_form).pack(side="right", expand=True, fill = 'x', padx=2)
 
         self.button_entry = tk.Button(button_frame, text="Подтвердить",
                                       **AppStyles.button_style(), command=self.create_sites)
-        self.button_entry.pack(side="right", fill = 'x', padx=2)
+        self.button_entry.pack(side="right", expand=True, fill = 'x', padx=2)
 
         clear_btn = tk.Button(button_frame, text="Очистить форму",
                               **AppStyles.button_style(), command=self.reset_form)
-        clear_btn.pack(side="right", fill = 'x', padx=2)
+        clear_btn.pack(side="right", expand=True, fill = 'x', padx=2)
 
     def create_sites(self):
         self.button_entry["state"] = "disabled"
         self.sites_frame = tk.LabelFrame(self.first_column, text="Структура",
                  **AppStyles.labelframe_style())
-        self.sites_frame.pack(fill='x', pady=5)
+        self.sites_frame.pack(fill='both', pady=5, expand=True)
 
         self.name = self.phase_template.get()
         self.template_id = get_template_id(self.name)
@@ -115,14 +115,19 @@ class UserConfigView(tk.Frame):
             field["symbol"].destroy()
             field["fraction"].destroy()
 
+        self.sites_frame.columnconfigure(0, weight=1)
+        self.sites_frame.columnconfigure(1, weight=1)
+        self.sites_frame.columnconfigure(2, weight=2)
+        self.sites_frame.columnconfigure(3, weight=2)
+
         tk.Label(self.sites_frame, text="Тип сайта",
-                 **AppStyles.label_style()).grid(row=0, column=0)
+                 **AppStyles.label_style()).grid(row=0, column=0, sticky = 'ew', padx=5, pady=2)
         tk.Label(self.sites_frame, text="Кол-во",
-                 **AppStyles.label_style()).grid(row=0, column=1)
+                 **AppStyles.label_style()).grid(row=0, column=1, sticky = 'ew', padx=5, pady=2)
         tk.Label(self.sites_frame, text="Катион",
-                 **AppStyles.label_style()).grid(row=0, column=2)
+                 **AppStyles.label_style()).grid(row=0, column=2, sticky = 'ew', padx=5, pady=2)
         tk.Label(self.sites_frame, text="Доля",
-                 **AppStyles.label_style()).grid(row=0, column=3)
+                 **AppStyles.label_style()).grid(row=0, column=3, sticky = 'ew', padx=5, pady=2)
 
         self.site_widgets = {}
         self.structure_types = []
@@ -138,7 +143,7 @@ class UserConfigView(tk.Frame):
 
             label_site = tk.Label(self.sites_frame, text=site_type,
                  **AppStyles.label_style())
-            label_site.grid(row=current_row, column=0, padx=5, pady=2)
+            label_site.grid(row=current_row, column=0, padx=5, pady=2, sticky = 'ew')
             combobox_num = ttk.Combobox(
                 self.sites_frame,
                 values=values_sites,
@@ -147,7 +152,7 @@ class UserConfigView(tk.Frame):
                 ** AppStyles.combobox_config()
             )
             combobox_num.current(0)
-            combobox_num.grid(row=current_row, column=1, padx=5, pady=2)
+            combobox_num.grid(row=current_row, column=1, padx=5, pady=2, sticky = 'ew')
             combobox_num.bind(
                 "<<ComboboxSelected>>",
                 lambda e, st=site_type, sc=site_candidate: self._update_site(st, sc)
@@ -164,7 +169,7 @@ class UserConfigView(tk.Frame):
         site_type = "anion"
         label_site = tk.Label(self.sites_frame, text=site_type,
                  **AppStyles.label_style())
-        label_site.grid(row=current_row, column=0, padx=5, pady=2)
+        label_site.grid(row=current_row, column=0, padx=5, pady=2, sticky = 'ew')
         combobox_num = ttk.Combobox(
             self.sites_frame,
             values=values_sites,
@@ -173,7 +178,7 @@ class UserConfigView(tk.Frame):
             ** AppStyles.combobox_config()
         )
         combobox_num.current(0)
-        combobox_num.grid(row=current_row, column=1, padx=5, pady=2)
+        combobox_num.grid(row=current_row, column=1, padx=5, pady=2, sticky = 'ew')
         combobox_num.bind(
             "<<ComboboxSelected>>",
             lambda e, st=site_type, sc=0: self._update_site(st, sc)
@@ -190,7 +195,7 @@ class UserConfigView(tk.Frame):
         self.antisolvents_cb.pack(fill='x', pady=5)
         self.upload_button = tk.Button(self.first_column, text = "подтвердить состав",
                  **AppStyles.button_style(), command = self.create_solvents)
-        self.upload_button.pack(fill='x', pady=5)
+        self.upload_button.pack(pady=5, expand=True, fill = 'x')
 
     def get_next_row(self, widget):
         if not widget:
@@ -227,10 +232,11 @@ class UserConfigView(tk.Frame):
             )
             if symbols:
                 cb_symbol.current(0)
-            cb_symbol.grid(row=row_pos, column=2, padx=5, pady=2)
+            cb_symbol.grid(row=row_pos, column=2, padx=5, pady=2, sticky = 'ew')
 
             entry_fraction = tk.Entry(self.sites_frame, width=10, **AppStyles.entry_style())
-            entry_fraction.grid(row=row_pos, column=3, padx=5, pady=2)
+            entry_fraction.insert(0, "1")
+            entry_fraction.grid(row=row_pos, column=3, padx=5, pady=2, sticky = 'ew')
             self.site_widgets[site_type]["dynamic_widgets"].append({
                 "symbol": cb_symbol,
                 "fraction": entry_fraction
@@ -242,12 +248,12 @@ class UserConfigView(tk.Frame):
         current_row = 1
 
         for site_type in widget:
-            widget[site_type]["label"].grid(row=current_row, column=0)
-            widget[site_type]["combobox_num"].grid(row=current_row, column=1)
+            widget[site_type]["label"].grid(row=current_row, column=0, sticky = 'ew', padx=5, pady=2)
+            widget[site_type]["combobox_num"].grid(row=current_row, column=1, sticky = 'ew', padx=5, pady=2)
 
             for field in widget[site_type]["dynamic_widgets"]:
-                field["symbol"].grid(row=current_row, column=2)
-                field["fraction"].grid(row=current_row, column=3)
+                field["symbol"].grid(row=current_row, column=2, sticky = 'ew', padx=5, pady=2)
+                field["fraction"].grid(row=current_row, column=3, sticky = 'ew', padx=5, pady=2)
                 current_row += 1
 
     def create_solvents(self):
@@ -258,8 +264,8 @@ class UserConfigView(tk.Frame):
         anions_fractions = {'anions': 0}
 
         try:
-            self.fraction_test(self.cations_data, cation_fractions, 'structure_type')
-            self.fraction_test(self.anions_data, anions_fractions, 'anion')
+            fraction_test(self.cations_data, cation_fractions, 'structure_type')
+            fraction_test(self.anions_data, anions_fractions, 'anion')
         except (ValueError, TypeError):
             return
 
@@ -275,8 +281,9 @@ class UserConfigView(tk.Frame):
         self.antisolvents_cb["state"] = "disabled"
         self.solvents_frame = tk.LabelFrame(self.first_column, text="растворители",
                                             **AppStyles.labelframe_style())
-        self.solvents_frame.pack(fill='x', pady=5)
-
+        self.solvents_frame.pack(expand=True, fill = 'x', pady=5)
+        self.solvents_frame.columnconfigure(0, weight=1)
+        self.solvents_frame.columnconfigure(1, weight=1)
         if self.antisolv_check.get() == 1:
             self.solvent_types = ["solvent", "antisolvent"]
         else: self.solvent_types = ["solvent"]
@@ -288,21 +295,25 @@ class UserConfigView(tk.Frame):
             field["fraction"].destroy()
 
         tk.Label(self.solvents_frame, text="Тип растворителя",
-                 **AppStyles.label_style()).grid(row=0, column=0)
+                 **AppStyles.label_style()).grid(row=0, column=0, sticky = 'ew', padx=5, pady=2)
         tk.Label(self.solvents_frame, text="Кол-во",
-                 **AppStyles.label_style()).grid(row=0, column=1)
-        tk.Label(self.solvents_frame, text="Катион",
-                 **AppStyles.label_style()).grid(row=0, column=2)
+                 **AppStyles.label_style()).grid(row=0, column=1, sticky = 'ew', padx=5, pady=2)
+        tk.Label(self.solvents_frame, text="Название растворителя",
+                 **AppStyles.label_style()).grid(row=0, column=2, sticky = 'ew', padx=5, pady=2)
         tk.Label(self.solvents_frame, text="Доля",
-                 **AppStyles.label_style()).grid(row=0, column=3)
+                 **AppStyles.label_style()).grid(row=0, column=3, sticky = 'ew', padx=5, pady=2)
 
         self.solvents_widgets = {}
 
         for type in self.solvent_types:
+            if type == "solvent":
+                text_type = "Растворитель"
+            else:
+                text_type = "Антирастворитель"
             current_row = self.get_next_row(self.solvents_widgets)
-            label_solvent = tk.Label(self.solvents_frame, text=type,
+            label_solvent = tk.Label(self.solvents_frame, text=text_type,
                  **AppStyles.label_style())
-            label_solvent.grid(row=current_row, column=0, padx=5, pady=2)
+            label_solvent.grid(row=current_row, column=0, sticky = 'ew', padx=5, pady=2)
             combobox_num = ttk.Combobox(
                 self.solvents_frame,
                 values=values_solvents,
@@ -311,7 +322,7 @@ class UserConfigView(tk.Frame):
                 **AppStyles.combobox_config()
             )
             combobox_num.current(0)
-            combobox_num.grid(row=current_row, column=1, padx=5, pady=2)
+            combobox_num.grid(row=current_row, column=1, sticky = 'ew', padx=5, pady=2)
             combobox_num.bind(
                 "<<ComboboxSelected>>",
                 lambda e, t = type: self._update_solvent(t)
@@ -332,26 +343,25 @@ class UserConfigView(tk.Frame):
         self.current_row = 1
         self.k_factors_frame = tk.LabelFrame(self.first_column, text="K-факторы",
                                              **AppStyles.labelframe_style())
-        self.k_factors_frame.pack(fill='x', pady=5)
-        button_frame = tk.Frame(self.k_factors_frame, **AppStyles.frame_style())
-        button_frame.pack(fill='x', pady=5)
+        self.k_factors_frame.pack(expand=True, fill = 'x', pady=5)
 
-        tk.Button(button_frame, text="Просмотр возможных солей",
+        self.k_factors_frame.columnconfigure(0, weight=1)
+        self.k_factors_frame.columnconfigure(1, weight=1)
+
+        tk.Button(self.k_factors_frame, text="Просмотр возможных солей",
                   command=self.show_salts_info,
-                  **AppStyles.button_style()).pack(side='left', padx=5, fill='x', expand=True)
+                  **AppStyles.button_style()).grid(row=0, column=0, sticky = 'ew', padx=5, pady=2)
 
-        tk.Button(button_frame, text="Добавить k-фактор",
+        tk.Button(self.k_factors_frame, text="Добавить k-фактор",
                   command=self.create_k_factors_widgets,
-                  **AppStyles.button_style()).pack(side='left', padx=5, fill='x', expand=True)
+                  **AppStyles.button_style()).grid(row=0, column=1, sticky = 'ew', padx=5, pady=2)
 
-        self.header_frame_k = tk.Frame(self.k_factors_frame, **AppStyles.frame_style())
-        self.header_frame_k.pack(fill='x', pady=5)
 
-        tk.Label(self.header_frame_k, text="Соль",
-                 **AppStyles.label_style()).pack(side='left', padx=5, fill='x', expand=True)
+        tk.Label(self.k_factors_frame, text="Соль",
+                 **AppStyles.label_style()).grid(row=1, column=0, sticky = 'ew', padx=5, pady=2)
 
-        tk.Label(self.header_frame_k, text="К-фактор",
-                 **AppStyles.label_style()).pack(side='left', padx=5, fill='x', expand=True)
+        tk.Label(self.k_factors_frame, text="К-фактор",
+                 **AppStyles.label_style()).grid(row=1, column=1, sticky = 'ew', padx=5, pady=2)
 
         self.k_factors_widgets = {
             "dynamic_widgets": []
@@ -359,24 +369,19 @@ class UserConfigView(tk.Frame):
 
 
     def data_button(self):
-        self.data_apply_button_frame = tk.LabelFrame(self.first_column,
-                                                     **AppStyles.labelframe_style())
-        self.data_apply_button_frame.pack(fill='x')
-        self.data_apply_button = tk.Button(self.data_apply_button_frame, text = "Начать расчет",
+        self.data_apply_button = tk.Button(self.first_column, text = "Начать расчет",
                                            command = self.calculations_function,
                                            ** AppStyles.button_style())
-        self.data_apply_button.pack(fill='x')
+        self.data_apply_button.pack(expand=True, fill = 'x', pady=5)
 
     def calculations_function(self):
-        self.solvents_data, self.solution_info = self.get_solution_data()
         self.k_factors = self.get_k_factors_data()
+        self.solvents_data, self.solution_info = self.get_solution_data()
+        solvent_fractions = {'solvent': 0, 'antisolvent': 0}
+        fraction_test(self.solvents_data, solvent_fractions, 'solvent_type')
 
         for element in self.k_factors:
-            try:
-                k_factor = float(element['k_factor'])
-            except ValueError:
-                self.show_error(title="error", message="k-факторы должны принимать числовые значения")
-                return
+            k_factor = float_test(element['k_factor'], "К-факторы")
 
         calculations = calculate_precursor_masses(
                 self.template_id, self.cations_data,
@@ -397,9 +402,7 @@ class UserConfigView(tk.Frame):
 
         self.fav_button = tk.Button(self.first_column, text="Сохранить конфигурацию",
                                     command=self.save_config, **AppStyles.button_style())
-        self.fav_button.pack(fill = 'x', pady=5)
-        solvent_fractions = {'solvent': 0, 'antisolvent': 0}
-        self.fraction_test(self.solvents_data, solvent_fractions, 'solvent_type')
+        self.fav_button.pack(expand=True, fill = 'x', pady=5)
         self.add_text(generate_reaction_equations_display(calculations))
         self.add_text(format_results_mass_table(calculations))
 
@@ -458,21 +461,30 @@ class UserConfigView(tk.Frame):
             **AppStyles.combobox_config()
         )
         combobox_salts.current(0)
-        combobox_salts.pack(side='left', padx=5, fill='x', expand=True)
+        combobox_salts.grid(row=self.current_row, column=0, sticky = 'ew', padx=5, pady=2)
         entry_k_factor = tk.Entry(self.k_factors_frame, width=10,
                                   **AppStyles.entry_style())
-        entry_k_factor.pack(side='left', padx=5, fill='x', expand=True)
+        entry_k_factor.grid(row=self.current_row, column=1, sticky = 'ew', padx=5, pady=2)
         self.k_factors_widgets["dynamic_widgets"].append({
             "salt": combobox_salts,
             "k_factor": entry_k_factor
         })
 
     def get_solution_data(self):
+        used_symbols = set()
         solvents = []
         for idx, solvent_type in enumerate(self.solvent_types):
             num_solvents = int(self.solvents_widgets[solvent_type]["combobox_num"].get())
             for i in range(num_solvents):
                 widget = self.solvents_widgets[solvent_type]["dynamic_widgets"][i]
+
+                symbol = widget["symbol"].get()
+
+                if symbol in used_symbols:
+                    self.show_error("Ошибка", f"Растворитель '{symbol}' повторяется")
+                    return None, None
+                used_symbols.add(symbol)
+
                 solvents.append({
                     "solvent_type": solvent_type,
                     "symbol": widget["symbol"].get(),
@@ -481,7 +493,7 @@ class UserConfigView(tk.Frame):
         try:
             v_solvent = float(self.entry_v_solvent.get())
             c_solvent = float(self.entry_c_solvent.get())
-            if self.antisolv_check == 1:
+            if self.antisolv_check.get() == 1:
                 v_antisolvent = float(self.entry_v_antisolvent.get())
         except ValueError:
             self.show_error(title="error", message="Характеристики раствора должны принимать численные значения")
@@ -497,38 +509,62 @@ class UserConfigView(tk.Frame):
         return solvents, solution_info
 
     def get_k_factors_data(self):
+        used_salts = set()
         k_factors = []
         num_k_factors = len(self.k_factors_widgets["dynamic_widgets"])
         for i in range(num_k_factors):
             widget = self.k_factors_widgets["dynamic_widgets"][i]
+
+            symbol = widget["salt"].get()
+
+            if symbol in used_salts:
+                self.show_error("Ошибка", f"Соль '{symbol}' повторяется")
+                return None, None
+            used_salts.add(symbol)
+            k_factor = float_test(widget["k_factor"].get(), "К-факторы")
             k_factors.append({
                 "salt": widget["salt"].get(),
-                "k_factor": widget["k_factor"].get(),
+                "k_factor": k_factor,
             })
         return k_factors
 
     def get_structure_data(self):
+        used_symbols = set()
         cations = []
         anions = []
         for idx, site_type in enumerate(self.structure_types):
             num_sites = int(self.site_widgets[site_type]["combobox_num"].get())
             valence = self.structure_valences[idx]
             stoichiometry = self.structure_stoichiometry[idx]
-
             for i in range(num_sites):
                 widget = self.site_widgets[site_type]["dynamic_widgets"][i]
+                fraction = float_test(widget["fraction"].get(), "Доли")
+                if fraction is None:
+                    return None, None
+                symbol = widget["symbol"].get()
+                if symbol in used_symbols:
+                    self.show_error("Ошибка", f"Катион '{symbol}' повторяется")
+                    widget["symbol"].configure(background="#ffcccc")
+                    return None, None
+                used_symbols.add(symbol)
                 cations.append({
                     "structure_type": site_type,
-                    "symbol": widget["symbol"].get(),
+                    "symbol": symbol,
                     "fraction": widget["fraction"].get(),
                     "valence": valence,
                     "stoichiometry": float(stoichiometry),
-                    "real_stoichiometry": float(stoichiometry)*float(widget["fraction"].get())
+                    "real_stoichiometry": float(stoichiometry)*fraction
                 })
 
         num_anions = int(self.site_widgets["anion"]["combobox_num"].get())
         for i in range(num_anions):
             widget = self.site_widgets["anion"]["dynamic_widgets"][i]
+            symbol = widget["symbol"].get()
+            if symbol in used_symbols:
+                self.show_error("Ошибка", f"Анион '{symbol}' повторяется")
+                widget["symbol"].configure(background="#ffcccc")
+                return None, None
+            used_symbols.add(symbol)
             anions.append({
                 "symbol": widget["symbol"].get(),
                 "fraction": widget["fraction"].get(),
@@ -555,10 +591,11 @@ class UserConfigView(tk.Frame):
             )
             if symbols:
                 cb_symbol.current(0)
-            cb_symbol.grid(row=row_pos, column=2, padx=5, pady=2)
+            cb_symbol.grid(row=row_pos, column=2, sticky = 'ew', padx=5, pady=2)
 
             entry_fraction = tk.Entry(self.solvents_frame, width=10, **AppStyles.entry_style())
-            entry_fraction.grid(row=row_pos, column=3, padx=5, pady=2)
+            entry_fraction.insert(0, "1")
+            entry_fraction.grid(row=row_pos, column=3, sticky = 'ew', padx=5, pady=2)
             self.solvents_widgets[solvent_type]["dynamic_widgets"].append({
                 "symbol": cb_symbol,
                 "fraction": entry_fraction
@@ -569,25 +606,28 @@ class UserConfigView(tk.Frame):
     def create_solvent_properties(self):
         self.propereties_frame = tk.LabelFrame(self.first_column, text="свойства раствора",
                                                **AppStyles.labelframe_style())
-        self.propereties_frame.pack(fill='x', pady=5)
+        self.propereties_frame.pack(expand=True, fill = 'x', pady=5)
+        self.propereties_frame.columnconfigure(0, weight=1)
+        self.propereties_frame.columnconfigure(1, weight=1)
+        self.propereties_frame.columnconfigure(2, weight=1)
         tk.Label(self.propereties_frame, text="Объем раствора",
-                 **AppStyles.label_style()).grid(row=0, column=0)
+                 **AppStyles.label_style()).grid(row=0, column=0, sticky = 'ew', padx=5, pady=2)
         tk.Label(self.propereties_frame, text="Концентрация раствора",
-                 **AppStyles.label_style()).grid(row=0, column=1)
+                 **AppStyles.label_style()).grid(row=0, column=1, sticky = 'ew', padx=5, pady=2)
         if self.antisolv_check.get() == 1:
             tk.Label(self.propereties_frame, text="Объем антирастворителя",
-                 **AppStyles.label_style()).grid(row=0, column=2)
+                 **AppStyles.label_style()).grid(row=0, column=2, sticky = 'ew', padx=5, pady=2)
 
         self.entry_v_solvent = tk.Entry(self.propereties_frame, width=10,
                                         **AppStyles.entry_style())
-        self.entry_v_solvent.grid(row=1, column=0)
+        self.entry_v_solvent.grid(row=1, column=0, sticky = 'ew', padx=5, pady=2)
         self.entry_c_solvent = tk.Entry(self.propereties_frame, width=10,
                                         **AppStyles.entry_style())
-        self.entry_c_solvent.grid(row=1, column=1)
+        self.entry_c_solvent.grid(row=1, column=1, sticky = 'ew', padx=5, pady=2)
         if self.antisolv_check.get() == 1:
             self.entry_v_antisolvent = tk.Entry(self.propereties_frame, width=10,
                                         **AppStyles.entry_style())
-            self.entry_v_antisolvent.grid(row=1, column=2)
+            self.entry_v_antisolvent.grid(row=1, column=2, sticky = 'ew', padx=5, pady=2)
 
     def reset_form(self):
 
@@ -612,10 +652,6 @@ class UserConfigView(tk.Frame):
         self.dynamic_widgets = []
         self.create_template_frame()
         self.update()
-        self.canvas.update()
-        self.canvas.yview_moveto(0.0)
-        self.on_frame_configure()
-        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
 
     def show_error(self, title, message):
         tk.messagebox.showerror(title, message)

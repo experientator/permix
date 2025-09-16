@@ -7,6 +7,7 @@ from analysis.chemistry_utils import (calculate_target_product_moles,
                                       generate_formula_string)
 from analysis.geometry_calculator import show_error, calculate_geometry_factors
 from analysis.strategies import calculate_strategies_coefficients
+from analysis.calculation_tests import float_test
 
 def calculate_precursor_masses(
     template_id, cations,
@@ -85,14 +86,14 @@ def calculate_precursor_masses(
                 solvents_by_type[solvent_type].append(solvent)
 
             for solv in solvents_by_type["solvent"]:
-                solvent_fraction = float(solv["fraction"])
-                solvent_volume_ml = solution_info["v_solvent"] * solvent_fraction
+                float_test(solv["fraction"], "Доли растворителей")
+                solvent_volume_ml = solution_info["v_solvent"] * float(solv["fraction"])
 
         if solvents_by_type["antisolvent"]:
             v_antisolvent = solution_info["v_antisolvent"]
             for antisolv in solvents_by_type["antisolvent"]:
-                antisolvent_fraction = float(antisolv["fraction"])
-                antisolvent_volume_ml = solution_info["v_solvent"] * antisolvent_fraction
+                float_test(antisolv["fraction"], "Доли антирастворителей")
+                antisolvent_volume_ml = solution_info["v_solvent"] * float(antisolv["fraction"])
 
         equation_counter += 1
         eq_key = f"Equation {equation_counter}"
