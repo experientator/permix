@@ -1,6 +1,9 @@
 import tkinter as tk
 import tkinter.messagebox as mb
 from tkinter import ttk, scrolledtext
+from datetime import date
+
+from periodictable.formulas import formula
 
 from analysis.database_utils import (get_templates_list, get_template_id, get_template_sites,
                                      get_candidate_cations, get_solvents, get_anion_stoichiometry)
@@ -383,7 +386,7 @@ class UserConfigView(tk.Frame):
         for element in self.k_factors:
             k_factor = float_test(element['k_factor'], "К-факторы")
 
-        calculations = calculate_precursor_masses(
+        self.calculations = calculate_precursor_masses(
                 self.template_id, self.cations_data,
                 self.anions_data, self.anion_stoichiometry,
                 self.solution_info, self.solvents_data,
@@ -403,8 +406,28 @@ class UserConfigView(tk.Frame):
         self.fav_button = tk.Button(self.first_column, text="Сохранить конфигурацию",
                                     command=self.save_config, **AppStyles.button_style())
         self.fav_button.pack(expand=True, fill = 'x', pady=5)
-        self.add_text(generate_reaction_equations_display(calculations))
-        self.add_text(format_results_mass_table(calculations))
+        self.add_text(generate_reaction_equations_display(self.calculations))
+        self.add_text(format_results_mass_table(self.calculations))
+        self.summary_equation_form()
+
+    def summary_equation_form(self):
+        self.summary_frame = tk.Frame(self.results_frame, **AppStyles.frame_style())
+        self.summary_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+        tk.Label(self.summary_frame, text = "Сводка по уравнению номер:").grid(row=0, column=0, sticky = 'ew', padx=5, pady=2)
+        self.summary_equation_number = tk.Entry(self.summary_frame, **AppStyles.entry_style())
+        self.summary_equation_number.grid(row=0, column=1, padx=5, pady=2)
+        self.summary_button = tk.Button(self.summary_frame, text="Получить сводку по уравнению",
+                                        command=self.get_summary, **AppStyles.button_style())
+        self.summary_button.grid(row=0, column=2, sticky='ew', padx=5, pady=2)
+
+    def get_summary(self):
+        eq_num = self.summary_equation_number.get()
+        perovskite_formula = self.calculations["product_formula_display"]
+        today_date = date.today()
+
+        filename = "summary/"+str(perovskite_formula)+"_eq"+str(eq_num)+"_"+str(today_date)+".txt"
+        summary_file = open(filename, "a+")
+        summary_file.close()
 
     def save_config(self):
         self.top_window = tk.Toplevel(self)
