@@ -14,6 +14,7 @@ from analysis.calculation_tests import fraction_test, float_test
 from analysis.display_formatters import format_results_mass_table, generate_reaction_equations_display
 from gui.default_style import AppStyles
 from analysis.sort_equations import sort_by_minimum_criteria, optimal_sort
+from analysis.histograms import prepare_and_draw_mass_histogram
 
 class UserConfigView(tk.Frame):
     def __init__(self, parent, controller):
@@ -35,30 +36,52 @@ class UserConfigView(tk.Frame):
         first_column_container = tk.Frame(self.paned_window, **AppStyles.frame_style())
         self.paned_window.add(first_column_container, weight=1)
 
-        canvas = tk.Canvas(first_column_container, borderwidth=0, highlightthickness=0)
-        scrollbar = tk.Scrollbar(first_column_container, orient="vertical", command=canvas.yview)
+        canvas1 = tk.Canvas(first_column_container, borderwidth=0, highlightthickness=0)
+        scrollbar1 = tk.Scrollbar(first_column_container, orient="vertical", command=canvas1.yview)
 
-        scrollbar.pack(side="right", fill="y")
-        canvas.pack(side="left", fill="both", expand=True)
-        canvas.configure(yscrollcommand=scrollbar.set)
+        scrollbar1.pack(side="right", fill="y")
+        canvas1.pack(side="left", fill="both", expand=True)
+        canvas1.configure(yscrollcommand=scrollbar1.set)
 
-        self.first_column = tk.Frame(canvas, **AppStyles.frame_style())
-        canvas_window = canvas.create_window((0, 0), window=self.first_column, anchor="nw")
+        self.first_column = tk.Frame(canvas1, **AppStyles.frame_style())
+        canvas_window1 = canvas1.create_window((0, 0), window=self.first_column, anchor="nw")
 
-        self.first_column.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
-        canvas.bind("<Configure>", lambda e: canvas.itemconfig(canvas_window, width=e.width))
+        self.first_column.bind("<Configure>", lambda e: canvas1.configure(scrollregion=canvas1.bbox("all")))
+        canvas1.bind("<Configure>", lambda e: canvas1.itemconfig(canvas_window1, width=e.width))
 
-        def bind_mousewheel(event):
-            canvas.bind_all("<MouseWheel>", lambda e: canvas.yview_scroll(int(-1 * (e.delta / 120)), "units"))
+        def bind_mousewheel1(event):
+            canvas1.bind_all("<MouseWheel>", lambda e: canvas1.yview_scroll(int(-1 * (e.delta / 120)), "units"))
 
-        def unbind_mousewheel(event):
-            canvas.unbind_all("<MouseWheel>")
+        def unbind_mousewheel1(event):
+            canvas1.unbind_all("<MouseWheel>")
 
-        self.first_column.bind("<Enter>", bind_mousewheel)
-        self.first_column.bind("<Leave>", unbind_mousewheel)
+        self.first_column.bind("<Enter>", bind_mousewheel1)
+        self.first_column.bind("<Leave>", unbind_mousewheel1)
 
-        self.sec_column = tk.Frame(self.paned_window, **AppStyles.frame_style())
-        self.paned_window.add(self.sec_column, weight=3)
+        sec_column_container = tk.Frame(self.paned_window, **AppStyles.frame_style())
+        self.paned_window.add(sec_column_container, weight=3)
+
+        canvas2 = tk.Canvas(sec_column_container, borderwidth=0, highlightthickness=0)
+        scrollbar2 = tk.Scrollbar(sec_column_container, orient="vertical", command=canvas2.yview)
+
+        scrollbar2.pack(side="right", fill="y")
+        canvas2.pack(side="left", fill="both", expand=True)
+        canvas2.configure(yscrollcommand=scrollbar2.set)
+
+        self.sec_column = tk.Frame(canvas2, **AppStyles.frame_style())
+        canvas_window2 = canvas2.create_window((0, 0), window=self.sec_column, anchor="nw")
+
+        self.sec_column.bind("<Configure>", lambda e: canvas2.configure(scrollregion=canvas2.bbox("all")))
+        canvas2.bind("<Configure>", lambda e: canvas2.itemconfig(canvas_window2, width=e.width))
+
+        def bind_mousewheel2(event):
+            canvas2.bind_all("<MouseWheel>", lambda e: canvas2.yview_scroll(int(-1 * (e.delta / 120)), "units"))
+
+        def unbind_mousewheel2(event):
+            canvas2.unbind_all("<MouseWheel>")
+
+        self.sec_column.bind("<Enter>", bind_mousewheel2)
+        self.sec_column.bind("<Leave>", unbind_mousewheel2)
 
     def open_template_form(self):
         TemplatesCheckController(self)
@@ -411,9 +434,13 @@ class UserConfigView(tk.Frame):
     def summary_equation_form(self):
         self.summary_frame = tk.Frame(self.results_frame, **AppStyles.frame_style())
         self.summary_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
-        tk.Label(self.summary_frame, text = "Сводка по уравнению номер:", **AppStyles.label_style()).grid(row=0, column=0, sticky = 'ew', padx=5, pady=2)
-        self.summary_equation_number = tk.Entry(self.summary_frame, **AppStyles.entry_style())
-        self.summary_equation_number.grid(row=0, column=1, padx=5, pady=2)
+        self.summary_frame.columnconfigure(0, weight=3)
+        self.summary_frame.columnconfigure(1, weight=1)
+        self.summary_frame.columnconfigure(2, weight=3)
+        tk.Label(self.summary_frame, text = "Сводка по уравнению номер:",
+                 **AppStyles.label_style()).grid(row=0, column=0, sticky = 'e', padx=5, pady=2)
+        self.summary_equation_number = tk.Entry(self.summary_frame, **AppStyles.entry_style(), width=5)
+        self.summary_equation_number.grid(row=0, column=1, pady=2, sticky = 'w')
         self.summary_button = tk.Button(self.summary_frame, text="Получить сводку по уравнению",
                                         command=self.get_summary, **AppStyles.button_style())
         self.summary_button.grid(row=0, column=2, sticky='ew', padx=5, pady=2)
@@ -536,52 +563,80 @@ class UserConfigView(tk.Frame):
             summary_file.writelines(summary_lines)
 
     def sort_frame(self):
-        self.sort_menu_frame = tk.LabelFrame(self.sec_column, text="Сортировка уравнений", **AppStyles.labelframe_style())
-        self.sort_menu_frame.pack(fill=tk.X, expand=True, padx=5, pady=5)
+        self.sort_menu_frame = tk.LabelFrame(self.sec_column, text="Сортировка уравнений",
+                                             **AppStyles.labelframe_style())
+        self.sort_menu_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)  # Изменено на BOTH
 
-        tk.Label(self.sort_menu_frame, text="1 уровень",
+        self.canvas = tk.Canvas(self.sort_menu_frame)
+        self.scrollbar_sort = ttk.Scrollbar(self.sort_menu_frame, orient="vertical", command=self.canvas.yview)
+        self.scroll_sort = tk.Frame(self.canvas)
+
+        self.scroll_sort.bind(
+            "<Configure>",
+            lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+        )
+
+        self.canvas.create_window((0, 0), window=self.scroll_sort, anchor="nw")
+        self.canvas.configure(yscrollcommand=self.scrollbar_sort.set)
+
+        self.canvas.pack(side="left", fill="both", expand=True)
+        self.scrollbar_sort.pack(side="right", fill="y")
+
+        self.scroll_sort.columnconfigure(0, weight=1)
+        self.scroll_sort.columnconfigure(1, weight=1)
+        self.scroll_sort.columnconfigure(2, weight=1)
+        self.scroll_sort.columnconfigure(3, weight=1)
+
+        tk.Label(self.scroll_sort, text="1 уровень",
                  **AppStyles.label_style()).grid(row=1, column=0, sticky='ew', padx=5, pady=2)
-        tk.Label(self.sort_menu_frame, text="2 уровень",
+        tk.Label(self.scroll_sort, text="2 уровень",
                  **AppStyles.label_style()).grid(row=2, column=0, sticky='ew', padx=5, pady=2)
-        tk.Label(self.sort_menu_frame, text="3 уровень",
+        tk.Label(self.scroll_sort, text="3 уровень",
                  **AppStyles.label_style()).grid(row=3, column=0, sticky='ew', padx=5, pady=2)
 
         sort_opt = ["Минимум", "Оптимум"]
-        tk.Label(self.sort_menu_frame, text="Способ сортировки",
+        tk.Label(self.scroll_sort, text="Способ сортировки",
                  **AppStyles.label_style()).grid(row=0, column=0, sticky='ew', padx=5, pady=2)
-        self.sort_options = ttk.Combobox(self.sort_menu_frame,
-                                        **AppStyles.combobox_config(),
-                                         values= sort_opt,
-                                         state = 'readonly')
+
+        self.sort_options = ttk.Combobox(self.scroll_sort,
+                                         **AppStyles.combobox_config(),
+                                         values=sort_opt,
+                                         state='readonly')
         self.sort_options.grid(row=0, column=1, padx=5, pady=2)
 
         self.first_criteria_list = ["Общая масса", "Количество прекурсоров", "Масса конкретного прекурсора"]
-        self.first_level = ttk.Combobox(self.sort_menu_frame,
-                                        **AppStyles.combobox_config(), values= self.first_criteria_list)
+        self.first_level = ttk.Combobox(self.scroll_sort,
+                                        **AppStyles.combobox_config(), values=self.first_criteria_list)
         self.first_level.grid(row=1, column=1, padx=5, pady=2)
         self.first_level.bind('<<ComboboxSelected>>', self.select_first_level)
 
-        self.second_level = ttk.Combobox(self.sort_menu_frame,
+        self.second_level = ttk.Combobox(self.scroll_sort,
                                          **AppStyles.combobox_config(), state='disabled')
         self.second_level.grid(row=2, column=1, padx=5, pady=2)
         self.second_level.bind('<<ComboboxSelected>>', self.select_second_level)
 
-        self.third_level = ttk.Combobox(self.sort_menu_frame,
+        self.third_level = ttk.Combobox(self.scroll_sort,
                                         **AppStyles.combobox_config(), state='disabled')
         self.third_level.grid(row=3, column=1, padx=5, pady=2)
         self.third_level.bind('<<ComboboxSelected>>', self.select_third_level)
 
-        self.sort_button = tk.Button(self.sort_menu_frame, text="Провести сортировку",
+        self.sort_button = tk.Button(self.scroll_sort, text="Провести сортировку",
                                      command=self.sort_process, **AppStyles.button_style(),
                                      state='disabled')
-        self.sort_button.grid(row=0, column=2, sticky='ew', padx=5, pady=2)
+        self.sort_button.grid(row=0, column=2, sticky='ew', padx=5, pady=2, columnspan=2)
 
-        self.mass_reagent = ttk.Combobox(self.sort_menu_frame,
+        self.mass_reagent = ttk.Combobox(self.scroll_sort,
                                          **AppStyles.combobox_config(),
-                                         values = self.salt_formulas,
-                                         state='readonly')
-        self.mass_reagent_label = tk.Label(self.sort_menu_frame,
-                                         **AppStyles.label_style(), text = "Прекурсор")
+                                         values=self.salt_formulas,
+                                         state='readonly',
+                                         width=10)
+        self.mass_reagent_label = tk.Label(self.scroll_sort,
+                                           **AppStyles.label_style(), text="Прекурсор")
+
+        # Добавляем привязку колесика мыши для удобства
+        self.canvas.bind("<MouseWheel>", lambda e: self.canvas.yview_scroll(int(-1 * (e.delta / 120)), "units"))
+        self.scroll_sort.bind("<MouseWheel>",
+                                   lambda e: self.canvas.yview_scroll(int(-1 * (e.delta / 120)), "units"))
 
     def select_first_level(self, event):
         selected_sort_key =  self.first_level.get()
@@ -604,7 +659,7 @@ class UserConfigView(tk.Frame):
         self.third_level.configure(state='readonly', values=self.third_criteria_list)
 
     def select_third_level(self, event):
-        if self.third_criteria_list == "Масса конкретного прекурсора":
+        if  self.third_level.get() == "Масса конкретного прекурсора":
             self.mass_reagent_label.grid(row=3, column=2, sticky='ew', padx=5, pady=2)
             self.mass_reagent.grid(row=3, column=3, sticky='ew', padx=5, pady=2)
         self.sort_button.configure(state = 'normal')
@@ -614,13 +669,22 @@ class UserConfigView(tk.Frame):
         criteria.append(self.first_level.get())
         criteria.append(self.second_level.get())
         criteria.append(self.third_level.get())
+        sorted_keys = []
 
         reagent = self.mass_reagent.get()
         sort_option = self.sort_options.get()
         if sort_option == "Минимум":
-            print(sort_by_minimum_criteria(self.calculations["equations"], criteria, reagent))
+            sorted_keys = sort_by_minimum_criteria(self.calculations["equations"], criteria, reagent)
         elif sort_option == "Оптимум":
-            print(optimal_sort(self.calculations["equations"], criteria, reagent))
+            sorted_keys = optimal_sort(self.calculations["equations"], criteria, reagent)
+
+        eq_text, equations = generate_reaction_equations_display(self.calculations, sorted_keys)
+        self.clear_console()
+        self.add_text(eq_text)
+        self.add_text(format_results_mass_table(self.calculations, sorted_keys))
+        self.hystogram_frame = tk.Frame(self.sec_column, **AppStyles.frame_style())
+        self.hystogram_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+        prepare_and_draw_mass_histogram(equations, self.hystogram_frame, "test")
 
     def save_config(self):
         self.top_window = tk.Toplevel(self)
@@ -655,6 +719,11 @@ class UserConfigView(tk.Frame):
         self.console_text.config(state=tk.NORMAL)
         self.console_text.insert(tk.END, text)
         self.console_text.see(tk.END)
+        self.console_text.config(state=tk.DISABLED)
+
+    def clear_console(self):
+        self.console_text.config(state=tk.NORMAL)
+        self.console_text.delete(1.0, tk.END)
         self.console_text.config(state=tk.DISABLED)
 
     def show_salts_info(self):

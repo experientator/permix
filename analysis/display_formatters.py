@@ -135,6 +135,41 @@ def generate_reaction_equations_display(
 
     if not keys_to_iterate:
         return "Не найдено уравнений для отображения.\n"
+
+    solvent_info_str_part = ""
+    main_solvent_details_parts = []
+    if main_solvents_input and float(v_main_solution_ml_input) > 0:
+        for ms_info in main_solvents_input:
+            ms_sym = ms_info.get("symbol")
+            ms_fr = float(ms_info.get("fraction"))
+            try:
+                ms_vol = v_main_solution_ml_input * ms_fr
+                main_solvent_details_parts.append(
+                    f"{ms_sym}{ms_fr if ms_fr else ''} [{ms_vol:.2f}мл]"
+                )
+            except:
+                main_solvent_details_parts.append(f"{ms_sym}({ms_fr})")
+    if main_solvent_details_parts:
+        solvent_info_str_part += (
+            f" | Раств-ль: {', '.join(main_solvent_details_parts)}"
+        )
+
+    antisolvent_details_parts = []
+    if antisolvents_input and float(v_antisolvent_ml_input) > 0:
+        for as_info in antisolvents_input:
+            as_sym = as_info.get("symbol")
+            as_fr = float(as_info.get("fraction"))
+            try:
+                as_vol = v_antisolvent_ml_input * as_fr
+                antisolvent_details_parts.append(
+                    f"{as_sym}{as_fr if as_fr else ''} [{as_vol:.2f}мл]"
+                )
+            except:
+                antisolvent_details_parts.append(f"{as_sym}({as_fr})")
+
+    if antisolvent_details_parts:
+        solvent_info_str_part += f" | Антираств-ль ({v_antisolvent_ml_input:.2f}мл общ.): {', '.join(antisolvent_details_parts)}"
+
     for eq_key in keys_to_iterate:
         eq_data = equations_data_map.get(eq_key)
         if not isinstance(eq_data, dict) or not eq_data.get("condition_met", False):
@@ -159,40 +194,6 @@ def generate_reaction_equations_display(
             )
             reactants_parts_str_list.append(f"{coeff_display_part}{salt_formula}")
 
-
-        solvent_info_str_part = ""
-        main_solvent_details_parts = []
-        if main_solvents_input and float(v_main_solution_ml_input) > 0:
-            for ms_info in main_solvents_input:
-                ms_sym = ms_info.get("symbol")
-                ms_fr = float(ms_info.get("fraction"))
-                try:
-                    ms_vol = v_main_solution_ml_input * ms_fr
-                    main_solvent_details_parts.append(
-                        f"{ms_sym}{ms_fr if ms_fr else ''} [{ms_vol:.2f}мл]"
-                    )
-                except:
-                    main_solvent_details_parts.append(f"{ms_sym}({ms_fr})")
-        if main_solvent_details_parts:
-            solvent_info_str_part += (
-                f" | Раств-ль: {', '.join(main_solvent_details_parts)}"
-            )
-
-        antisolvent_details_parts = []
-        if antisolvents_input and float(v_antisolvent_ml_input) > 0:
-            for as_info in antisolvents_input:
-                as_sym = as_info.get("symbol")
-                as_fr = float(as_info.get("fraction"))
-                try:
-                    as_vol = v_antisolvent_ml_input * as_fr
-                    antisolvent_details_parts.append(
-                        f"{as_sym}{as_fr if as_fr else ''} [{as_vol:.2f}мл]"
-                    )
-                except:
-                    antisolvent_details_parts.append(f"{as_sym}({as_fr})")
-
-        if antisolvent_details_parts:
-            solvent_info_str_part += f" | Антираств-ль ({v_antisolvent_ml_input:.2f}мл общ.): {', '.join(antisolvent_details_parts)}"
 
         if reactants_parts_str_list:
             reactants_str = " + ".join(reactants_parts_str_list)

@@ -63,7 +63,6 @@ class App(tk.Tk):
     def open_comp_form(self):
         CompositionController(self)
 
-
 if __name__ == "__main__":
     app = App()
     app.mainloop()

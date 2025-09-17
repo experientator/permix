@@ -34,18 +34,30 @@ def optimal_sort(equations, criteria_config, reagent):
 
         eq["score"] = total_score
 
-    return sorted(equations.values(), key=lambda x: x.get("score", 0), reverse=True)
+    sorted_equations = sorted(equations.values(), key=lambda x: x.get("score", 0), reverse=True)
+    sorted_keys = [f"Equation {eq['eq_key_numeric']}" for eq in sorted_equations]
+
+    return sorted_keys
 
 def sort_by_minimum_criteria(equations, criteria_config, reagent):
-
     def sort_key(eq):
         key = []
         for config in criteria_config:
             value = get_criterion_value(eq, config, reagent)
-            key.append(value)
+            try:
+                if value is None:
+                    numeric_value = 0
+                else:
+                    numeric_value = float(value)
+                key.append(numeric_value)
+            except (ValueError, TypeError):
+                key.append(0)
         return key
 
-    return sorted(equations.values(), key=sort_key)
+    sorted_equations = sorted(equations.values(), key=sort_key)
+    sorted_keys = [f"Equation {eq['eq_key_numeric']}" for eq in sorted_equations]
+
+    return sorted_keys
 
 def get_criterion_value(
         equation_data,

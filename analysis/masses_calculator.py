@@ -35,6 +35,22 @@ def calculate_precursor_masses(
 
     equation_counter = 0
     unique_strategies = {}
+
+    for solvent in solvents:
+        solvent_type = solvent["solvent_type"]
+        if solvent_type in solvents_by_type:
+            solvents_by_type[solvent_type].append(solvent)
+
+        for solv in solvents_by_type["solvent"]:
+            float_test(solv["fraction"], "Доли растворителей")
+            solvent_volume_ml = solution_info["v_solvent"] * float(solv["fraction"])
+
+    if solvents_by_type["antisolvent"]:
+        v_antisolvent = solution_info["v_antisolvent"]
+        for antisolv in solvents_by_type["antisolvent"]:
+            float_test(antisolv["fraction"], "Доли антирастворителей")
+            antisolvent_volume_ml = solution_info["v_solvent"] * float(antisolv["fraction"])
+
     for strategy_desc, strategy_data in calculated_strategies.items():
         strategy_coeffs = strategy_data.get("coefficients")
         strategy_error = strategy_data.get("error_message")
@@ -79,21 +95,6 @@ def calculate_precursor_masses(
             current_eq_masses_final_k_filtered[salt_formula] = calculated_mass_g_with_k
             total_mass_g_final_k_significant += calculated_mass_g_with_k
             num_significant_reagents_with_mass += 1
-
-        for solvent in solvents:
-            solvent_type = solvent["solvent_type"]
-            if solvent_type in solvents_by_type:
-                solvents_by_type[solvent_type].append(solvent)
-
-            for solv in solvents_by_type["solvent"]:
-                float_test(solv["fraction"], "Доли растворителей")
-                solvent_volume_ml = solution_info["v_solvent"] * float(solv["fraction"])
-
-        if solvents_by_type["antisolvent"]:
-            v_antisolvent = solution_info["v_antisolvent"]
-            for antisolv in solvents_by_type["antisolvent"]:
-                float_test(antisolv["fraction"], "Доли антирастворителей")
-                antisolvent_volume_ml = solution_info["v_solvent"] * float(antisolv["fraction"])
 
         equation_counter += 1
         eq_key = f"Equation {equation_counter}"
