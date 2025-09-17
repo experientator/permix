@@ -86,7 +86,8 @@ class TemplatesCheckView(tk.Toplevel):
             details_frame,
             columns=('type', 'stoichiometry', 'valence'),
             show='headings',
-            height=10
+            height=10,
+            **AppStyles.treeview_config()
         )
         self.sites_tree.heading('type', text='Тип')
         self.sites_tree.heading('stoichiometry', text='Стехиометрия')
@@ -103,20 +104,16 @@ class TemplatesCheckView(tk.Toplevel):
 
         self.temp_tree.bind('<<TreeviewSelect>>', self.on_template_select)
 
-        # Контейнер для формы с фиксированной высотой
         form_container = tk.Frame(right_frame, **AppStyles.frame_style())
         form_container.pack(expand=True, fill=tk.BOTH, padx=5, pady=2)
 
-        # Создаем форму НЕ внутри скроллируемой области
         form_frame = tk.LabelFrame(form_container, text="Добавить новый шаблон",
                                    **AppStyles.labelframe_style())
-        form_frame.pack(expand=True, fill=tk.BOTH, padx=5, pady=2)
+        form_frame.pack(expand=True, fill=tk.BOTH)
 
-        # Создаем Canvas и Scrollbar внутри form_frame
         canvas = tk.Canvas(form_frame, bg=AppStyles.BACKGROUND_COLOR)
         scrollbar = ttk.Scrollbar(form_frame, orient=tk.VERTICAL, command=canvas.yview)
 
-        # Фрейм для содержимого внутри canvas
         scrollable_frame = tk.Frame(canvas, **AppStyles.frame_style())
 
         scrollable_frame.bind(
@@ -127,16 +124,13 @@ class TemplatesCheckView(tk.Toplevel):
         canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
         canvas.configure(yscrollcommand=scrollbar.set)
 
-        # Упаковка canvas и scrollbar
         canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
-        # Привязка колесика мыши
         canvas.bind("<MouseWheel>", lambda e: canvas.yview_scroll(int(-1 * (e.delta / 120)), "units"))
 
-        # Теперь все элементы формы помещаем в scrollable_frame
         info_frame = tk.Frame(scrollable_frame, **AppStyles.frame_style())
-        info_frame.pack(expand=True, fill="x", padx=5, pady=2, anchor="nw")
+        info_frame.pack(expand=True, fill="x", padx=5, pady=2, anchor="n")
         info_frame.columnconfigure(0, weight=1)
         info_frame.columnconfigure(1, weight=1)
         info_frame.columnconfigure(2, weight=1)
@@ -173,7 +167,7 @@ class TemplatesCheckView(tk.Toplevel):
         }
 
         check_frame = tk.Frame(scrollable_frame, **AppStyles.frame_style())
-        check_frame.pack(fill="x", pady=2, expand=True, anchor="nw")
+        check_frame.pack(fill="x", pady=2, expand=True, anchor="n")
 
         tk.Checkbutton(check_frame, text="A-катион",
                        variable=self.site_vars['a_site'],
@@ -189,7 +183,7 @@ class TemplatesCheckView(tk.Toplevel):
                        **AppStyles.checkbutton_style()).pack(side="left", fill="x", padx=5, expand=True)
 
         button_frame_form = tk.Frame(scrollable_frame, **AppStyles.frame_style())
-        button_frame_form.pack(fill="x", pady=2, expand=True, anchor="nw")
+        button_frame_form.pack(fill="x", pady=2, expand=True, anchor="n")
 
         self.btn_add_sites = tk.Button(button_frame_form, text="Добавить элементы структуры",
                                        command=self.on_add_sites,
