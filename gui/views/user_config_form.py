@@ -1,6 +1,9 @@
 import tkinter as tk
 import tkinter.messagebox as mb
 from tkinter import ttk, scrolledtext
+from datetime import date
+import os
+from periodictable.formulas import formula
 
 from analysis.database_utils import (get_templates_list, get_template_id, get_template_sites,
                                      get_candidate_cations, get_solvents, get_anion_stoichiometry)
@@ -10,6 +13,7 @@ from analysis.masses_calculator import calculate_precursor_masses
 from analysis.calculation_tests import fraction_test, float_test
 from analysis.display_formatters import format_results_mass_table, generate_reaction_equations_display
 from gui.default_style import AppStyles
+from analysis.sort_equations import sort_by_minimum_criteria, optimal_sort
 
 class UserConfigView(tk.Frame):
     def __init__(self, parent, controller):
@@ -25,15 +29,12 @@ class UserConfigView(tk.Frame):
         main_frame = tk.Frame(self, **AppStyles.frame_style())
         main_frame.pack(fill="both", expand=True)
 
-        # Убираем общий скроллбар и канву
         self.paned_window = ttk.PanedWindow(main_frame, orient=tk.HORIZONTAL)
         self.paned_window.pack(fill="both", expand=True, padx=10, pady=5)
 
-        # ПЕРВАЯ КОЛОНКА - со скроллом
         first_column_container = tk.Frame(self.paned_window, **AppStyles.frame_style())
         self.paned_window.add(first_column_container, weight=1)
 
-        # Канва и скроллбар только для первой колонки
         canvas = tk.Canvas(first_column_container, borderwidth=0, highlightthickness=0)
         scrollbar = tk.Scrollbar(first_column_container, orient="vertical", command=canvas.yview)
 
@@ -44,11 +45,9 @@ class UserConfigView(tk.Frame):
         self.first_column = tk.Frame(canvas, **AppStyles.frame_style())
         canvas_window = canvas.create_window((0, 0), window=self.first_column, anchor="nw")
 
-        # Привязка событий для первой колонки
         self.first_column.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
         canvas.bind("<Configure>", lambda e: canvas.itemconfig(canvas_window, width=e.width))
 
-        # Привязка колесика мыши только к первой колонке
         def bind_mousewheel(event):
             canvas.bind_all("<MouseWheel>", lambda e: canvas.yview_scroll(int(-1 * (e.delta / 120)), "units"))
 
@@ -58,7 +57,6 @@ class UserConfigView(tk.Frame):
         self.first_column.bind("<Enter>", bind_mousewheel)
         self.first_column.bind("<Leave>", unbind_mousewheel)
 
-        # ВТОРАЯ КОЛОНКА - без скролла
         self.sec_column = tk.Frame(self.paned_window, **AppStyles.frame_style())
         self.paned_window.add(self.sec_column, weight=3)
 
@@ -375,6 +373,7 @@ class UserConfigView(tk.Frame):
         self.data_apply_button.pack(expand=True, fill = 'x', pady=5)
 
     def calculations_function(self):
+        self.equation_formulas = []
         self.k_factors = self.get_k_factors_data()
         self.solvents_data, self.solution_info = self.get_solution_data()
         solvent_fractions = {'solvent': 0, 'antisolvent': 0}
@@ -383,7 +382,7 @@ class UserConfigView(tk.Frame):
         for element in self.k_factors:
             k_factor = float_test(element['k_factor'], "К-факторы")
 
-        calculations = calculate_precursor_masses(
+        self.calculations = calculate_precursor_masses(
                 self.template_id, self.cations_data,
                 self.anions_data, self.anion_stoichiometry,
                 self.solution_info, self.solvents_data,
@@ -403,8 +402,225 @@ class UserConfigView(tk.Frame):
         self.fav_button = tk.Button(self.first_column, text="Сохранить конфигурацию",
                                     command=self.save_config, **AppStyles.button_style())
         self.fav_button.pack(expand=True, fill = 'x', pady=5)
-        self.add_text(generate_reaction_equations_display(calculations))
-        self.add_text(format_results_mass_table(calculations))
+        eq_text, self.equation_formulas = generate_reaction_equations_display(self.calculations)
+        self.add_text(eq_text)
+        self.add_text(format_results_mass_table(self.calculations))
+        self.summary_equation_form()
+        self.sort_frame()
+
+    def summary_equation_form(self):
+        self.summary_frame = tk.Frame(self.results_frame, **AppStyles.frame_style())
+        self.summary_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+        tk.Label(self.summary_frame, text = "Сводка по уравнению номер:", **AppStyles.label_style()).grid(row=0, column=0, sticky = 'ew', padx=5, pady=2)
+        self.summary_equation_number = tk.Entry(self.summary_frame, **AppStyles.entry_style())
+        self.summary_equation_number.grid(row=0, column=1, padx=5, pady=2)
+        self.summary_button = tk.Button(self.summary_frame, text="Получить сводку по уравнению",
+                                        command=self.get_summary, **AppStyles.button_style())
+        self.summary_button.grid(row=0, column=2, sticky='ew', padx=5, pady=2)
+
+    def get_summary(self):
+        eq_num = self.summary_equation_number.get()
+        eq_key = f"Equation {eq_num}"
+        perovskite_formula = self.calculations["product_formula_display"]
+        today_date = date.today()
+        V_solution = self.calculations["input_summary"]["V_solution_ml"]
+        c_solv = self.calculations["input_summary"]["C_solution_molar"]
+        V_antisolvent = self.calculations["input_summary"]["V_antisolvent_ml_input"]
+        antisolvents = self.calculations["input_summary"]["antisolvents_mix_input"]
+        solvents_str = ""
+        antisolvents_str = ""
+        geom_factors_str = ""
+        salts_masses_str = ""
+        k_factors_str = ""
+
+        filename = f"summary/{perovskite_formula}_eq{eq_num}_{today_date}.txt"
+
+        if self.calculations["geometry_factors"]["t"]:
+            t_fact = self.calculations["geometry_factors"]["t"]
+            if t_fact != "N/A":
+                t_fact = float(t_fact)
+                t_fact = round(t_fact, 4)
+            geom_factors_str += f"t = {t_fact}"
+
+        if self.calculations["geometry_factors"]["mu"]:
+            mu = float(self.calculations["geometry_factors"]["mu"])
+            mu = round(mu, 4)
+            geom_factors_str += f", μ = {mu}"
+
+        if self.calculations["geometry_factors"]["mu_prime"]:
+            mu_prime = float(self.calculations["geometry_factors"]["mu_prime"])
+            mu_prime = round(mu_prime, 4)
+            geom_factors_str += f", μ' = {mu_prime}"
+
+        if self.calculations["geometry_factors"]["mu_double_prime"]:
+            mu_double_prime = float(self.calculations["geometry_factors"]["mu_double_prime"])
+            mu_double_prime = round(mu_double_prime, 4)
+            geom_factors_str += f", μ'' = {mu_double_prime}"
+
+        if geom_factors_str == "":
+            geom_factors_str = "-"
+
+        if antisolvents:
+            for antisolv in antisolvents:
+                v_antisol = float(V_antisolvent) * float(antisolv["fraction"])
+                v_antisol = round(v_antisol, 4)
+                name = antisolv["symbol"]
+                antisolvents_str += f" {v_antisol} мл {name},"
+
+        for solvent in self.calculations["input_summary"]["main_solvents_mix_input"]:
+            v_sol = float(V_solution)*float(solvent["fraction"])
+            v_sol = round(v_sol, 4)
+            name = solvent["symbol"]
+            solvents_str += f" {v_sol} мл {name},"
+        solvents_str = solvents_str[:-1]
+
+        if antisolvents_str == "":
+            antisolvents_str = " -"
+
+        for k_factor in self.calculations["input_summary"]["individual_k_factors_settings"]:
+            salt = k_factor["salt"]
+            k = k_factor["k_factor"]
+            k_factors_str += f" {salt}: {k},"
+        k_factors_str = k_factors_str[:-1]
+
+        if k_factors_str == "":
+            k_factors_str = " -"
+
+        for salt, salt_mass in self.calculations["equations"][eq_key]["masses_g_final_k"].items():
+            salt_mass = float(salt_mass)
+            salt_mass = round(salt_mass, 4)
+            salts_masses_str += f" {salt_mass} г {salt},"
+        salts_masses_str = salts_masses_str[:-1]
+
+        summary_lines = [f"Дата проведения расчета: {today_date}\n",
+                         f"Общая формула соединения: {perovskite_formula}\n",
+                         f"Уравнение: {self.equation_formulas[int(eq_num)-1]}\n",
+                         f"Геометрические факторы: {geom_factors_str}\n",
+                         f"Концентрация раствора: {c_solv} М, общий объем растворителей: {V_solution} мл, общий объем антирастворителей: {V_antisolvent} мл\n",
+                         f"Растворители:{solvents_str}\n",
+                         f"Антирастворители:{antisolvents_str}\n",
+                         f"K-факторы:{k_factors_str}\n",
+                         f"Массы прекурсоров:{salts_masses_str}"]
+
+        self.show_custom_summary(filename, summary_lines)
+
+    def show_custom_summary(self, filename, summary_lines):
+        summary_text = ''.join(summary_lines)
+        window = tk.Toplevel()
+        window.title("Сводка по уравнению")
+        window.geometry("600x400")
+
+        text_widget = tk.Text(window, wrap='word', width=70, height=15)
+        scrollbar = tk.Scrollbar(window, orient='vertical', command=text_widget.yview)
+        text_widget.configure(yscrollcommand=scrollbar.set)
+        text_widget.insert(tk.END, summary_text)
+        text_widget.config(state='disabled')
+
+        button_frame = tk.Frame(window, **AppStyles.frame_style())
+
+        save_btn = tk.Button(button_frame, text="Сохранить в файл",
+                          command=lambda: self.get_summary_file(filename, summary_lines),
+                          **AppStyles.button_style())
+
+        close_btn = tk.Button(button_frame, text="Закрыть", command=window.destroy,
+                              **AppStyles.button_style())
+
+        text_widget.pack(side='top', fill='both', expand=True, padx=10, pady=10)
+        button_frame.pack(side='bottom', pady=10)
+
+        save_btn.pack(side='left', padx=5)
+        close_btn.pack(side='left', padx=5)
+
+    def get_summary_file(self, filename, summary_lines):
+        with open(filename, 'w+', encoding='utf-8') as summary_file:
+            summary_file.writelines(summary_lines)
+
+    def sort_frame(self):
+        self.sort_menu_frame = tk.LabelFrame(self.sec_column, text="Сортировка уравнений", **AppStyles.labelframe_style())
+        self.sort_menu_frame.pack(fill=tk.X, expand=True, padx=5, pady=5)
+
+        tk.Label(self.sort_menu_frame, text="1 уровень",
+                 **AppStyles.label_style()).grid(row=1, column=0, sticky='ew', padx=5, pady=2)
+        tk.Label(self.sort_menu_frame, text="2 уровень",
+                 **AppStyles.label_style()).grid(row=2, column=0, sticky='ew', padx=5, pady=2)
+        tk.Label(self.sort_menu_frame, text="3 уровень",
+                 **AppStyles.label_style()).grid(row=3, column=0, sticky='ew', padx=5, pady=2)
+
+        sort_opt = ["Минимум", "Оптимум"]
+        tk.Label(self.sort_menu_frame, text="Способ сортировки",
+                 **AppStyles.label_style()).grid(row=0, column=0, sticky='ew', padx=5, pady=2)
+        self.sort_options = ttk.Combobox(self.sort_menu_frame,
+                                        **AppStyles.combobox_config(),
+                                         values= sort_opt,
+                                         state = 'readonly')
+        self.sort_options.grid(row=0, column=1, padx=5, pady=2)
+
+        self.first_criteria_list = ["Общая масса", "Количество прекурсоров", "Масса конкретного прекурсора"]
+        self.first_level = ttk.Combobox(self.sort_menu_frame,
+                                        **AppStyles.combobox_config(), values= self.first_criteria_list)
+        self.first_level.grid(row=1, column=1, padx=5, pady=2)
+        self.first_level.bind('<<ComboboxSelected>>', self.select_first_level)
+
+        self.second_level = ttk.Combobox(self.sort_menu_frame,
+                                         **AppStyles.combobox_config(), state='disabled')
+        self.second_level.grid(row=2, column=1, padx=5, pady=2)
+        self.second_level.bind('<<ComboboxSelected>>', self.select_second_level)
+
+        self.third_level = ttk.Combobox(self.sort_menu_frame,
+                                        **AppStyles.combobox_config(), state='disabled')
+        self.third_level.grid(row=3, column=1, padx=5, pady=2)
+        self.third_level.bind('<<ComboboxSelected>>', self.select_third_level)
+
+        self.sort_button = tk.Button(self.sort_menu_frame, text="Провести сортировку",
+                                     command=self.sort_process, **AppStyles.button_style(),
+                                     state='disabled')
+        self.sort_button.grid(row=0, column=2, sticky='ew', padx=5, pady=2)
+
+        self.mass_reagent = ttk.Combobox(self.sort_menu_frame,
+                                         **AppStyles.combobox_config(),
+                                         values = self.salt_formulas,
+                                         state='readonly')
+        self.mass_reagent_label = tk.Label(self.sort_menu_frame,
+                                         **AppStyles.label_style(), text = "Прекурсор")
+
+    def select_first_level(self, event):
+        selected_sort_key =  self.first_level.get()
+        if selected_sort_key == "Масса конкретного прекурсора":
+            self.mass_reagent_label.grid(row=1, column=2, sticky='ew', padx=5, pady=2)
+            self.mass_reagent.grid(row=1, column=3, sticky='ew', padx=5, pady=2)
+        self.sec_criteria_list = self.first_criteria_list.copy()
+        self.sec_criteria_list.remove(selected_sort_key)
+
+        self.second_level.configure(state = 'readonly', values = self.sec_criteria_list)
+
+    def select_second_level(self, event):
+        selected_sort_key = self.second_level.get()
+        if selected_sort_key == "Масса конкретного прекурсора":
+            self.mass_reagent_label.grid(row=2, column=2, sticky='ew', padx=5, pady=2)
+            self.mass_reagent.grid(row=2, column=3, sticky='ew', padx=5, pady=2)
+        self.third_criteria_list = self.sec_criteria_list.copy()
+        self.third_criteria_list.remove(selected_sort_key)
+
+        self.third_level.configure(state='readonly', values=self.third_criteria_list)
+
+    def select_third_level(self, event):
+        if self.third_criteria_list == "Масса конкретного прекурсора":
+            self.mass_reagent_label.grid(row=3, column=2, sticky='ew', padx=5, pady=2)
+            self.mass_reagent.grid(row=3, column=3, sticky='ew', padx=5, pady=2)
+        self.sort_button.configure(state = 'normal')
+
+    def sort_process(self):
+        criteria = []
+        criteria.append(self.first_level.get())
+        criteria.append(self.second_level.get())
+        criteria.append(self.third_level.get())
+
+        reagent = self.mass_reagent.get()
+        sort_option = self.sort_options.get()
+        if sort_option == "Минимум":
+            print(sort_by_minimum_criteria(self.calculations["equations"], criteria, reagent))
+        elif sort_option == "Оптимум":
+            print(optimal_sort(self.calculations["equations"], criteria, reagent))
 
     def save_config(self):
         self.top_window = tk.Toplevel(self)
