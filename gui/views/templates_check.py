@@ -25,17 +25,21 @@ class TemplatesCheckView(tk.Toplevel):
         main_paned.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
         left_frame = tk.Frame(main_paned, **AppStyles.frame_style())
-        main_paned.add(left_frame, weight=7)
+        main_paned.add(left_frame)
 
         right_frame = tk.Frame(main_paned, **AppStyles.frame_style())
-        main_paned.add(right_frame, weight=1)
+        main_paned.add(right_frame)
 
         temp_frame = tk.LabelFrame(left_frame, text="Существующие шаблоны",
                                    **AppStyles.labelframe_style())
         temp_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
 
+        # Создаем фрейм для дерева и скроллбаров
+        tree_container = tk.Frame(temp_frame)
+        tree_container.pack(fill=tk.BOTH, expand=True)
+
         self.temp_tree = ttk.Treeview(
-            temp_frame,
+            tree_container,
             columns=('id', 'name', 'anion_stoichiometry', 'dimensionality', 'description'),
             show='headings',
             height=15
@@ -49,11 +53,22 @@ class TemplatesCheckView(tk.Toplevel):
         for col in ('id', 'name', 'anion_stoichiometry', 'dimensionality', 'description'):
             self.temp_tree.column(col, width=100, anchor=tk.CENTER)
 
-        temp_scroll = ttk.Scrollbar(temp_frame, orient=tk.VERTICAL, command=self.temp_tree.yview)
-        self.temp_tree.configure(yscrollcommand=temp_scroll.set)
+        # Вертикальный скроллбар
+        temp_scroll_vertical = ttk.Scrollbar(tree_container, orient=tk.VERTICAL, command=self.temp_tree.yview)
+        self.temp_tree.configure(yscrollcommand=temp_scroll_vertical.set)
 
-        self.temp_tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        temp_scroll.pack(side=tk.RIGHT, fill=tk.Y)
+        # Горизонтальный скроллбар
+        temp_scroll_horizontal = ttk.Scrollbar(tree_container, orient=tk.HORIZONTAL, command=self.temp_tree.xview)
+        self.temp_tree.configure(xscrollcommand=temp_scroll_horizontal.set)
+
+        # Упаковка элементов с использованием grid для точного позиционирования
+        self.temp_tree.grid(row=0, column=0, sticky='nsew')
+        temp_scroll_vertical.grid(row=0, column=1, sticky='ns')
+        temp_scroll_horizontal.grid(row=1, column=0, sticky='ew')
+
+        # Настройка весов для правильного растягивания
+        tree_container.grid_rowconfigure(0, weight=1)
+        tree_container.grid_columnconfigure(0, weight=1)
 
         button_frame_left = tk.Frame(left_frame, **AppStyles.frame_style())
         button_frame_left.pack(fill=tk.X, padx=5, pady=2)
@@ -61,7 +76,7 @@ class TemplatesCheckView(tk.Toplevel):
         delete_btn = tk.Button(button_frame_left, text="Удалить выбранное",
                                command=self.controller.delete_selected,
                                **AppStyles.button_style())
-        delete_btn.pack(side = "left",fill="x", padx=5, expand = True)
+        delete_btn.pack(side="left", fill="x", padx=5, expand=True)
 
         details_frame = tk.LabelFrame(right_frame, text="Детали выбранного шаблона",
                                       **AppStyles.labelframe_style())
@@ -71,7 +86,8 @@ class TemplatesCheckView(tk.Toplevel):
             details_frame,
             columns=('type', 'stoichiometry', 'valence'),
             show='headings',
-            height=10
+            height=10,
+            **AppStyles.treeview_config()
         )
         self.sites_tree.heading('type', text='Тип')
         self.sites_tree.heading('stoichiometry', text='Стехиометрия')
@@ -86,43 +102,62 @@ class TemplatesCheckView(tk.Toplevel):
         self.sites_tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         sites_scroll.pack(side=tk.RIGHT, fill=tk.Y)
 
-        # Привязка событий
         self.temp_tree.bind('<<TreeviewSelect>>', self.on_template_select)
 
-        form_frame = tk.LabelFrame(right_frame, text="Добавить новый шаблон",
-                                   **AppStyles.labelframe_style())
-        form_frame.pack(expand = True, fill="x", padx=5, pady=2, anchor = "nw")
+        form_container = tk.Frame(right_frame, **AppStyles.frame_style())
+        form_container.pack(expand=True, fill=tk.BOTH, padx=5, pady=2)
 
-        # Поля формы
-        info_frame = tk.Frame(form_frame, **AppStyles.frame_style())
-        info_frame.pack(expand = True, fill="x", padx=5, pady=2, anchor = "nw")
+        form_frame = tk.LabelFrame(form_container, text="Добавить новый шаблон",
+                                   **AppStyles.labelframe_style())
+        form_frame.pack(expand=True, fill=tk.BOTH)
+
+        canvas = tk.Canvas(form_frame, bg=AppStyles.BACKGROUND_COLOR)
+        scrollbar = ttk.Scrollbar(form_frame, orient=tk.VERTICAL, command=canvas.yview)
+
+        scrollable_frame = tk.Frame(canvas, **AppStyles.frame_style())
+
+        scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+        )
+
+        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        canvas.bind("<MouseWheel>", lambda e: canvas.yview_scroll(int(-1 * (e.delta / 120)), "units"))
+
+        info_frame = tk.Frame(scrollable_frame, **AppStyles.frame_style())
+        info_frame.pack(expand=True, fill="x", padx=5, pady=2, anchor="n")
         info_frame.columnconfigure(0, weight=1)
         info_frame.columnconfigure(1, weight=1)
         info_frame.columnconfigure(2, weight=1)
         info_frame.columnconfigure(3, weight=1)
 
         tk.Label(info_frame, text="Название шаблона",
-                 **AppStyles.label_style()).grid(row=0, column=0, sticky = 'ew', padx=5, pady=2)
+                 **AppStyles.label_style()).grid(row=0, column=0, sticky='ew', padx=5, pady=2)
         self.entry_name = tk.Entry(info_frame, **AppStyles.entry_style())
-        self.entry_name.grid(row=1, column=0, sticky = 'ew', padx=5, pady=2)
+        self.entry_name.grid(row=1, column=0, sticky='ew', padx=5, pady=2)
 
         tk.Label(info_frame, text="Размерность",
-                 **AppStyles.label_style()).grid(row=0, column=1, sticky = 'ew', padx=5, pady=2)
+                 **AppStyles.label_style()).grid(row=0, column=1, sticky='ew', padx=5, pady=2)
         self.entry_dimensionality = tk.Entry(info_frame, **AppStyles.entry_style())
-        self.entry_dimensionality.grid(row=1, column=1, sticky = 'ew', padx=5, pady=2)
+        self.entry_dimensionality.grid(row=1, column=1, sticky='ew', padx=5, pady=2)
 
         tk.Label(info_frame, text="Описание",
-                 **AppStyles.label_style()).grid(row=0, column=2, sticky = 'ew', padx=5, pady=2)
+                 **AppStyles.label_style()).grid(row=0, column=2, sticky='ew', padx=5, pady=2)
         self.entry_description = tk.Entry(info_frame, **AppStyles.entry_style())
-        self.entry_description.grid(row=1, column=2, sticky = 'ew', padx=5, pady=2)
+        self.entry_description.grid(row=1, column=2, sticky='ew', padx=5, pady=2)
 
         tk.Label(info_frame, text="Стехиометрия аниона",
-                 **AppStyles.label_style()).grid(row=0, column=3, sticky = 'ew', padx=5, pady=2)
+                 **AppStyles.label_style()).grid(row=0, column=3, sticky='ew', padx=5, pady=2)
         self.entry_anion_stoich = tk.Entry(info_frame, **AppStyles.entry_style())
-        self.entry_anion_stoich.grid(row=1, column=3, sticky = 'ew', padx=5, pady=2)
+        self.entry_anion_stoich.grid(row=1, column=3, sticky='ew', padx=5, pady=2)
 
-        tk.Label(form_frame, text="Выберите типы катионов:",
-                 **AppStyles.label_style()).pack(fill="x", pady=2, expand = True, anchor = "nw")
+        tk.Label(scrollable_frame, text="Выберите типы катионов:",
+                 **AppStyles.label_style()).pack(fill="x", pady=2, expand=True, anchor="nw")
 
         self.site_vars = {
             'a_site': tk.IntVar(),
@@ -131,38 +166,38 @@ class TemplatesCheckView(tk.Toplevel):
             'spacer': tk.IntVar()
         }
 
-        check_frame = tk.Frame(form_frame, **AppStyles.frame_style())
-        check_frame.pack(fill="x", pady=2, expand = True, anchor = "nw")
+        check_frame = tk.Frame(scrollable_frame, **AppStyles.frame_style())
+        check_frame.pack(fill="x", pady=2, expand=True, anchor="n")
 
         tk.Checkbutton(check_frame, text="A-катион",
                        variable=self.site_vars['a_site'],
-                       **AppStyles.checkbutton_style()).pack(side = "left", fill="x", padx=5, expand = True)
+                       **AppStyles.checkbutton_style()).pack(side="left", fill="x", padx=5, expand=True)
         tk.Checkbutton(check_frame, text="B-катион",
                        variable=self.site_vars['b_site'],
-                       **AppStyles.checkbutton_style()).pack(side = "left",fill="x", padx=5, expand = True)
+                       **AppStyles.checkbutton_style()).pack(side="left", fill="x", padx=5, expand=True)
         tk.Checkbutton(check_frame, text="B-катион (двойной)",
                        variable=self.site_vars['b_double'],
-                       **AppStyles.checkbutton_style()).pack(side = "left",fill="x", padx=5, expand = True)
+                       **AppStyles.checkbutton_style()).pack(side="left", fill="x", padx=5, expand=True)
         tk.Checkbutton(check_frame, text="Спейсер",
                        variable=self.site_vars['spacer'],
-                       **AppStyles.checkbutton_style()).pack(side = "left",fill="x", padx=5, expand = True)
+                       **AppStyles.checkbutton_style()).pack(side="left", fill="x", padx=5, expand=True)
 
-        button_frame_form = tk.Frame(form_frame, **AppStyles.frame_style())
-        button_frame_form.pack(fill="x", pady=2, expand = True, anchor = "nw")
+        button_frame_form = tk.Frame(scrollable_frame, **AppStyles.frame_style())
+        button_frame_form.pack(fill="x", pady=2, expand=True, anchor="n")
 
         self.btn_add_sites = tk.Button(button_frame_form, text="Добавить элементы структуры",
                                        command=self.on_add_sites,
                                        **AppStyles.button_style())
-        self.btn_add_sites.pack(side = "left",fill="x", padx=5, expand = True)
+        self.btn_add_sites.pack(side="left", fill="x", padx=5, expand=True)
 
         self.btn_submit = tk.Button(button_frame_form, text="Подтвердить шаблон",
                                     command=self.on_submit_template,
                                     **AppStyles.button_style())
-        self.btn_submit.pack(side = "left",fill="x", padx=5, expand = True)
+        self.btn_submit.pack(side="left", fill="x", padx=5, expand=True)
         self.btn_submit.config(state='disabled')
 
-        # Область для фреймов сайтов
-        self.sites_container = tk.Frame(form_frame, **AppStyles.frame_style())
+        # Область для фреймов сайтов (внутри scrollable_frame)
+        self.sites_container = tk.Frame(scrollable_frame, **AppStyles.frame_style())
         self.sites_container.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
     def on_add_sites(self):
@@ -173,6 +208,7 @@ class TemplatesCheckView(tk.Toplevel):
             'anion_stoich': self.entry_anion_stoich.get(),
             'site_types': {k: v.get() for k, v in self.site_vars.items()}
         })
+        self.btn_add_sites.config(state = 'disabled')
 
     def create_site_frames(self):
         for widget in self.sites_container.winfo_children():
@@ -201,14 +237,6 @@ class TemplatesCheckView(tk.Toplevel):
                 site_data.append(site_dict)
 
         self.controller.handle_submit_template(site_data)
-
-        self.controller.handle_submit_template({
-            'name': self.entry_name.get(),
-            'dimensionality': self.entry_dimensionality.get(),
-            'description': self.entry_description.get(),
-            'anion_stoich': self.entry_anion_stoich.get(),
-            'sites': site_data
-        })
 
     def on_template_select(self, event):
         selected = self.temp_tree.selection()

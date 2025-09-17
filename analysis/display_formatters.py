@@ -95,6 +95,7 @@ def generate_reaction_equations_display(
     sorted_equation_keys = None,
 ):
     output_lines = []
+    equation_formulas = list()
     product_formula_str = "[Формула продукта?]"
 
     product_formula_str = calculation_results["product_formula_display"]
@@ -134,19 +135,12 @@ def generate_reaction_equations_display(
 
     if not keys_to_iterate:
         return "Не найдено уравнений для отображения.\n"
-
     for eq_key in keys_to_iterate:
         eq_data = equations_data_map.get(eq_key)
         if not isinstance(eq_data, dict) or not eq_data.get("condition_met", False):
             continue
 
         coefficients_map_for_eq = eq_data.get("coefficients_detailed")
-        # if not isinstance(coefficients_map_for_eq, dict) or not coefficients_map_for_eq:
-        #     output_lines.append(
-        #         f"{eq_key} ({eq_data.get('description', 'N/A')}): [Ошибка: нет коэфф.]  ⟶  {product_formula_str}\n"
-        #     )
-        #     continue
-
         reactants_parts_str_list = []
         sorted_salt_keys_for_eq_display = sorted(
             coefficients_map_for_eq.keys(), key=sort_key_salt
@@ -202,16 +196,17 @@ def generate_reaction_equations_display(
 
         if reactants_parts_str_list:
             reactants_str = " + ".join(reactants_parts_str_list)
+            equation_formulas.append(f"{reactants_str}  ⟶  {product_formula_str}")
             output_lines.append(
                 f"{eq_key} ({eq_data.get('description', 'N/A')}): {reactants_str}  ⟶  {product_formula_str}{solvent_info_str_part}\n"
             )
         else:
+            equation_formulas.append(f"[Нет знач. реагентов]  ⟶  {product_formula_str}")
             output_lines.append(
                 f"{eq_key} ({eq_data.get('description', 'N/A')}): [Нет знач. реагентов]  ⟶  {product_formula_str}{solvent_info_str_part}\n"
             )
-
     return (
-        "".join(output_lines) if output_lines else "Не найдено применимых уравнений.\n"
+        "".join(output_lines) if output_lines else "Не найдено применимых уравнений.\n", equation_formulas
     )
 
 def format_results_mass_table(

@@ -46,9 +46,7 @@ class AppStyles:
                    font=AppStyles.NORMAL_FONT)
 
         self.style.configure('Treeview',
-                             background=AppStyles.BACKGROUND_COLOR,
                              foreground=AppStyles.TEXT_COLOR,
-                             fieldbackground=AppStyles.BACKGROUND_COLOR,
                              borderwidth=1,
                              relief='flat',
                              rowheight=25,
@@ -56,7 +54,6 @@ class AppStyles:
 
         # Заголовки
         self.style.configure('Treeview.Heading',
-                             background=AppStyles.BACKGROUND_COLOR,
                              foreground=AppStyles.TEXT_COLOR,
                              padding=10,
                              borderwidth=1,
@@ -93,7 +90,6 @@ class AppStyles:
     @staticmethod
     def entry_style():
         return {
-            "bg": "white",
             "fg": AppStyles.TEXT_COLOR,
             "font": AppStyles.NORMAL_FONT,
             "borderwidth": 1,
@@ -103,7 +99,6 @@ class AppStyles:
     @staticmethod
     def label_style():
         return {
-            "bg": AppStyles.BACKGROUND_COLOR,
             "fg": AppStyles.TEXT_COLOR,
             "font": AppStyles.NORMAL_FONT,
             "padx": 10,
@@ -113,7 +108,6 @@ class AppStyles:
     @staticmethod
     def labelframe_style():
         return {
-            "bg": AppStyles.BACKGROUND_COLOR,
             "fg": AppStyles.TEXT_COLOR,
             "font": AppStyles.NORMAL_FONT,
             "padx": 10,
@@ -123,7 +117,6 @@ class AppStyles:
     @staticmethod
     def frame_style():
         return {
-            "bg": AppStyles.BACKGROUND_COLOR,
             "padx": 10,
             "pady": 10
         }

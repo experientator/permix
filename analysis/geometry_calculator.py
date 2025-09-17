@@ -77,23 +77,7 @@ def get_effective_geometry_radius(cations_by_site, site_name, template_id):
     return r_eff
 
 def calculate_geometry_factors(cation_config, anion_config, template_id):
-    """
-    Рассчитывает геометрические факторы (t, μ) для заданного состава и шаблона.
 
-    Args:
-        cation_config: Словарь конфигурации катионов (ключ - имя сайта).
-                       Доли катионов ("fraction_on_site") должны быть Decimal.
-        anion_config: Словарь конфигурации анионов.
-                      Доли анионов ("fraction") должны быть Decimal.
-        template_data: Словарь данных для выбранного шаблона.
-
-    Returns:
-        Словарь с рассчитанными факторами.
-        Значения могут быть Decimal, строкой "N/A" (неприменимо) или None (ошибка расчета).
-        Пример: {'t': Decimal('0.912'), 'mu': Decimal('0.541')}
-                 {'t': "N/A", 'mu': Decimal('0.600')}
-                 {'t': None, 'mu': None, 'mu_prime': None, 'mu_double_prime': None, 'error': "Сообщение об ошибке"}
-    """
     results = {
         "t": None,
         "mu": None,
@@ -210,12 +194,4 @@ def calculate_geometry_factors(cation_config, anion_config, template_id):
     if error_message:
         show_error(f"GEOM_CALC: Завершено с ошибками: {results['error']}")
 
-    # Очищаем результаты от ключей, которые остались None (кроме 'error')
-    final_results = {k: v for k, v in results.items() if v is not None or k == "error"}
-    if (
-        not any(k in final_results for k in ["t", "mu", "mu_prime", "mu_double_prime"])
-        and "error" not in final_results
-    ):
-        final_results["error"] = "Не удалось рассчитать ни один геометрический фактор."
-
-    return final_results
+    return results

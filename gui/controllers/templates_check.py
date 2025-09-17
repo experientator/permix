@@ -63,6 +63,8 @@ class TemplatesCheckController:
                 return None
 
         self.view.show_success("Template with sites successfully uploaded")
+        self.load_templates()
+        self.view.btn_add_sites.config(state='normal')
         self.current_template_id = None
 
     def load_templates(self):
