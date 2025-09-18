@@ -87,11 +87,9 @@ def _draw_histogram_generic(
         single_bar_values=None,
         single_bar_color="cornflowerblue"
 ):
-    # Очищаем целевой фрейм
     for widget in target_frame.winfo_children():
         widget.destroy()
 
-    # Проверяем наличие данных для построения
     has_data = False
     if single_bar_values is not None:
         has_data = any(v is not None and v > 1e-9 for v in single_bar_values)
@@ -106,18 +104,16 @@ def _draw_histogram_generic(
         return
 
     try:
-        # Создаем фигуру
-        fig, ax = plt.subplots(figsize=(8, 4))
+        fig = plt.Figure(figsize=(10, 6), dpi=100)
+        ax = fig.add_subplot(111)
 
         num_equations = len(equation_labels)
         bar_width = 0.6 if num_equations <= 5 else 0.8
 
         if single_bar_values is not None:
-            # Простая гистограмма с одним столбцом на уравнение
             values = [v if v is not None else 0.0 for v in single_bar_values]
             ax.bar(equation_labels, values, color=single_bar_color, width=bar_width)
         else:
-            # Сложенная гистограмма
             bottoms = [0] * num_equations
             for salt in salt_order:
                 values = plot_data.get(salt, [0.0] * num_equations)
@@ -131,21 +127,17 @@ def _draw_histogram_generic(
                 )
                 bottoms = [b + v for b, v in zip(bottoms, values)]
 
-            # Добавляем легенду если есть данные
             if salt_order:
-                ax.legend(title="Прекурсоры", bbox_to_anchor=(1.05, 1), loc='upper left')
+                ax.legend(title="Прекурсоры", loc='upper right', bbox_to_anchor=(1.0, 1.0))
 
-        # Настраиваем внешний вид
         ax.set_ylabel(y_axis_label)
         ax.set_xlabel(x_axis_label)
         ax.set_title(title)
         ax.grid(True, axis='y', linestyle='--', alpha=0.7)
 
-        # Поворачиваем подписи если много уравнений
         if num_equations > 5:
             plt.setp(ax.get_xticklabels(), rotation=45, ha='right')
 
-        # Создаем canvas и отображаем
         canvas = FigureCanvasTkAgg(fig, master=target_frame)
         canvas.draw()
         canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True, padx=2, pady=2)

@@ -56,7 +56,7 @@ class IonsCheckView(tk.Toplevel):
         ions_scroll.grid(row=0, column=1, sticky="ns")
 
         # Правая часть - дерево радиусов и форма
-        right_frame = tk.Frame(main_frame, **AppStyles.frame_style())
+        right_frame = tk.Frame(main_frame, **AppStyles.frame_style(), width=300)
         right_frame.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
         right_frame.grid_columnconfigure(0, weight=1)
         right_frame.grid_rowconfigure(0, weight=100)  # Дерево радиусов

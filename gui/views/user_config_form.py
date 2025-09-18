@@ -96,6 +96,84 @@ class UserConfigView(tk.Frame):
                                            text="Результаты расчетов", **AppStyles.labelframe_style())
         self.results_frame.pack(fill='x', pady=5)
 
+        self.console_text = scrolledtext.ScrolledText(
+            self.results_frame,
+            wrap=tk.WORD,
+            font=("Consolas", 10),
+            bg="black",
+            fg="white",
+            insertbackground="white"
+        )
+        self.console_text.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+        self.console_text.config(state=tk.DISABLED)
+        self.add_text("Расчеты пока не проведены")
+
+        self.summary_frame = tk.Frame(self.results_frame, **AppStyles.frame_style())
+        self.summary_frame.columnconfigure(0, weight=3)
+        self.summary_frame.columnconfigure(1, weight=1)
+        self.summary_frame.columnconfigure(2, weight=3)
+
+        self.summary_label = tk.Label(self.summary_frame, text="Сводка по уравнению номер:",
+                 **AppStyles.label_style())
+        self.summary_equation_number = tk.Entry(self.summary_frame, **AppStyles.entry_style(), width=5)
+
+        self.summary_button = tk.Button(self.summary_frame, text="Получить сводку по уравнению",
+                                        command=self.get_summary, **AppStyles.button_style())
+
+        self.sort_menu_frame = tk.LabelFrame(self.sec_column, text="Сортировка уравнений",
+                                             **AppStyles.labelframe_style())
+
+        self.sort_menu_frame.columnconfigure(0, weight=1)
+        self.sort_menu_frame.columnconfigure(1, weight=1)
+        self.sort_menu_frame.columnconfigure(2, weight=1)
+        self.sort_menu_frame.columnconfigure(3, weight=1)
+
+        self.first_level_label = tk.Label(self.sort_menu_frame, text="1 уровень",
+                 **AppStyles.label_style())
+        self.second_level_label = tk.Label(self.sort_menu_frame, text="2 уровень",
+                 **AppStyles.label_style())
+        self.third_level_label = tk.Label(self.sort_menu_frame, text="3 уровень",
+                 **AppStyles.label_style())
+
+        sort_opt = ["Минимум", "Оптимум"]
+        self.sort_options_label = tk.Label(self.sort_menu_frame, text="Способ сортировки",
+                 **AppStyles.label_style())
+
+        self.sort_options = ttk.Combobox(self.sort_menu_frame,
+                                         **AppStyles.combobox_config(),
+                                         values=sort_opt,
+                                         state='readonly')
+
+        self.first_criteria_list = ["Общая масса", "Количество прекурсоров", "Масса конкретного прекурсора"]
+        self.first_level = ttk.Combobox(self.sort_menu_frame,
+                                        **AppStyles.combobox_config(), values=self.first_criteria_list)
+
+        self.second_level = ttk.Combobox(self.sort_menu_frame,
+                                         **AppStyles.combobox_config(), state='disabled')
+
+        self.third_level = ttk.Combobox(self.sort_menu_frame,
+                                        **AppStyles.combobox_config(), state='disabled')
+
+        self.sort_button = tk.Button(self.sort_menu_frame, text="Провести сортировку",
+                                     command=self.sort_process, **AppStyles.button_style(),
+                                     state='disabled')
+
+        self.mass_reagent = ttk.Combobox(self.sort_menu_frame,
+                                         **AppStyles.combobox_config(),
+                                         state='readonly',
+                                         width=10)
+        self.mass_reagent_label = tk.Label(self.sort_menu_frame,
+                                           **AppStyles.label_style(), text="Прекурсор")
+
+        self.hystogram_frame = tk.Frame(self.sec_column, **AppStyles.frame_style(), width=200)
+        self.num_equations_hyst_label = tk.Label(self.sort_menu_frame, **AppStyles.label_style(),
+                                           text = "Количество уравнений для отображения")
+        self.num_equations_hyst_entry = tk.Entry(self.sort_menu_frame, **AppStyles.entry_style(), width = 5)
+
+
+        self.fav_button = tk.Button(self.first_column, text="Сохранить конфигурацию",
+                                    command=self.save_config, **AppStyles.button_style())
+
         tk.Label(info_frame, text="Шаблон фазы",
                  **AppStyles.label_style()).pack(fill='x', pady=5)
         self.phase_template = ttk.Combobox(info_frame,
@@ -410,45 +488,54 @@ class UserConfigView(tk.Frame):
                 self.anions_data, self.anion_stoichiometry,
                 self.solution_info, self.solvents_data,
                 self.k_factors)
-        self.console_text = scrolledtext.ScrolledText(
-            self.results_frame,
-            wrap=tk.WORD,
-            font=("Consolas", 10),
-            bg="black",
-            fg="white",
-            insertbackground="white"
-        )
-        self.console_text.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
 
-        self.console_text.config(state=tk.DISABLED)
-
-        self.fav_button = tk.Button(self.first_column, text="Сохранить конфигурацию",
-                                    command=self.save_config, **AppStyles.button_style())
         self.fav_button.pack(expand=True, fill = 'x', pady=5)
         eq_text, self.equation_formulas = generate_reaction_equations_display(self.calculations)
-        self.add_text(eq_text)
+
+        self.geom_factors_str = ""
+        self.perovskite_formula = self.calculations["product_formula_display"]
+        if self.calculations["geometry_factors"]["t"]:
+            t_fact = self.calculations["geometry_factors"]["t"]
+            if t_fact != "N/A":
+                t_fact = float(t_fact)
+                t_fact = round(t_fact, 4)
+            self.geom_factors_str += f"t = {t_fact}"
+
+        if self.calculations["geometry_factors"]["mu"]:
+            mu = float(self.calculations["geometry_factors"]["mu"])
+            mu = round(mu, 4)
+            self.geom_factors_str += f", μ = {mu}"
+
+        if self.calculations["geometry_factors"]["mu_prime"]:
+            mu_prime = float(self.calculations["geometry_factors"]["mu_prime"])
+            mu_prime = round(mu_prime, 4)
+            self.geom_factors_str += f", μ' = {mu_prime}"
+
+        if self.calculations["geometry_factors"]["mu_double_prime"]:
+            mu_double_prime = float(self.calculations["geometry_factors"]["mu_double_prime"])
+            mu_double_prime = round(mu_double_prime, 4)
+            self.geom_factors_str += f", μ'' = {mu_double_prime}"
+
+        if self.geom_factors_str == "":
+            self.geom_factors_str = "-"
+
+        self.clear_console()
+        self.add_text(f"Геометрические факторы: {self.geom_factors_str}\n")
+        self.add_text(f"Формула соединения: {self.perovskite_formula}\n")
+        self.add_text(f"Рассчитанные уравнения:\n {eq_text}")
         self.add_text(format_results_mass_table(self.calculations))
         self.summary_equation_form()
         self.sort_frame()
 
     def summary_equation_form(self):
-        self.summary_frame = tk.Frame(self.results_frame, **AppStyles.frame_style())
-        self.summary_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
-        self.summary_frame.columnconfigure(0, weight=3)
-        self.summary_frame.columnconfigure(1, weight=1)
-        self.summary_frame.columnconfigure(2, weight=3)
-        tk.Label(self.summary_frame, text = "Сводка по уравнению номер:",
-                 **AppStyles.label_style()).grid(row=0, column=0, sticky = 'e', padx=5, pady=2)
-        self.summary_equation_number = tk.Entry(self.summary_frame, **AppStyles.entry_style(), width=5)
-        self.summary_equation_number.grid(row=0, column=1, pady=2, sticky = 'w')
-        self.summary_button = tk.Button(self.summary_frame, text="Получить сводку по уравнению",
-                                        command=self.get_summary, **AppStyles.button_style())
+        self.summary_equation_number.grid(row=0, column=1, pady=2, sticky='w')
         self.summary_button.grid(row=0, column=2, sticky='ew', padx=5, pady=2)
+        self.summary_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+        self.summary_label.grid(row=0, column=0, sticky='e', padx=5, pady=2)
 
     def get_summary(self):
         eq_num = self.summary_equation_number.get()
         eq_key = f"Equation {eq_num}"
-        perovskite_formula = self.calculations["product_formula_display"]
         today_date = date.today()
         V_solution = self.calculations["input_summary"]["V_solution_ml"]
         c_solv = self.calculations["input_summary"]["C_solution_molar"]
@@ -456,36 +543,10 @@ class UserConfigView(tk.Frame):
         antisolvents = self.calculations["input_summary"]["antisolvents_mix_input"]
         solvents_str = ""
         antisolvents_str = ""
-        geom_factors_str = ""
         salts_masses_str = ""
         k_factors_str = ""
 
-        filename = f"summary/{perovskite_formula}_eq{eq_num}_{today_date}.txt"
-
-        if self.calculations["geometry_factors"]["t"]:
-            t_fact = self.calculations["geometry_factors"]["t"]
-            if t_fact != "N/A":
-                t_fact = float(t_fact)
-                t_fact = round(t_fact, 4)
-            geom_factors_str += f"t = {t_fact}"
-
-        if self.calculations["geometry_factors"]["mu"]:
-            mu = float(self.calculations["geometry_factors"]["mu"])
-            mu = round(mu, 4)
-            geom_factors_str += f", μ = {mu}"
-
-        if self.calculations["geometry_factors"]["mu_prime"]:
-            mu_prime = float(self.calculations["geometry_factors"]["mu_prime"])
-            mu_prime = round(mu_prime, 4)
-            geom_factors_str += f", μ' = {mu_prime}"
-
-        if self.calculations["geometry_factors"]["mu_double_prime"]:
-            mu_double_prime = float(self.calculations["geometry_factors"]["mu_double_prime"])
-            mu_double_prime = round(mu_double_prime, 4)
-            geom_factors_str += f", μ'' = {mu_double_prime}"
-
-        if geom_factors_str == "":
-            geom_factors_str = "-"
+        filename = f"summary/{self.perovskite_formula}_eq{eq_num}_{today_date}.txt"
 
         if antisolvents:
             for antisolv in antisolvents:
@@ -520,9 +581,9 @@ class UserConfigView(tk.Frame):
         salts_masses_str = salts_masses_str[:-1]
 
         summary_lines = [f"Дата проведения расчета: {today_date}\n",
-                         f"Общая формула соединения: {perovskite_formula}\n",
+                         f"Общая формула соединения: {self.perovskite_formula}\n",
                          f"Уравнение: {self.equation_formulas[int(eq_num)-1]}\n",
-                         f"Геометрические факторы: {geom_factors_str}\n",
+                         f"Геометрические факторы: {self.geom_factors_str}\n",
                          f"Концентрация раствора: {c_solv} М, общий объем растворителей: {V_solution} мл, общий объем антирастворителей: {V_antisolvent} мл\n",
                          f"Растворители:{solvents_str}\n",
                          f"Антирастворители:{antisolvents_str}\n",
@@ -563,83 +624,27 @@ class UserConfigView(tk.Frame):
             summary_file.writelines(summary_lines)
 
     def sort_frame(self):
-        self.sort_menu_frame = tk.LabelFrame(self.sec_column, text="Сортировка уравнений",
-                                             **AppStyles.labelframe_style())
-        self.sort_menu_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)  # Изменено на BOTH
-
-        self.canvas = tk.Canvas(self.sort_menu_frame)
-        self.scrollbar_sort = ttk.Scrollbar(self.sort_menu_frame, orient="vertical", command=self.canvas.yview)
-        self.scroll_sort = tk.Frame(self.canvas)
-
-        self.scroll_sort.bind(
-            "<Configure>",
-            lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all"))
-        )
-
-        self.canvas.create_window((0, 0), window=self.scroll_sort, anchor="nw")
-        self.canvas.configure(yscrollcommand=self.scrollbar_sort.set)
-
-        self.canvas.pack(side="left", fill="both", expand=True)
-        self.scrollbar_sort.pack(side="right", fill="y")
-
-        self.scroll_sort.columnconfigure(0, weight=1)
-        self.scroll_sort.columnconfigure(1, weight=1)
-        self.scroll_sort.columnconfigure(2, weight=1)
-        self.scroll_sort.columnconfigure(3, weight=1)
-
-        tk.Label(self.scroll_sort, text="1 уровень",
-                 **AppStyles.label_style()).grid(row=1, column=0, sticky='ew', padx=5, pady=2)
-        tk.Label(self.scroll_sort, text="2 уровень",
-                 **AppStyles.label_style()).grid(row=2, column=0, sticky='ew', padx=5, pady=2)
-        tk.Label(self.scroll_sort, text="3 уровень",
-                 **AppStyles.label_style()).grid(row=3, column=0, sticky='ew', padx=5, pady=2)
-
-        sort_opt = ["Минимум", "Оптимум"]
-        tk.Label(self.scroll_sort, text="Способ сортировки",
-                 **AppStyles.label_style()).grid(row=0, column=0, sticky='ew', padx=5, pady=2)
-
-        self.sort_options = ttk.Combobox(self.scroll_sort,
-                                         **AppStyles.combobox_config(),
-                                         values=sort_opt,
-                                         state='readonly')
+        self.sort_menu_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+        self.first_level_label.grid(row=1, column=0, sticky='ew', padx=5, pady=2)
+        self.second_level_label.grid(row=2, column=0, sticky='ew', padx=5, pady=2)
+        self.third_level_label.grid(row=3, column=0, sticky='ew', padx=5, pady=2)
+        self.sort_options_label.grid(row=0, column=0, sticky='ew', padx=5, pady=2)
         self.sort_options.grid(row=0, column=1, padx=5, pady=2)
-
-        self.first_criteria_list = ["Общая масса", "Количество прекурсоров", "Масса конкретного прекурсора"]
-        self.first_level = ttk.Combobox(self.scroll_sort,
-                                        **AppStyles.combobox_config(), values=self.first_criteria_list)
         self.first_level.grid(row=1, column=1, padx=5, pady=2)
-        self.first_level.bind('<<ComboboxSelected>>', self.select_first_level)
 
-        self.second_level = ttk.Combobox(self.scroll_sort,
-                                         **AppStyles.combobox_config(), state='disabled')
+        self.first_level.bind('<<ComboboxSelected>>', self.select_first_level)
         self.second_level.grid(row=2, column=1, padx=5, pady=2)
         self.second_level.bind('<<ComboboxSelected>>', self.select_second_level)
-
-        self.third_level = ttk.Combobox(self.scroll_sort,
-                                        **AppStyles.combobox_config(), state='disabled')
         self.third_level.grid(row=3, column=1, padx=5, pady=2)
         self.third_level.bind('<<ComboboxSelected>>', self.select_third_level)
 
-        self.sort_button = tk.Button(self.scroll_sort, text="Провести сортировку",
-                                     command=self.sort_process, **AppStyles.button_style(),
-                                     state='disabled')
         self.sort_button.grid(row=0, column=2, sticky='ew', padx=5, pady=2, columnspan=2)
-
-        self.mass_reagent = ttk.Combobox(self.scroll_sort,
-                                         **AppStyles.combobox_config(),
-                                         values=self.salt_formulas,
-                                         state='readonly',
-                                         width=10)
-        self.mass_reagent_label = tk.Label(self.scroll_sort,
-                                           **AppStyles.label_style(), text="Прекурсор")
-
-        # Добавляем привязку колесика мыши для удобства
-        self.canvas.bind("<MouseWheel>", lambda e: self.canvas.yview_scroll(int(-1 * (e.delta / 120)), "units"))
-        self.scroll_sort.bind("<MouseWheel>",
-                                   lambda e: self.canvas.yview_scroll(int(-1 * (e.delta / 120)), "units"))
+        self.num_equations_hyst_label.grid(row=4, column=0, sticky='ew', padx=5, pady=2)
+        self.num_equations_hyst_entry.grid(row=4, column=1, padx=5, pady=2, sticky = 'w')
 
     def select_first_level(self, event):
         selected_sort_key =  self.first_level.get()
+        self.mass_reagent.config(values = self.salt_formulas)
         if selected_sort_key == "Масса конкретного прекурсора":
             self.mass_reagent_label.grid(row=1, column=2, sticky='ew', padx=5, pady=2)
             self.mass_reagent.grid(row=1, column=3, sticky='ew', padx=5, pady=2)
@@ -666,25 +671,33 @@ class UserConfigView(tk.Frame):
 
     def sort_process(self):
         criteria = []
+        num_eq = int(self.num_equations_hyst_entry.get())
         criteria.append(self.first_level.get())
         criteria.append(self.second_level.get())
         criteria.append(self.third_level.get())
         sorted_keys = []
+        sorted_equations = {}
 
         reagent = self.mass_reagent.get()
         sort_option = self.sort_options.get()
         if sort_option == "Минимум":
-            sorted_keys = sort_by_minimum_criteria(self.calculations["equations"], criteria, reagent)
+            sorted_equations, sorted_keys = sort_by_minimum_criteria(self.calculations["equations"], criteria, reagent)
         elif sort_option == "Оптимум":
-            sorted_keys = optimal_sort(self.calculations["equations"], criteria, reagent)
-
+            sorted_equations, sorted_keys = optimal_sort(self.calculations["equations"], criteria, reagent)
+        new_sorted_equations = [item for item in sorted_equations if item.get('coefficients_detailed')]
         eq_text, equations = generate_reaction_equations_display(self.calculations, sorted_keys)
         self.clear_console()
         self.add_text(eq_text)
         self.add_text(format_results_mass_table(self.calculations, sorted_keys))
-        self.hystogram_frame = tk.Frame(self.sec_column, **AppStyles.frame_style())
-        self.hystogram_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
-        prepare_and_draw_mass_histogram(equations, self.hystogram_frame, "test")
+        self.hystogram_frame.pack(expand=True, padx=5, pady=5)
+        actual_num_eq = len(new_sorted_equations)
+        if num_eq < actual_num_eq:
+            first_sorted_equations = new_sorted_equations[:num_eq]
+            prepare_and_draw_mass_histogram(first_sorted_equations,
+                                        self.hystogram_frame, f"топ-{num_eq} по {sort_option}")
+        else:
+            prepare_and_draw_mass_histogram(new_sorted_equations,
+                                            self.hystogram_frame, f"топ-{actual_num_eq} по {sort_option}")
 
     def save_config(self):
         self.top_window = tk.Toplevel(self)

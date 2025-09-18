@@ -34,7 +34,6 @@ class TemplatesCheckController:
             return None
 
         self.current_template_id = template_id
-
         self.view.create_site_frames()
 
     def handle_submit_template(self, site_data):

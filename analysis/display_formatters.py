@@ -201,11 +201,6 @@ def generate_reaction_equations_display(
             output_lines.append(
                 f"{eq_key} ({eq_data.get('description', 'N/A')}): {reactants_str}  ⟶  {product_formula_str}{solvent_info_str_part}\n"
             )
-        else:
-            equation_formulas.append(f"[Нет знач. реагентов]  ⟶  {product_formula_str}")
-            output_lines.append(
-                f"{eq_key} ({eq_data.get('description', 'N/A')}): [Нет знач. реагентов]  ⟶  {product_formula_str}{solvent_info_str_part}\n"
-            )
     return (
         "".join(output_lines) if output_lines else "Не найдено применимых уравнений.\n", equation_formulas
     )

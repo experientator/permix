@@ -27,14 +27,16 @@ class TemplatesCheckView(tk.Toplevel):
         left_frame = tk.Frame(main_paned, **AppStyles.frame_style())
         main_paned.add(left_frame)
 
-        right_frame = tk.Frame(main_paned, **AppStyles.frame_style())
+        right_frame = tk.Frame(main_paned, **AppStyles.frame_style(), width=150)
         main_paned.add(right_frame)
+
+        main_paned.pane(left_frame, weight=1)
+        main_paned.pane(right_frame, weight=0)
 
         temp_frame = tk.LabelFrame(left_frame, text="Существующие шаблоны",
                                    **AppStyles.labelframe_style())
         temp_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
 
-        # Создаем фрейм для дерева и скроллбаров
         tree_container = tk.Frame(temp_frame)
         tree_container.pack(fill=tk.BOTH, expand=True)
 
@@ -53,20 +55,16 @@ class TemplatesCheckView(tk.Toplevel):
         for col in ('id', 'name', 'anion_stoichiometry', 'dimensionality', 'description'):
             self.temp_tree.column(col, width=100, anchor=tk.CENTER)
 
-        # Вертикальный скроллбар
         temp_scroll_vertical = ttk.Scrollbar(tree_container, orient=tk.VERTICAL, command=self.temp_tree.yview)
         self.temp_tree.configure(yscrollcommand=temp_scroll_vertical.set)
 
-        # Горизонтальный скроллбар
         temp_scroll_horizontal = ttk.Scrollbar(tree_container, orient=tk.HORIZONTAL, command=self.temp_tree.xview)
         self.temp_tree.configure(xscrollcommand=temp_scroll_horizontal.set)
 
-        # Упаковка элементов с использованием grid для точного позиционирования
         self.temp_tree.grid(row=0, column=0, sticky='nsew')
         temp_scroll_vertical.grid(row=0, column=1, sticky='ns')
         temp_scroll_horizontal.grid(row=1, column=0, sticky='ew')
 
-        # Настройка весов для правильного растягивания
         tree_container.grid_rowconfigure(0, weight=1)
         tree_container.grid_columnconfigure(0, weight=1)
 
@@ -80,7 +78,7 @@ class TemplatesCheckView(tk.Toplevel):
 
         details_frame = tk.LabelFrame(right_frame, text="Детали выбранного шаблона",
                                       **AppStyles.labelframe_style())
-        details_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=2)
+        details_frame.pack(fill=tk.X, padx=5, pady=2)
 
         self.sites_tree = ttk.Treeview(
             details_frame,
@@ -105,11 +103,11 @@ class TemplatesCheckView(tk.Toplevel):
         self.temp_tree.bind('<<TreeviewSelect>>', self.on_template_select)
 
         form_container = tk.Frame(right_frame, **AppStyles.frame_style())
-        form_container.pack(expand=True, fill=tk.BOTH, padx=5, pady=2)
+        form_container.pack(fill=tk.BOTH, expand=True, padx=5, pady=2)
 
         form_frame = tk.LabelFrame(form_container, text="Добавить новый шаблон",
                                    **AppStyles.labelframe_style())
-        form_frame.pack(expand=True, fill=tk.BOTH)
+        form_frame.pack(fill=tk.BOTH, expand=True)
 
         canvas = tk.Canvas(form_frame, bg=AppStyles.BACKGROUND_COLOR)
         scrollbar = ttk.Scrollbar(form_frame, orient=tk.VERTICAL, command=canvas.yview)
@@ -120,21 +118,27 @@ class TemplatesCheckView(tk.Toplevel):
             "<Configure>",
             lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
         )
+        self.site_vars = {
+            'a_site': tk.IntVar(),
+            'b_site': tk.IntVar(),
+            'b_double': tk.IntVar(),
+            'spacer': tk.IntVar()
+        }
+        scrollable_frame = tk.Frame(form_frame, **AppStyles.frame_style())
+        scrollable_frame.pack(fill=tk.BOTH, expand=True)
 
-        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
-        canvas.configure(yscrollcommand=scrollbar.set)
-
-        canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-
-        canvas.bind("<MouseWheel>", lambda e: canvas.yview_scroll(int(-1 * (e.delta / 120)), "units"))
+        # Настраиваем grid для управления шириной
+        scrollable_frame.columnconfigure(0, weight=1)
+        scrollable_frame.columnconfigure(1, weight=1)
+        scrollable_frame.columnconfigure(2, weight=1)
+        scrollable_frame.columnconfigure(3, weight=1)
 
         info_frame = tk.Frame(scrollable_frame, **AppStyles.frame_style())
-        info_frame.pack(expand=True, fill="x", padx=5, pady=2, anchor="n")
-        info_frame.columnconfigure(0, weight=1)
-        info_frame.columnconfigure(1, weight=1)
-        info_frame.columnconfigure(2, weight=1)
-        info_frame.columnconfigure(3, weight=1)
+        info_frame.grid(row=0, column=0, columnspan=4, sticky='ew', padx=5, pady=2)
+
+        # Настраиваем колонки info_frame для равномерного распределения
+        for i in range(4):
+            info_frame.columnconfigure(i, weight=1, uniform="group1")
 
         tk.Label(info_frame, text="Название шаблона",
                  **AppStyles.label_style()).grid(row=0, column=0, sticky='ew', padx=5, pady=2)
@@ -156,49 +160,64 @@ class TemplatesCheckView(tk.Toplevel):
         self.entry_anion_stoich = tk.Entry(info_frame, **AppStyles.entry_style())
         self.entry_anion_stoich.grid(row=1, column=3, sticky='ew', padx=5, pady=2)
 
+        # Остальные элементы также размещаем с sticky='ew' для растягивания
         tk.Label(scrollable_frame, text="Выберите типы катионов:",
-                 **AppStyles.label_style()).pack(fill="x", pady=2, expand=True, anchor="nw")
-
-        self.site_vars = {
-            'a_site': tk.IntVar(),
-            'b_site': tk.IntVar(),
-            'b_double': tk.IntVar(),
-            'spacer': tk.IntVar()
-        }
+                 **AppStyles.label_style()).grid(row=1, column=0, columnspan=4, sticky='ew', padx=5, pady=2)
 
         check_frame = tk.Frame(scrollable_frame, **AppStyles.frame_style())
-        check_frame.pack(fill="x", pady=2, expand=True, anchor="n")
+        check_frame.grid(row=2, column=0, columnspan=4, sticky='ew', padx=5, pady=2)
+
+        # Настраиваем check_frame для равномерного распределения
+        for i in range(4):
+            check_frame.columnconfigure(i, weight=1, uniform="group2")
 
         tk.Checkbutton(check_frame, text="A-катион",
                        variable=self.site_vars['a_site'],
-                       **AppStyles.checkbutton_style()).pack(side="left", fill="x", padx=5, expand=True)
+                       **AppStyles.checkbutton_style()).grid(row=0, column=0, sticky='ew', padx=5)
         tk.Checkbutton(check_frame, text="B-катион",
                        variable=self.site_vars['b_site'],
-                       **AppStyles.checkbutton_style()).pack(side="left", fill="x", padx=5, expand=True)
+                       **AppStyles.checkbutton_style()).grid(row=0, column=1, sticky='ew', padx=5)
         tk.Checkbutton(check_frame, text="B-катион (двойной)",
                        variable=self.site_vars['b_double'],
-                       **AppStyles.checkbutton_style()).pack(side="left", fill="x", padx=5, expand=True)
+                       **AppStyles.checkbutton_style()).grid(row=0, column=2, sticky='ew', padx=5)
         tk.Checkbutton(check_frame, text="Спейсер",
                        variable=self.site_vars['spacer'],
-                       **AppStyles.checkbutton_style()).pack(side="left", fill="x", padx=5, expand=True)
+                       **AppStyles.checkbutton_style()).grid(row=0, column=3, sticky='ew', padx=5)
 
         button_frame_form = tk.Frame(scrollable_frame, **AppStyles.frame_style())
-        button_frame_form.pack(fill="x", pady=2, expand=True, anchor="n")
+        button_frame_form.grid(row=3, column=0, columnspan=4, sticky='ew', padx=5, pady=2)
+
+        # Настраиваем button_frame_form для равномерного распределения
+        button_frame_form.columnconfigure(0, weight=1)
+        button_frame_form.columnconfigure(1, weight=1)
 
         self.btn_add_sites = tk.Button(button_frame_form, text="Добавить элементы структуры",
                                        command=self.on_add_sites,
                                        **AppStyles.button_style())
-        self.btn_add_sites.pack(side="left", fill="x", padx=5, expand=True)
+        self.btn_add_sites.grid(row=0, column=0, sticky='ew', padx=5)
 
         self.btn_submit = tk.Button(button_frame_form, text="Подтвердить шаблон",
                                     command=self.on_submit_template,
                                     **AppStyles.button_style())
-        self.btn_submit.pack(side="left", fill="x", padx=5, expand=True)
+        self.btn_submit.grid(row=0, column=1, sticky='ew', padx=5)
         self.btn_submit.config(state='disabled')
 
-        # Область для фреймов сайтов (внутри scrollable_frame)
         self.sites_container = tk.Frame(scrollable_frame, **AppStyles.frame_style())
-        self.sites_container.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        self.sites_container.grid(row=4, column=0, columnspan=4, sticky='nsew', padx=10, pady=10)
+
+        # Важно: настраиваем веса для scrollable_frame
+        scrollable_frame.rowconfigure(4, weight=1)  # sites_container будет растягиваться
+        for i in range(4):
+            scrollable_frame.columnconfigure(i, weight=1)
+
+        # Обновляем геометрию при изменении содержимого
+        def update_right_frame_width():
+            right_frame.update_idletasks()
+            width = scrollable_frame.winfo_reqwidth() + 20  # + отступы
+            main_paned.paneconfigure(right_frame, width=width)
+
+        # Привязываем обновление ширины к изменениям
+        scrollable_frame.bind("<Configure>", lambda e: update_right_frame_width())
 
     def on_add_sites(self):
         self.controller.handle_add_sites({
