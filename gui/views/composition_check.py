@@ -1,17 +1,77 @@
 import tkinter as tk
 from tkinter import ttk
 from gui.default_style import AppStyles
+from gui.language.manager import localization_manager
 
+default_translations = [
+            ("ccv_window_title", "Composition viewer", "Просмотр соединений"),
+            ("menu_exit", "Exit", "Выйти"),
+
+            ("ccv_comp_frame", "Main compositions", "Основные конфигурации"),
+            ("ccv_fav_frame", "Favorite compositions", "Избранные конфигурации"),
+            ("ccv_det_frame", "Details", "Детали"),
+
+            ("ccv_solv_col_type", "Solvent type", "Тип"),
+            ("ccv_solv_col_symbol", "Symbol", "Символ"),
+            ("ccv_solv_col_fraction", "Fraction", "Доля"),
+
+            ("ccv_struct_col_type", "Structure type", "Тип"),
+            ("ccv_struct_col_symbol", "Symbol", "Символ"),
+            ("ccv_struct_col_fraction", "Fraction", "Доля"),
+            ("ccv_struct_col_val", "Valency", "Валентность"),
+
+            ("ccv_prop_col_id", "ID", "ID"),
+            ("ccv_prop_col_an_stoich", "Anion stoichiometry", "Стехиометрия аниона"),
+            ("ccv_prop_col_bg", "Band gap", "Ширина запрещенной зоны"),
+            ("ccv_prop_col_ff", "FF (%)", "FF (%)"),
+            ("ccv_prop_col_pse", "PCE (%)", "PCE (%)"),
+            ("ccv_prop_col_voc", "VOC", "VOC"),
+            ("ccv_prop_col_jsc", "JSC", "JSC"),
+            ("ccv_prop_col_stab_notes", "Stability notes", "Заметки стабильности"),
+            ("ccv_prop_col_v_antisol", "V antisolvent", "V антирастворителя"),
+            ("ccv_prop_col_v_sol", "V solution", "V раствора"),
+            ("ccv_prop_col_conc", "Concentration", "C раствора"),
+            ("ccv_prop_col_method", "Method", "Метод"),
+
+            ("ccv_k_col_salt", "Salt", "Соль"),
+            ("ccv_k_col_k_fact", "K-factor", "K-фактор"),
+
+            ("ccv_comp_col_id", "ID", "ID"),
+            ("ccv_comp_col_name", "Name", "Название"),
+            ("ccv_comp_col_doi", "DOI", "DOI"),
+            ("ccv_comp_col_data", "Data type", "Тип данных"),
+            ("ccv_comp_col_notes", "Notes", "Заметки"),
+            ("ccv_comp_col_template", "Template", "Шаблон"),
+
+            ("ccv_fav_col_id", "ID", "ID"),
+            ("ccv_fav_col_name", "Name", "Название"),
+            ("ccv_fav_col_phase_id", "Phase ID", "ID фазы"),
+            ("ccv_fav_col_data", "Phase template", "Шаблон фазы"),
+            ("ccv_fav_col_v_sol", "V solution", "V раствора"),
+            ("ccv_fav_col_v_antisol", "V antisolvent", "V антирастворителя"),
+            ("ccv_fav_col_conc", "Concentration", "Концентрация"),
+            ("ccv_fav_col_notes", "Notes", "Заметки"),
+
+            ("ccv_main_tab", "Main info", "Основное"),
+            ("ccv_solvents_tab", "Solvents", "Растворители"),
+            ("ccv_structure_tab", "Structure", "Структура"),
+            ("ccv_properties_tab", "Properties", "Свойства"),
+            ("ccv_kfactors_tab", "K-factors", "K-факторы"),
+
+            ("ccv_refresh_button", "Refresh All", "Обновить все"),
+]
 class CompositionCheckView(tk.Toplevel):
     def __init__(self, parent, controller):
         super().__init__(parent)
         self.controller = controller
-        self.title("Просмотр соединений")
+        localization_manager.register_observer(self)
+        self.title(localization_manager.tr("ccv_window_title"))
         self.attributes('-fullscreen', True)
         self.configure(bg=AppStyles.BACKGROUND_COLOR)
         self.build_ui()
         menu = tk.Menu(self)
-        menu.add_command(label="Выйти", command=self.destroy)
+        menu.add_command(label=localization_manager.tr("menu_exit"),
+                         command=self.destroy)
         self.config(menu=menu)
 
     def build_ui(self):
@@ -24,29 +84,38 @@ class CompositionCheckView(tk.Toplevel):
         main_container.columnconfigure(2, weight=2, minsize=500)
         main_container.rowconfigure(0, weight=1)
 
-        compositions_frame = tk.LabelFrame(main_container, text="Основные конфигурации",
+        compositions_frame = tk.LabelFrame(main_container,
+                                           text=localization_manager.tr("ccv_comp_frame"),
                                            **AppStyles.labelframe_style())
         compositions_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
         compositions_frame.columnconfigure(0, weight=1)
         compositions_frame.rowconfigure(0, weight=1)
 
-        favorites_frame = tk.LabelFrame(main_container, text="Избранные конфигурации",
-                                           **AppStyles.labelframe_style())
+        favorites_frame = tk.LabelFrame(main_container,
+                                        text=localization_manager.tr("ccv_fav_frame"),
+                                        **AppStyles.labelframe_style())
         favorites_frame.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
         favorites_frame.columnconfigure(0, weight=1)
         favorites_frame.rowconfigure(0, weight=1)
 
-        details_frame = tk.LabelFrame(main_container, text="Детали",
-                                           **AppStyles.labelframe_style())
+        details_frame = tk.LabelFrame(main_container,
+                                      text=localization_manager.tr("ccv_det_frame"),
+                                      **AppStyles.labelframe_style())
         details_frame.grid(row=0, column=2, sticky="nsew", padx=5, pady=5)
         details_frame.columnconfigure(0, weight=1)
         details_frame.rowconfigure(0, weight=1)
 
-        comp_columns = ('ID', 'Название', 'DOI', 'Тип данных', 'Заметки', 'Шаблон')
-        self.comp_tree = ttk.Treeview(compositions_frame, columns=comp_columns,
+        self.comp_columns = (localization_manager.tr("ccv_comp_col_id"),
+                        localization_manager.tr("ccv_comp_col_name"),
+                        localization_manager.tr("ccv_comp_col_doi"),
+                        localization_manager.tr("ccv_comp_col_data"),
+                        localization_manager.tr("ccv_comp_col_notes"),
+                        localization_manager.tr("ccv_comp_col_template"))
+
+        self.comp_tree = ttk.Treeview(compositions_frame, columns=self.comp_columns,
                                       show='headings', height=15, **AppStyles.treeview_config())
 
-        for col in comp_columns:
+        for col in self.comp_columns:
             self.comp_tree.heading(col, text=col)
             self.comp_tree.column(col, width=80, stretch=False)
 
@@ -57,11 +126,11 @@ class CompositionCheckView(tk.Toplevel):
         comp_container.rowconfigure(0, weight=1)
         comp_container.rowconfigure(1, weight=0)
 
-        self.comp_tree = ttk.Treeview(comp_container, columns=comp_columns,
+        self.comp_tree = ttk.Treeview(comp_container, columns=self.comp_columns,
                                       show='headings', height=15,
                                       **AppStyles.treeview_config())
 
-        for col in comp_columns:
+        for col in self.comp_columns:
             self.comp_tree.heading(col, text=col)
             self.comp_tree.column(col, width=100, stretch=False)
 
@@ -83,12 +152,19 @@ class CompositionCheckView(tk.Toplevel):
         fav_container.rowconfigure(0, weight=1)
         fav_container.rowconfigure(1, weight=0)
 
-        fav_columns = ('ID', 'Название', 'ID фазы', 'Шаблон фазы',
-                       'V раствора', 'V антирастворителя', 'Концентрация', 'Заметки')
-        self.fav_tree = ttk.Treeview(fav_container, columns=fav_columns,
+        self.fav_columns = (localization_manager.tr("ccv_fav_col_id"),
+                            localization_manager.tr("ccv_fav_col_name"),
+                            localization_manager.tr("ccv_fav_col_phase_id"),
+                            localization_manager.tr("ccv_fav_col_data"),
+                            localization_manager.tr("ccv_fav_col_v_sol"),
+                            localization_manager.tr("ccv_fav_col_v_antisol"),
+                            localization_manager.tr("ccv_fav_col_conc"),
+                            localization_manager.tr("ccv_fav_col_notes"),
+                            )
+        self.fav_tree = ttk.Treeview(fav_container, columns=self.fav_columns,
                                      show='headings', height=15)
 
-        for col in fav_columns:
+        for col in self.fav_columns:
             self.fav_tree.heading(col, text=col)
             self.fav_tree.column(col, width=100, stretch=False)
 
@@ -113,11 +189,16 @@ class CompositionCheckView(tk.Toplevel):
         self.properties_tab = tk.Frame(self.notebook, **AppStyles.frame_style())
         self.kfactors_tab = tk.Frame(self.notebook, **AppStyles.frame_style())
 
-        self.notebook.add(self.main_tab, text="Основное")
-        self.notebook.add(self.solvents_tab, text="Растворители")
-        self.notebook.add(self.structure_tab, text="Структура")
-        self.notebook.add(self.properties_tab, text="Свойства")
-        self.notebook.add(self.kfactors_tab, text="K-факторы")
+        self.notebook.add(self.main_tab,
+                          text=localization_manager.tr("ccv_main_tab"))
+        self.notebook.add(self.solvents_tab,
+                          text=localization_manager.tr("ccv_solvents_tab"))
+        self.notebook.add(self.structure_tab,
+                          text=localization_manager.tr("ccv_structure_tab"))
+        self.notebook.add(self.properties_tab,
+                          text=localization_manager.tr("ccv_properties_tab"))
+        self.notebook.add(self.kfactors_tab,
+                          text=localization_manager.tr("ccv_kfactors_tab"))
 
         control_frame = tk.Frame(main_container, **AppStyles.frame_style())
         control_frame.grid(row=1, column=0, columnspan=3, sticky="ew", pady=10)
@@ -126,8 +207,9 @@ class CompositionCheckView(tk.Toplevel):
         control_frame.columnconfigure(1, weight=0)
         control_frame.columnconfigure(2, weight=1)
 
-        tk.Button(control_frame, text="Обновить все",
-                   command=self.controller.refresh_all,
+        tk.Button(control_frame,
+                  text=localization_manager.tr("ccv_refresh_button"),
+                  command=self.controller.refresh_all,
                   **AppStyles.button_style()).grid(row=0, column=1, padx=5)
 
         self.comp_tree.bind('<<TreeviewSelect>>', self.on_composition_select)
@@ -182,11 +264,9 @@ class CompositionCheckView(tk.Toplevel):
             grid_frame.columnconfigure(1, weight=1, minsize=200)
 
             if is_favorite:
-                labels = ['ID', 'Название', 'ID шаблона', 'V раствора',
-                          'V антирастворителя', 'Концентрация раствора', 'Заметки']
+                labels = self.fav_columns
             else:
-                labels = ['ID', 'ID шаблона', 'Название', 'DOI', 'Тип данных',
-                          'Заметки', 'Шаблон']
+                labels = self.comp_columns
 
             for i, (label, value) in enumerate(zip(labels, main_info)):
                 label_widget = tk.Label(grid_frame, text=f"{label}:",
@@ -199,14 +279,19 @@ class CompositionCheckView(tk.Toplevel):
 
     def display_solvents(self, solvents):
         if solvents:
-            columns = ('Тип', 'Символ', 'Доля')
+            columns = (localization_manager.tr("ccv_solv_col_type"),
+                       localization_manager.tr("ccv_solv_col_symbol"),
+                       localization_manager.tr("ccv_solv_col_fraction"))
             tree = self.create_treeview(self.solvents_tab, columns)
             for solvent in solvents:
                 tree.insert('', 'end', values=solvent)
 
     def display_structure(self, structure):
         if structure:
-            columns = ('Тип', 'Символ', 'Доля', 'Валентность')
+            columns = (localization_manager.tr("ccv_struct_col_type"),
+                       localization_manager.tr("ccv_struct_col_symbol"),
+                       localization_manager.tr("ccv_struct_col_fraction"),
+                       localization_manager.tr("ccv_struct_col_val"))
             tree = self.create_treeview(self.structure_tab, columns)
 
             for element in structure:
@@ -214,9 +299,18 @@ class CompositionCheckView(tk.Toplevel):
 
     def display_properties(self, properties):
         if properties:
-            labels = ['ID', 'Стехиометрия аниона', 'Ширина запрещенной зоны',
-                      'FF (%)', 'PCE (%)', 'VOC', 'JSC', 'Заметки стабильности',
-                      'V антирастворителя', 'V раствора', 'C раствора', 'Метод']
+            labels = [localization_manager.tr("ccv_prop_col_id"),
+                      localization_manager.tr("ccv_prop_col_an_stoich"),
+                      localization_manager.tr("ccv_prop_col_bg"),
+                      localization_manager.tr("ccv_prop_col_ff"),
+                      localization_manager.tr("ccv_prop_col_pse"),
+                      localization_manager.tr("ccv_prop_col_voc"),
+                      localization_manager.tr("ccv_prop_col_jsc"),
+                      localization_manager.tr("ccv_prop_col_stab_notes"),
+                      localization_manager.tr("ccv_prop_col_v_antisol"),
+                      localization_manager.tr("ccv_prop_col_v_sol"),
+                      localization_manager.tr("ccv_prop_col_conc"),
+                      localization_manager.tr("ccv_prop_col_method")]
 
             for i, (label, value) in enumerate(zip(labels, properties)):
                 tk.Label(self.properties_tab, text=f"{label}:"
@@ -226,7 +320,8 @@ class CompositionCheckView(tk.Toplevel):
 
     def display_k_factors(self, k_factors):
         if k_factors:
-            columns = ('Соль', 'K-фактор')
+            columns = (localization_manager.tr("ccv_k_col_salt"),
+                       localization_manager.tr("ccv_k_col_k_fact"))
             tree = self.create_treeview(self.kfactors_tab, columns)
 
             for factor in k_factors:
