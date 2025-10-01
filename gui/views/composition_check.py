@@ -3,63 +3,6 @@ from tkinter import ttk
 from gui.default_style import AppStyles
 from gui.language.manager import localization_manager
 
-default_translations = [
-            ("ccv_window_title", "Composition viewer", "Просмотр соединений"),
-            ("menu_exit", "Exit", "Выйти"),
-
-            ("ccv_comp_frame", "Main compositions", "Основные конфигурации"),
-            ("ccv_fav_frame", "Favorite compositions", "Избранные конфигурации"),
-            ("ccv_det_frame", "Details", "Детали"),
-
-            ("ccv_solv_col_type", "Solvent type", "Тип"),
-            ("ccv_solv_col_symbol", "Symbol", "Символ"),
-            ("ccv_solv_col_fraction", "Fraction", "Доля"),
-
-            ("ccv_struct_col_type", "Structure type", "Тип"),
-            ("ccv_struct_col_symbol", "Symbol", "Символ"),
-            ("ccv_struct_col_fraction", "Fraction", "Доля"),
-            ("ccv_struct_col_val", "Valency", "Валентность"),
-
-            ("ccv_prop_col_id", "ID", "ID"),
-            ("ccv_prop_col_an_stoich", "Anion stoichiometry", "Стехиометрия аниона"),
-            ("ccv_prop_col_bg", "Band gap", "Ширина запрещенной зоны"),
-            ("ccv_prop_col_ff", "FF (%)", "FF (%)"),
-            ("ccv_prop_col_pse", "PCE (%)", "PCE (%)"),
-            ("ccv_prop_col_voc", "VOC", "VOC"),
-            ("ccv_prop_col_jsc", "JSC", "JSC"),
-            ("ccv_prop_col_stab_notes", "Stability notes", "Заметки стабильности"),
-            ("ccv_prop_col_v_antisol", "V antisolvent", "V антирастворителя"),
-            ("ccv_prop_col_v_sol", "V solution", "V раствора"),
-            ("ccv_prop_col_conc", "Concentration", "C раствора"),
-            ("ccv_prop_col_method", "Method", "Метод"),
-
-            ("ccv_k_col_salt", "Salt", "Соль"),
-            ("ccv_k_col_k_fact", "K-factor", "K-фактор"),
-
-            ("ccv_comp_col_id", "ID", "ID"),
-            ("ccv_comp_col_name", "Name", "Название"),
-            ("ccv_comp_col_doi", "DOI", "DOI"),
-            ("ccv_comp_col_data", "Data type", "Тип данных"),
-            ("ccv_comp_col_notes", "Notes", "Заметки"),
-            ("ccv_comp_col_template", "Template", "Шаблон"),
-
-            ("ccv_fav_col_id", "ID", "ID"),
-            ("ccv_fav_col_name", "Name", "Название"),
-            ("ccv_fav_col_phase_id", "Phase ID", "ID фазы"),
-            ("ccv_fav_col_data", "Phase template", "Шаблон фазы"),
-            ("ccv_fav_col_v_sol", "V solution", "V раствора"),
-            ("ccv_fav_col_v_antisol", "V antisolvent", "V антирастворителя"),
-            ("ccv_fav_col_conc", "Concentration", "Концентрация"),
-            ("ccv_fav_col_notes", "Notes", "Заметки"),
-
-            ("ccv_main_tab", "Main info", "Основное"),
-            ("ccv_solvents_tab", "Solvents", "Растворители"),
-            ("ccv_structure_tab", "Structure", "Структура"),
-            ("ccv_properties_tab", "Properties", "Свойства"),
-            ("ccv_kfactors_tab", "K-factors", "K-факторы"),
-
-            ("ccv_refresh_button", "Refresh All", "Обновить все"),
-]
 class CompositionCheckView(tk.Toplevel):
     def __init__(self, parent, controller):
         super().__init__(parent)

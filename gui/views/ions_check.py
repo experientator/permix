@@ -2,38 +2,39 @@ import tkinter as tk
 import tkinter.messagebox as mb
 from tkinter import ttk
 from gui.default_style import AppStyles
-
+from gui.language.manager import localization_manager
 
 class IonsCheckView(tk.Toplevel):
     def __init__(self, parent, controller):
         super().__init__(parent)
         self.controller = controller
-        self.title("Ионные радиусы")
+        localization_manager.register_observer(self)
+        self.title(localization_manager.tr("ccv_window_title"))
         self.configure(bg=AppStyles.BACKGROUND_COLOR)
         self.attributes('-fullscreen', True)
         menu = tk.Menu(self)
-        menu.add_command(label="Выйти", command=self.destroy)
+        menu.add_command(label=localization_manager.tr("menu_exit"),
+                         command=self.destroy)
         self.config(menu=menu)
         self.styles = AppStyles()
         self.create_widgets()
 
     def create_widgets(self):
-        # Главный фрейм с grid
         main_frame = tk.Frame(self, **AppStyles.frame_style())
         main_frame.pack(fill=tk.BOTH, expand=True)
 
-        # Конфигурация grid - левая часть 50%, правая часть 50%
         main_frame.grid_columnconfigure(0, weight=1)
         main_frame.grid_columnconfigure(1, weight=1)
         main_frame.grid_rowconfigure(0, weight=1)
 
-        # Левая часть - дерево ионов
         left_frame = tk.Frame(main_frame, **AppStyles.frame_style())
         left_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
         left_frame.grid_columnconfigure(0, weight=1)
         left_frame.grid_rowconfigure(0, weight=1)
 
-        ions_frame = tk.LabelFrame(left_frame, text="Ионы", **AppStyles.labelframe_style())
+        ions_frame = tk.LabelFrame(left_frame,
+                                   text=localization_manager.tr("icv_ions_frame"),
+                                   **AppStyles.labelframe_style())
         ions_frame.grid(row=0, column=0, sticky="nsew")
         ions_frame.grid_columnconfigure(0, weight=1)
         ions_frame.grid_rowconfigure(0, weight=1)
@@ -44,8 +45,12 @@ class IonsCheckView(tk.Toplevel):
             show='headings',
             **AppStyles.treeview_config()
         )
-        self.ions_tree.heading('name', text='Ион', **AppStyles.treeview_headings_config())
-        self.ions_tree.heading('type', text='Тип', **AppStyles.treeview_headings_config())
+        self.ions_tree.heading('name',
+                               text=localization_manager.tr("icv_solv_col_name"),
+                               **AppStyles.treeview_headings_config())
+        self.ions_tree.heading('type',
+                               text=localization_manager.tr("icv_solv_col_type"),
+                               **AppStyles.treeview_headings_config())
         self.ions_tree.column('name', width=100)
         self.ions_tree.column('type', width=100)
 
@@ -55,7 +60,6 @@ class IonsCheckView(tk.Toplevel):
         self.ions_tree.grid(row=0, column=0, sticky="nsew")
         ions_scroll.grid(row=0, column=1, sticky="ns")
 
-        # Правая часть - дерево радиусов и форма
         right_frame = tk.Frame(main_frame, **AppStyles.frame_style(), width=300)
         right_frame.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
         right_frame.grid_columnconfigure(0, weight=1)
@@ -64,8 +68,9 @@ class IonsCheckView(tk.Toplevel):
         right_frame.grid_rowconfigure(2, weight=50)
         right_frame.grid_rowconfigure(3, weight=50)
 
-        # Дерево радиусов (верхняя часть правой стороны)
-        radii_frame = tk.LabelFrame(right_frame, text="Ионные радиусы", **AppStyles.labelframe_style())
+        radii_frame = tk.LabelFrame(right_frame,
+                                    text = localization_manager.tr("icv_radii_frame"),
+                                    **AppStyles.labelframe_style())
         radii_frame.grid(row=0, column=0, sticky="nsew", pady=(0, 5))
         radii_frame.grid_columnconfigure(0, weight=1)
         radii_frame.grid_rowconfigure(0, weight=1)
@@ -76,9 +81,16 @@ class IonsCheckView(tk.Toplevel):
             show='headings',
             **AppStyles.treeview_config()
         )
-        self.radii_tree.heading('charge', text='Заряд', **AppStyles.treeview_headings_config())
-        self.radii_tree.heading('CN', text='КЧ', **AppStyles.treeview_headings_config())
-        self.radii_tree.heading('radius', text='Радиус', **AppStyles.treeview_headings_config())
+
+        self.radii_tree.heading('charge',
+                                text=localization_manager.tr("icv_rad_col_charge"),
+                                **AppStyles.treeview_headings_config())
+        self.radii_tree.heading('CN',
+                                text=localization_manager.tr("icv_rad_col_CN"),
+                                **AppStyles.treeview_headings_config())
+        self.radii_tree.heading('radius',
+                                text=localization_manager.tr("icv_rad_col_radius"),
+                                **AppStyles.treeview_headings_config())
         self.radii_tree.column('charge', width=80, anchor=tk.CENTER)
         self.radii_tree.column('CN', width=80, anchor=tk.CENTER)
         self.radii_tree.column('radius', width=120, anchor=tk.CENTER)
@@ -89,11 +101,14 @@ class IonsCheckView(tk.Toplevel):
         self.radii_tree.grid(row=0, column=0, sticky="nsew")
         radii_scroll.grid(row=0, column=1, sticky="ns")
 
-        tk.Button(right_frame, text="Удалить выбранное", **AppStyles.button_style(),
+        tk.Button(right_frame,
+                  text=localization_manager.tr("icv_delete_button"),
+                  **AppStyles.button_style(),
                   command=self.controller.delete_selected).grid(row=1, column=0, sticky="nsew", padx=10, pady=10)
 
-        # Форма загрузки (нижняя часть правой стороны)
-        form_frame = tk.LabelFrame(right_frame, text="Добавить новый ион", **AppStyles.labelframe_style())
+        form_frame = tk.LabelFrame(right_frame,
+                                   text=localization_manager.tr("icv_form_frame"),
+                                   **AppStyles.labelframe_style())
         form_frame.grid(row=2, column=0, sticky="nsew", pady=(5, 0))
         form_frame.grid_columnconfigure(0, weight=1)
         form_frame.grid_columnconfigure(1, weight=1)
@@ -101,28 +116,42 @@ class IonsCheckView(tk.Toplevel):
         form_frame.grid_columnconfigure(3, weight=1)
         form_frame.grid_columnconfigure(4, weight=1)
 
-        # Поля формы
-        tk.Label(form_frame, text="Название", **AppStyles.label_style()).grid(row=0, column=0, sticky="ew", padx=5)
+        tk.Label(form_frame,
+                 text=localization_manager.tr("icv_ion_form_label_name"),
+                 **AppStyles.label_style()).grid(row=0, column=0, sticky="ew", padx=5)
         self.entry_name = tk.Entry(form_frame, **AppStyles.entry_style())
         self.entry_name.grid(row=1, column=0, sticky="ew", padx=5, pady=2)
 
-        tk.Label(form_frame, text="Тип иона", **AppStyles.label_style()).grid(row=0, column=1, sticky="ew", padx=5)
-        self.box_ion_type = ttk.Combobox(form_frame, values=["анион", "катион"], **AppStyles.combobox_config())
+        tk.Label(form_frame,
+                 text=localization_manager.tr("icv_ion_form_label_it"),
+                 **AppStyles.label_style()).grid(row=0, column=1, sticky="ew", padx=5)
+        self.box_ion_type = ttk.Combobox(form_frame,
+                                         values=[localization_manager.tr("icv_ion_form_cb_cat"),
+                                                 localization_manager.tr("icv_ion_form_cb_an")],
+                                         **AppStyles.combobox_config())
         self.box_ion_type.current(0)
         self.box_ion_type.grid(row=1, column=1, sticky="ew", padx=5, pady=2)
 
-        tk.Label(form_frame, text="Формула", **AppStyles.label_style()).grid(row=0, column=2, sticky="ew", padx=5)
+        tk.Label(form_frame,
+                 text=localization_manager.tr("icv_ion_form_label_form"),
+                 **AppStyles.label_style()).grid(row=0, column=2, sticky="ew", padx=5)
         self.entry_formula = tk.Entry(form_frame, **AppStyles.entry_style())
         self.entry_formula.grid(row=1, column=2, sticky="ew", padx=5, pady=2)
 
-        tk.Label(form_frame, text="Валентность", **AppStyles.label_style()).grid(row=0, column=3, sticky="ew", padx=5)
+        tk.Label(form_frame,
+                 text=localization_manager.tr("icv_ion_form_label_val"),
+                 **AppStyles.label_style()).grid(row=0, column=3, sticky="ew", padx=5)
         self.entry_valence = tk.Entry(form_frame, **AppStyles.entry_style())
         self.entry_valence.grid(row=1, column=3, sticky="ew", padx=5, pady=2)
 
-        tk.Button(form_frame, text="Добавить ион", **AppStyles.button_style(),
+        tk.Button(form_frame,
+                  text=localization_manager.tr("icv_add_button"),
+                  **AppStyles.button_style(),
                   command=self.on_submit).grid(row=1, column=4, sticky="ew", padx=5, pady=2)
 
-        ion_frame = tk.LabelFrame(right_frame, text="Добавить ионный радиус", **AppStyles.labelframe_style())
+        ion_frame = tk.LabelFrame(right_frame,
+                                  text=localization_manager.tr("icv_add_rad_frame"),
+                                  **AppStyles.labelframe_style())
         ion_frame.grid(row=3, column=0, sticky="nsew", pady=(5, 0))
         ion_frame.grid_columnconfigure(0, weight=1)
         ion_frame.grid_columnconfigure(1, weight=1)
@@ -131,32 +160,46 @@ class IonsCheckView(tk.Toplevel):
         ion_frame.grid_columnconfigure(4, weight=1)
         ion_frame.grid_columnconfigure(5, weight=1)
 
-        tk.Label(ion_frame, text="Название", **AppStyles.label_style()).grid(row=0, column=0, sticky="ew", padx=5, pady=2)
+        tk.Label(ion_frame,
+                 text=localization_manager.tr("icv_ion_rad_form_label_name"),
+                 **AppStyles.label_style()).grid(row=0, column=0, sticky="ew", padx=5, pady=2)
         self.entry_ion_name = tk.Entry(ion_frame, **AppStyles.entry_style())
         self.entry_ion_name.grid(row=1, column=0, sticky="ew", padx=5, pady=2)
-        tk.Label(ion_frame, text="Тип иона", **AppStyles.label_style()).grid(row=0, column=1, sticky="ew", padx=5, pady=2)
-        self.ion_box = ttk.Combobox(ion_frame, values=["катион", "анион"], **AppStyles.combobox_config())
+        tk.Label(ion_frame,
+                 text=localization_manager.tr("icv_ion_rad_form_label_it"),
+                 **AppStyles.label_style()).grid(row=0, column=1, sticky="ew", padx=5, pady=2)
+        self.ion_box = ttk.Combobox(ion_frame,
+                                    values=[localization_manager.tr("icv_ion_form_cb_cat"),
+                                            localization_manager.tr("icv_ion_form_cb_an")],
+                                    **AppStyles.combobox_config())
         self.ion_box.grid(row=1, column=1, sticky="ew", padx=5, pady=2)
         self.ion_box.current(0)
-        tk.Label(ion_frame, text="Заряд", **AppStyles.label_style()).grid(row=0, column=2, sticky="ew", padx=5, pady=2)
+        tk.Label(ion_frame,
+                 text=localization_manager.tr("icv_ion_rad_form_label_charge"),
+                 **AppStyles.label_style()).grid(row=0, column=2, sticky="ew", padx=5, pady=2)
         self.entry_charge = tk.Entry(ion_frame, **AppStyles.entry_style())
         self.entry_charge.grid(row=1, column=2, sticky="ew", padx=5, pady=2)
-        tk.Label(ion_frame, text="Координационное число", **AppStyles.label_style()).grid(row=0, column=3, sticky="ew", padx=5, pady=2)
+        tk.Label(ion_frame,
+                 text=localization_manager.tr("icv_ion_rad_form_label_cn"),
+                 **AppStyles.label_style()).grid(row=0, column=3, sticky="ew", padx=5, pady=2)
         self.entry_CN = tk.Entry(ion_frame, **AppStyles.entry_style())
         self.entry_CN.grid(row=1, column=3, sticky="ew", padx=5, pady=2)
-        tk.Label(ion_frame, text="Ионный радиус", **AppStyles.label_style()).grid(row=0, column=4, sticky="ew", padx=5, pady=2)
+        tk.Label(ion_frame,
+                 text=localization_manager.tr("icv_ion_rad_form_label_ir"),
+                 **AppStyles.label_style()).grid(row=0, column=4, sticky="ew", padx=5, pady=2)
         self.entry_ionic_radii = tk.Entry(ion_frame, **AppStyles.entry_style())
         self.entry_ionic_radii.grid(row=1, column=4, sticky="ew", padx=5, pady=2)
 
-        tk.Button(ion_frame, text="Добавить ионный радиус",
+        tk.Button(ion_frame,
+                  text=localization_manager.tr("icv_add_rad_button"),
                   **AppStyles.button_style(),
                   command=self.ion_on_submit).grid(row=1, column=5, sticky="ew", padx=5, pady=2)
 
     def ion_on_submit(self):
         ion_type = ""
-        if self.ion_box.get() == "анион":
+        if self.ion_box.get() == "Анион" or "Anion":
             ion_type = "anion"
-        if self.ion_box.get() == "катион":
+        if self.ion_box.get() == "Катион" or "Cation":
             ion_type = "cation"
         ion_data = {
             'name': self.entry_ion_name.get(),
@@ -177,9 +220,9 @@ class IonsCheckView(tk.Toplevel):
 
     def on_submit(self):
         ion_type = ""
-        if self.box_ion_type.get() == "анион":
+        if self.box_ion_type.get() == "Анион" or "Anion":
             ion_type = "anion"
-        elif self.box_ion_type.get() == "катион":
+        elif self.box_ion_type.get() == "Катион" or "Cation":
             ion_type = "cation"
 
         data = {

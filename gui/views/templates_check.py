@@ -1,15 +1,18 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 from gui.default_style import AppStyles
+from gui.language.manager import localization_manager
 
 class TemplatesCheckView(tk.Toplevel):
     def __init__(self, parent, controller):
         super().__init__(parent)
         self.controller = controller
-        self.title("Управление шаблонами перовскитов")
+        localization_manager.register_observer(self)
+        self.title(localization_manager.tr("tcv_window_title"))
         self.attributes('-fullscreen', True)
         menu = tk.Menu(self)
-        menu.add_command(label="Выйти", command=self.destroy)
+        menu.add_command(label=localization_manager.tr("menu_exit"),
+                         command=self.destroy)
         self.config(menu=menu)
         self.configure(bg=AppStyles.BACKGROUND_COLOR)
         self.styles = AppStyles()
@@ -33,7 +36,8 @@ class TemplatesCheckView(tk.Toplevel):
         main_paned.pane(left_frame, weight=1)
         main_paned.pane(right_frame, weight=0)
 
-        temp_frame = tk.LabelFrame(left_frame, text="Существующие шаблоны",
+        temp_frame = tk.LabelFrame(left_frame,
+                                   text=localization_manager.tr("tcv_temp_frame"),
                                    **AppStyles.labelframe_style())
         temp_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
 
@@ -46,11 +50,16 @@ class TemplatesCheckView(tk.Toplevel):
             show='headings',
             height=15
         )
-        self.temp_tree.heading('id', text='ID')
-        self.temp_tree.heading('name', text='Имя')
-        self.temp_tree.heading('anion_stoichiometry', text='Стехиометрия аниона')
-        self.temp_tree.heading('dimensionality', text='Размерность')
-        self.temp_tree.heading('description', text='Описание')
+        self.temp_tree.heading('id',
+                               text=localization_manager.tr("tcv_sol_col_id"))
+        self.temp_tree.heading('name',
+                               text=localization_manager.tr("tcv_sol_col_name"))
+        self.temp_tree.heading('anion_stoichiometry',
+                               text=localization_manager.tr("tcv_sol_col_as"))
+        self.temp_tree.heading('dimensionality',
+                               text=localization_manager.tr("tcv_sol_col_dim"))
+        self.temp_tree.heading('description',
+                               text=localization_manager.tr("tcv_sol_col_desc"))
 
         for col in ('id', 'name', 'anion_stoichiometry', 'dimensionality', 'description'):
             self.temp_tree.column(col, width=100, anchor=tk.CENTER)
@@ -71,12 +80,14 @@ class TemplatesCheckView(tk.Toplevel):
         button_frame_left = tk.Frame(left_frame, **AppStyles.frame_style())
         button_frame_left.pack(fill=tk.X, padx=5, pady=2)
 
-        delete_btn = tk.Button(button_frame_left, text="Удалить выбранное",
+        delete_btn = tk.Button(button_frame_left,
+                               text=localization_manager.tr("icv_delete_button"),
                                command=self.controller.delete_selected,
                                **AppStyles.button_style())
         delete_btn.pack(side="left", fill="x", padx=5, expand=True)
 
-        details_frame = tk.LabelFrame(right_frame, text="Детали выбранного шаблона",
+        details_frame = tk.LabelFrame(right_frame,
+                                      text=localization_manager.tr("tcv_details_frame"),
                                       **AppStyles.labelframe_style())
         details_frame.pack(fill=tk.X, padx=5, pady=2)
 
@@ -87,9 +98,12 @@ class TemplatesCheckView(tk.Toplevel):
             height=10,
             **AppStyles.treeview_config()
         )
-        self.sites_tree.heading('type', text='Тип')
-        self.sites_tree.heading('stoichiometry', text='Стехиометрия')
-        self.sites_tree.heading('valence', text='Валентность')
+        self.sites_tree.heading('type',
+                                text=localization_manager.tr("tcv_site_col_name"))
+        self.sites_tree.heading('stoichiometry',
+                                text=localization_manager.tr("tcv_site_col_st"))
+        self.sites_tree.heading('valence',
+                                text=localization_manager.tr("tcv_site_col_val"))
 
         for col in ('type', 'stoichiometry', 'valence'):
             self.sites_tree.column(col, width=100, anchor=tk.CENTER)
@@ -105,7 +119,8 @@ class TemplatesCheckView(tk.Toplevel):
         form_container = tk.Frame(right_frame, **AppStyles.frame_style())
         form_container.pack(fill=tk.BOTH, expand=True, padx=5, pady=2)
 
-        form_frame = tk.LabelFrame(form_container, text="Добавить новый шаблон",
+        form_frame = tk.LabelFrame(form_container,
+                                   text=localization_manager.tr("tcv_form_frame"),
                                    **AppStyles.labelframe_style())
         form_frame.pack(fill=tk.BOTH, expand=True)
 
@@ -127,7 +142,6 @@ class TemplatesCheckView(tk.Toplevel):
         scrollable_frame = tk.Frame(form_frame, **AppStyles.frame_style())
         scrollable_frame.pack(fill=tk.BOTH, expand=True)
 
-        # Настраиваем grid для управления шириной
         scrollable_frame.columnconfigure(0, weight=1)
         scrollable_frame.columnconfigure(1, weight=1)
         scrollable_frame.columnconfigure(2, weight=1)
@@ -136,67 +150,73 @@ class TemplatesCheckView(tk.Toplevel):
         info_frame = tk.Frame(scrollable_frame, **AppStyles.frame_style())
         info_frame.grid(row=0, column=0, columnspan=4, sticky='ew', padx=5, pady=2)
 
-        # Настраиваем колонки info_frame для равномерного распределения
         for i in range(4):
             info_frame.columnconfigure(i, weight=1, uniform="group1")
 
-        tk.Label(info_frame, text="Название шаблона",
+        tk.Label(info_frame,
+                 text=localization_manager.tr("tcv_form_label_name"),
                  **AppStyles.label_style()).grid(row=0, column=0, sticky='ew', padx=5, pady=2)
         self.entry_name = tk.Entry(info_frame, **AppStyles.entry_style())
         self.entry_name.grid(row=1, column=0, sticky='ew', padx=5, pady=2)
 
-        tk.Label(info_frame, text="Размерность",
+        tk.Label(info_frame,
+                 text=localization_manager.tr("tcv_form_label_dim"),
                  **AppStyles.label_style()).grid(row=0, column=1, sticky='ew', padx=5, pady=2)
         self.entry_dimensionality = tk.Entry(info_frame, **AppStyles.entry_style())
         self.entry_dimensionality.grid(row=1, column=1, sticky='ew', padx=5, pady=2)
 
-        tk.Label(info_frame, text="Описание",
+        tk.Label(info_frame,
+                 text=localization_manager.tr("tcv_form_label_desc"),
                  **AppStyles.label_style()).grid(row=0, column=2, sticky='ew', padx=5, pady=2)
         self.entry_description = tk.Entry(info_frame, **AppStyles.entry_style())
         self.entry_description.grid(row=1, column=2, sticky='ew', padx=5, pady=2)
 
-        tk.Label(info_frame, text="Стехиометрия аниона",
+        tk.Label(info_frame,
+                 text=localization_manager.tr("tcv_form_label_as"),
                  **AppStyles.label_style()).grid(row=0, column=3, sticky='ew', padx=5, pady=2)
         self.entry_anion_stoich = tk.Entry(info_frame, **AppStyles.entry_style())
         self.entry_anion_stoich.grid(row=1, column=3, sticky='ew', padx=5, pady=2)
-
-        # Остальные элементы также размещаем с sticky='ew' для растягивания
-        tk.Label(scrollable_frame, text="Выберите типы катионов:",
+        tk.Label(scrollable_frame,
+                 text=localization_manager.tr("tcv_cations_frame"),
                  **AppStyles.label_style()).grid(row=1, column=0, columnspan=4, sticky='ew', padx=5, pady=2)
 
         check_frame = tk.Frame(scrollable_frame, **AppStyles.frame_style())
         check_frame.grid(row=2, column=0, columnspan=4, sticky='ew', padx=5, pady=2)
 
-        # Настраиваем check_frame для равномерного распределения
         for i in range(4):
             check_frame.columnconfigure(i, weight=1, uniform="group2")
 
-        tk.Checkbutton(check_frame, text="A-катион",
+        tk.Checkbutton(check_frame,
+                       text=localization_manager.tr("tcv_sites_cb_a"),
                        variable=self.site_vars['a_site'],
                        **AppStyles.checkbutton_style()).grid(row=0, column=0, sticky='ew', padx=5)
-        tk.Checkbutton(check_frame, text="B-катион",
+        tk.Checkbutton(check_frame,
+                       text=localization_manager.tr("tcv_sites_cb_b"),
                        variable=self.site_vars['b_site'],
                        **AppStyles.checkbutton_style()).grid(row=0, column=1, sticky='ew', padx=5)
-        tk.Checkbutton(check_frame, text="B-катион (двойной)",
+        tk.Checkbutton(check_frame,
+                       text=localization_manager.tr("tcv_sites_cb_bd"),
                        variable=self.site_vars['b_double'],
                        **AppStyles.checkbutton_style()).grid(row=0, column=2, sticky='ew', padx=5)
-        tk.Checkbutton(check_frame, text="Спейсер",
+        tk.Checkbutton(check_frame,
+                       text=localization_manager.tr("tcv_sites_cb_sp"),
                        variable=self.site_vars['spacer'],
                        **AppStyles.checkbutton_style()).grid(row=0, column=3, sticky='ew', padx=5)
 
         button_frame_form = tk.Frame(scrollable_frame, **AppStyles.frame_style())
         button_frame_form.grid(row=3, column=0, columnspan=4, sticky='ew', padx=5, pady=2)
 
-        # Настраиваем button_frame_form для равномерного распределения
         button_frame_form.columnconfigure(0, weight=1)
         button_frame_form.columnconfigure(1, weight=1)
 
-        self.btn_add_sites = tk.Button(button_frame_form, text="Добавить элементы структуры",
+        self.btn_add_sites = tk.Button(button_frame_form,
+                                       text=localization_manager.tr("tcv_str_button"),
                                        command=self.on_add_sites,
                                        **AppStyles.button_style())
         self.btn_add_sites.grid(row=0, column=0, sticky='ew', padx=5)
 
-        self.btn_submit = tk.Button(button_frame_form, text="Подтвердить шаблон",
+        self.btn_submit = tk.Button(button_frame_form,
+                                    text=localization_manager.tr("tcv_submit_button"),
                                     command=self.on_submit_template,
                                     **AppStyles.button_style())
         self.btn_submit.grid(row=0, column=1, sticky='ew', padx=5)
@@ -205,18 +225,15 @@ class TemplatesCheckView(tk.Toplevel):
         self.sites_container = tk.Frame(scrollable_frame, **AppStyles.frame_style())
         self.sites_container.grid(row=4, column=0, columnspan=4, sticky='nsew', padx=10, pady=10)
 
-        # Важно: настраиваем веса для scrollable_frame
-        scrollable_frame.rowconfigure(4, weight=1)  # sites_container будет растягиваться
+        scrollable_frame.rowconfigure(4, weight=1)
         for i in range(4):
             scrollable_frame.columnconfigure(i, weight=1)
 
-        # Обновляем геометрию при изменении содержимого
         def update_right_frame_width():
             right_frame.update_idletasks()
-            width = scrollable_frame.winfo_reqwidth() + 20  # + отступы
+            width = scrollable_frame.winfo_reqwidth() + 20
             main_paned.paneconfigure(right_frame, width=width)
 
-        # Привязываем обновление ширины к изменениям
         scrollable_frame.bind("<Configure>", lambda e: update_right_frame_width())
 
     def on_add_sites(self):
@@ -325,14 +342,17 @@ class TemplatesCheckView(tk.Toplevel):
 class SiteFrame(tk.LabelFrame):
     def __init__(self, parent, site_type):
         super().__init__(parent, text=site_type, **AppStyles.labelframe_style())
+        localization_manager.register_observer(self)
         self.site_type = site_type
 
-        tk.Label(self, text="Базовая стехиометрия",
+        tk.Label(self,
+                 text=localization_manager.tr("tcv_site_frame_st"),
                  **AppStyles.label_style()).grid(row=0, column=0, sticky = 'ew', padx=5, pady=2)
         self.entry_stoich = tk.Entry(self, **AppStyles.entry_style())
         self.entry_stoich.grid(row=1, column=0, sticky = 'ew', padx=5, pady=2)
 
-        tk.Label(self, text="Базовая валентность",
+        tk.Label(self,
+                 text=localization_manager.tr("tcv_site_frame_val"),
                  **AppStyles.label_style()).grid(row=0, column=1, sticky = 'ew', padx=5, pady=2)
         self.entry_valence = tk.Entry(self, **AppStyles.entry_style())
         self.entry_valence.grid(row=1, column=1, sticky = 'ew', padx=5, pady=2)

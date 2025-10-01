@@ -27,7 +27,6 @@ def get_molar_mass_of_salt(salt_formula_str):
         total_mass = cation_mass + (halide_count * halide_mass)
         return total_mass
     else:
-        # такого в целом при корректном заполнении базы данных быть не может
         return calculate_formula_molar_mass(salt_formula_str)
 
 def get_salt_formula(cation_name, halide, valence):
@@ -38,9 +37,6 @@ def calculate_target_product_moles(c_solution_molar, v_solution_ml):
     return n_perovskite_target_moles
 
 def calculate_target_anion_moles(anions, total_anion_stoich):
-    """
-    Рассчитывает целевые моли каждого аниона в продукте на единицу формулы продукта.
-    """
     target_moles= {
         hal: 0.0 for hal in ["Cl", "Br", "I"]
     }
@@ -61,7 +57,7 @@ def calculate_target_anion_moles(anions, total_anion_stoich):
         )
 
     relative_tolerance = 1e-7
-    absolute_tolerance = 1e-9  # Допуск для проверки суммы молей
+    absolute_tolerance = 1e-9
     max_abs_val = max(
         abs(calculated_total_moles_check),
         abs(total_anion_stoich),
@@ -73,7 +69,6 @@ def calculate_target_anion_moles(anions, total_anion_stoich):
         show_error(
             f"MC_UTILS: Итоговая сумма молей анионов ({calculated_total_moles_check:.6f}) "
             f"не соответствует целевой ({total_anion_stoich:.6f}) после расчета. "
-            # ИЗМЕНЕНО ЗДЕСЬ:
             f"Разница: {float(diff_check):.2E}"
         )
     return target_moles

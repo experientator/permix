@@ -8,11 +8,14 @@ from gui.controllers.templates_check import TemplatesCheckController
 from gui.controllers.user_config_form import UserConfigController
 from gui.controllers.composition_check import CompositionCheckController
 from gui.views.user_config_form import UserConfigView
+from gui.language.manager import localization_manager
+from gui.language.default_widgets import default_translations
 
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("PerMix")
+        localization_manager.register_observer(self)
         self.wm_attributes('-fullscreen',True)
         menu = tk.Menu(self)
         self.main_frame = ttk.Frame(self)
@@ -25,18 +28,27 @@ class App(tk.Tk):
         self.calc_view = UserConfigView(self.main_frame, self.calc_controller)
         self.calc_view.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
-        upload_menu.add_command(label="Загрузить структуру", command=self.open_comp_form)
+        upload_menu.add_command(label=localization_manager.tr("main_1"),
+                                command=self.open_comp_form)
         #upload_menu.add_command(label="Загрузить кандидатов", command=self.open_candidate_form)
 
-        view_menu.add_command(label="Просмотр растворителей",  command=self.get_solvents)
-        view_menu.add_command(label="Просмотр ионных радиусов",  command=self.get_ionic_radii)
-        view_menu.add_command(label="Просмотр шаблонов",  command=self.get_templates)
-        view_menu.add_command(label="Просмотр соединений", command=self.get_compositions)
+        view_menu.add_command(label=localization_manager.tr("main_2"),
+                              command=self.get_solvents)
+        view_menu.add_command(label=localization_manager.tr("main_3"),
+                              command=self.get_ionic_radii)
+        view_menu.add_command(label=localization_manager.tr("main_4"),
+                              command=self.get_templates)
+        view_menu.add_command(label=localization_manager.tr("main_5"),
+                              command=self.get_compositions)
 
-        menu.add_cascade(label="Загрузить", menu=upload_menu)
-        menu.add_cascade(label="Просмотреть", menu=view_menu)
-        menu.add_command(label="О программе", command= self.program_info)
-        menu.add_command(label="Выйти", command=self.destroy)
+        menu.add_cascade(label=localization_manager.tr("main_6"),
+                         menu=upload_menu)
+        menu.add_cascade(label=localization_manager.tr("main_7"),
+                         menu=view_menu)
+        menu.add_command(label=localization_manager.tr("main_8"),
+                         command= self.program_info)
+        menu.add_command(label=localization_manager.tr("main_9"),
+                         command=self.destroy)
         self.config(menu=menu)
 
     def get_compositions(self):
@@ -64,5 +76,7 @@ class App(tk.Tk):
         CompositionController(self)
 
 if __name__ == "__main__":
+    localization_manager.initialize_default_translations(default_translations)
+    localization_manager.set_language("ru")
     app = App()
     app.mainloop()

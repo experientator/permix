@@ -1,0 +1,249 @@
+default_translations = [
+("error_title", "Error", "Ошибка"),
+("ucv_lf1", "Choose template", "Выбор шаблона"),
+("ucv_lf2", "Calculations results", "Результаты расчетов"),
+("ucv_cons1", "There are no calculation results yet", "Расчеты пока не проведены"),
+("ucv_l1", "Summary of equation number:", "Сводка по уравнению номер:"),
+("ucv_but1", "Get the equation summary", "Получить сводку по уравнению"),
+("ucv_lf3", "Sorting equations", "Сортировка уравнений"),
+
+("ucv_1lvl", "1 level", "1 уровень"),
+("ucv_2lvl", "2 level", "2 уровень"),
+("ucv_3lvl", "3 level", "3 уровень"),
+("ucv_sort1", "Minimum", "Минимум"),
+("ucv_sort2", "Optimum", "Оптимум"),
+("ucv_sort", "Sorting method", "Способ сортировки"),
+
+("ucv_crit_all", "Total mass", "Общая масса"),
+("ucv_crit_num", "Number of precursors", "Количество прекурсоров"),
+("ucv_crit_mass", "Mass of a specific precursor", "Масса конкретного прекурсора"),
+
+("ucv_but2", "Sort", "Провести сортировку"),
+("ucv_l2", "Precursor", "Прекурсор"),
+("ucv_l3", "The number of equations to display", "Количество уравнений для отображения"),
+("ucv_but3", "Save the configuration", "Сохранить конфигурацию"),
+
+("ucv_l4", "Phase template", "Шаблон фазы"),
+("ucv_but4", "Viewing templates", "Просмотр шаблонов"),
+("ucv_but5", "Submit", "Подтвердить"),
+("ucv_but6", "Clear form", "Очистить форму"),
+("ucv_lf4", "Structure", "Структура"),
+
+("ucv_l5", "Site type", "Тип сайта"),
+("ucv_l6", "Number", "Кол-во"),
+("ucv_l7", "Cation", "Катион"),
+("ucv_l8", "Fraction", "Доля"),
+
+("ucv_cb1", "Presence of anti-solvents", "Наличие антирастворителей"),
+("ucv_but7", "Submit composition", "Подтвердить состав"),
+("ucv_lf5", "Solvents", "Ррастворители"),
+
+("ucv_l9", "Solvent type", "Тип растворителя"),
+("ucv_l10", "Number", "Кол-во"),
+("ucv_l11", "Solvent name", "Название растворителя"),
+("ucv_l12", "Fraction", "Доля"),
+
+("ucv_sol", "Solvent", "Растворитель"),
+("ucv_anti", "Antisolvent", "Антирастворитель"),
+
+("ucv_lf6", "K-factors", "K-факторы"),
+("ucv_but8", "Viewing potential salts", "Просмотр возможных солей"),
+("ucv_but9", "Add k-factor", "Добавить k-фактор"),
+
+("ucv_l13", "Salt", "Соль"),
+("ucv_l14", "K-factor", "К-фактор"),
+("ucv_but10", "Start calculations", "Начать расчет"),
+
+("ucv_cons2", "Geometric factors:", "Геометрические факторы:"),
+("ucv_cons3", "Compound formula:", "Формула соединения:"),
+("ucv_cons4", "Calculated equations:", "Рассчитанные уравнения:"),
+
+("ucv_sum1", "Calculation date", "Дата проведения расчета:"),
+("ucv_sum2", "Compound formula:", "Общая формула соединения:"),
+("ucv_sum3", "Equation:", "Уравнение:"),
+("ucv_sum4", "Geometric factors:", "Геометрические факторы:"),
+("ucv_sum5", "Solution concentration:", "Концентрация раствора:"),
+("ucv_sum6", "M, total volume of solvents:", "М, общий объем растворителей:"),
+("ucv_sum7", "ml, total volume of anti-solvents:", "мл, общий объем антирастворителей:"),
+("ucv_sum8", "ml", "мл"),
+("ucv_sum9", "Solvents:", "Растворители:"),
+("ucv_sum10", "Antisolvents:", "Антирастворители:"),
+("ucv_sum11", "K-factors:", "K-факторы:"),
+("ucv_sum12", "Precursor masses:", "Массы прекурсоров:"),
+
+("ucv_tit", "Equation summary", "Сводка по уравнению"),
+("ucv_but11", "Save to a file", "Сохранить в файл"),
+("ucv_but12", "Close", "Закрыть"),
+
+("ucv_tit2", "Data entry", "Ввод данных"),
+("ucv_l15", "Configuration name", "Название конфигурации"),
+("ucv_l16", "Configuration descprition", "Описание конфигурации"),
+("ucv_but13", "Submit", "Подтвердить"),
+
+("ucv_salts_tit", "Salts list", "Список солей"),
+("ucv_salts_mes", "List of possible salts for this compound:", "Список возможных солей для данного соединения:"),
+("ucv_l17", "Fractions", "Доли"),
+
+("ucv_error1", "The solvent repeats:", "Растворитель повторяется:"),
+("ucv_error2",
+ "The characteristics of the solution should take numerical values",
+ "Характеристики раствора должны принимать численные значения:"),
+("ucv_error3", "The salt repeats:", "Соль повторяется:"),
+("ucv_error4", "The cation repeats:", "Катион повторяется:"),
+("ucv_error5", "The anion repeats:", "Анион повторяется:"),
+
+("ucv_l18", "Solution properties", "Свойства раствора"),
+("ucv_l19", "Solution volume", "Объем раствора"),
+("ucv_l20", "Solution concentration", "Концентрация раствора"),
+("ucv_l21", "Volume of antisolvent", "Объем антирастворителя"),
+
+("icv_window_title", "Composition viewer", "Просмотр ионов"),
+("menu_exit", "Exit", "Выйти"),
+
+("icv_ions_frame", "Ions", "Ионы"),
+("icv_radii_frame", "Ionic radius", "Ионные радиусы"),
+("icv_form_frame", "Add new ion", "Добавить новый ион"),
+("icv_add_rad_frame", "Add ionic radius", "Добавить ионный радиус"),
+
+("icv_solv_col_name", "Ion", "Ион"),
+("icv_solv_col_type", "Type", "Тип"),
+
+("icv_rad_col_charge", "Charge", "Заряд"),
+("icv_rad_col_CN", "CN", "КЧ"),
+("icv_rad_col_radius", "Radius", "Радиус"),
+
+("icv_ion_form_cb_cat", "Cation", "Катион"),
+("icv_ion_form_cb_an", "Anion", "Анион"),
+
+("icv_ion_form_label_name", "Name", "Название"),
+("icv_ion_form_label_it", "Ion type", "Тип иона"),
+("icv_ion_form_label_form", "Formula", "Формула"),
+("icv_ion_form_label_val", "Valency", "Валентность"),
+
+("icv_ion_rad_form_label_name", "Name", "Название"),
+("icv_ion_rad_form_label_it", "Ion type", "Тип иона"),
+("icv_ion_rad_form_label_charge", "Charge", "Заряд"),
+("icv_ion_rad_form_label_cn", "Coordinate number", "Координационное число"),
+("icv_ion_rad_form_label_ir", "Ionic radius", "Ионный радиус"),
+
+("icv_delete_button", "Delete selected", "Удалить выбранное"),
+("icv_add_button", "Add ion", "Добавить ион"),
+("icv_add_rad_button", "Add ionic radius", "Добавить ионный радиус"),
+
+("scv_window_title", "Solvents viewer", "Просмотр растворителей"),
+("menu_exit", "Exit", "Выйти"),
+
+("scv_add_sol_frame", "Add solvent", "Добавить растворитель"),
+
+("scv_sol_col_name", "Name", "Название"),
+("scv_sol_col_type", "Solvent type", "Тип"),
+("scv_sol_col_formula", "Formula", "Формула"),
+("scv_sol_col_density", "Density, g/ml", "Плотность, г/мл"),
+("scv_sol_col_temp", "Boiling point, C", "Температура кипения, C"),
+("scv_sol_col_notes", "Notes", "Заметки"),
+
+("scv_sol_form_cb_solv", "Solvent", "Растворитель"),
+("scv_sol_form_cb_anti", "Antisolvent", "Антирастворитель"),
+
+("scv_upload_button", "Upload data", "Загрузить данные"),
+
+("tcv_window_title", "Templates viewer", "Управление шаблонами перовскитов"),
+("menu_exit", "Exit", "Выйти"),
+
+("tcv_temp_frame", "Templates", "Существующие шаблоны"),
+("tcv_details_frame", "Template details", "Детали выбранного шаблона"),
+("tcv_form_frame", "Add new template", "Добавить новый шаблон"),
+("tcv_cations_frame", "Choose cation types:", "Выберите типы катионов:"),
+
+("tcv_sites_cb_a", "A-site", "A-катион"),
+("tcv_sites_cb_b", "B-site", "B-катион"),
+("tcv_sites_cb_bd", "B-site (double)", "B-катион (двойной)"),
+("tcv_sites_cb_sp", "Spacer", "Спейсер"),
+
+("tcv_sol_col_id", "ID", "ID"),
+("tcv_sol_col_name", "Name", "Имя"),
+("tcv_sol_col_as", "Anion stoichiometry", "Стехиометрия аниона"),
+("tcv_sol_col_dim", "Dimensionality", "Размерность"),
+("tcv_sol_col_desc", "Description", "Описание"),
+
+("tcv_site_col_name", "Type", "Тип"),
+("tcv_site_col_st", "Stoichiometry", "Стехиометрия"),
+("tcv_site_col_val", "Valency", "Валентность"),
+
+("tcv_form_label_name", "Template name", "Название шаблона"),
+("tcv_form_label_dim", "Dimensionality", "Размерность"),
+("tcv_form_label_desc", "Description", "Описание"),
+("tcv_form_label_as", "Anion stoichiometry", "Стехиометрия аниона"),
+
+("tcv_site_frame_st", "Base stoichiometry", "Базовая стехиометрия"),
+("tcv_site_frame_val", "Base valence", "Базовая валентность"),
+
+("tcv_str_button", "Add structure elements","Добавить элементы структуры"),
+("tcv_submit_button", "Submit template", "Подтвердить шаблон"),
+
+("ccv_window_title", "Composition viewer", "Просмотр соединений"),
+("menu_exit", "Exit", "Выйти"),
+
+("ccv_comp_frame", "Main compositions", "Основные конфигурации"),
+("ccv_fav_frame", "Favorite compositions", "Избранные конфигурации"),
+("ccv_det_frame", "Details", "Детали"),
+
+("ccv_solv_col_type", "Solvent type", "Тип"),
+("ccv_solv_col_symbol", "Symbol", "Символ"),
+("ccv_solv_col_fraction", "Fraction", "Доля"),
+
+("ccv_struct_col_type", "Structure type", "Тип"),
+("ccv_struct_col_symbol", "Symbol", "Символ"),
+("ccv_struct_col_fraction", "Fraction", "Доля"),
+("ccv_struct_col_val", "Valency", "Валентность"),
+
+("ccv_prop_col_id", "ID", "ID"),
+("ccv_prop_col_an_stoich", "Anion stoichiometry", "Стехиометрия аниона"),
+("ccv_prop_col_bg", "Band gap", "Ширина запрещенной зоны"),
+("ccv_prop_col_ff", "FF (%)", "FF (%)"),
+("ccv_prop_col_pse", "PCE (%)", "PCE (%)"),
+("ccv_prop_col_voc", "VOC", "VOC"),
+("ccv_prop_col_jsc", "JSC", "JSC"),
+("ccv_prop_col_stab_notes", "Stability notes", "Заметки стабильности"),
+("ccv_prop_col_v_antisol", "V antisolvent", "V антирастворителя"),
+("ccv_prop_col_v_sol", "V solution", "V раствора"),
+("ccv_prop_col_conc", "Concentration", "C раствора"),
+("ccv_prop_col_method", "Method", "Метод"),
+
+("ccv_k_col_salt", "Salt", "Соль"),
+("ccv_k_col_k_fact", "K-factor", "K-фактор"),
+
+("ccv_comp_col_id", "ID", "ID"),
+("ccv_comp_col_name", "Name", "Название"),
+("ccv_comp_col_doi", "DOI", "DOI"),
+("ccv_comp_col_data", "Data type", "Тип данных"),
+("ccv_comp_col_notes", "Notes", "Заметки"),
+("ccv_comp_col_template", "Template", "Шаблон"),
+
+("ccv_fav_col_id", "ID", "ID"),
+("ccv_fav_col_name", "Name", "Название"),
+("ccv_fav_col_phase_id", "Phase ID", "ID фазы"),
+("ccv_fav_col_data", "Phase template", "Шаблон фазы"),
+("ccv_fav_col_v_sol", "V solution", "V раствора"),
+("ccv_fav_col_v_antisol", "V antisolvent", "V антирастворителя"),
+("ccv_fav_col_conc", "Concentration", "Концентрация"),
+("ccv_fav_col_notes", "Notes", "Заметки"),
+
+("ccv_main_tab", "Main info", "Основное"),
+("ccv_solvents_tab", "Solvents", "Растворители"),
+("ccv_structure_tab", "Structure", "Структура"),
+("ccv_properties_tab", "Properties", "Свойства"),
+("ccv_kfactors_tab", "K-factors", "K-факторы"),
+
+("ccv_refresh_button", "Refresh All", "Обновить все"),
+
+("main_1", "Upload structure", "Загрузить структуру"),
+("main_2", "Viewing solvents", "Просмотр растворителей"),
+("main_3", "Viewing ion radii", "Просмотр ионных радиусов"),
+("main_4", "Viewing Templates", "Просмотр шаблонов"),
+("main_5", "Viewing compounds", "Просмотр соединений"),
+("main_6", "Upload", "Загрузить"),
+("main_7", "Viewing", "Просмотр"),
+("main_8", "About program", "О программе"),
+("main_9", "Exit", "Выйти")
+]

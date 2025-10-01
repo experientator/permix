@@ -15,11 +15,14 @@ from analysis.display_formatters import format_results_mass_table, generate_reac
 from gui.default_style import AppStyles
 from analysis.sort_equations import sort_by_minimum_criteria, optimal_sort
 from analysis.histograms import prepare_and_draw_mass_histogram
+from gui.language.manager import localization_manager
 
 class UserConfigView(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent)
         self.controller = controller
+        localization_manager.register_observer(self)
+
         self.configure(bg=AppStyles.BACKGROUND_COLOR)
         self.styles = AppStyles()
         self.build_ui()
@@ -89,11 +92,13 @@ class UserConfigView(tk.Frame):
     def create_template_frame(self):
 
         info_frame = tk.LabelFrame(self.first_column,
-                                   text="Выбор шаблона", **AppStyles.labelframe_style())
+                                   text=localization_manager.tr("ucv_lf1"),
+                                   **AppStyles.labelframe_style())
         info_frame.pack(fill='x', pady=5)
 
         self.results_frame = tk.LabelFrame(self.sec_column,
-                                           text="Результаты расчетов", **AppStyles.labelframe_style())
+                                           text=localization_manager.tr("ucv_lf2"),
+                                           **AppStyles.labelframe_style())
         self.results_frame.pack(fill='x', pady=5)
 
         self.console_text = scrolledtext.ScrolledText(
@@ -104,23 +109,27 @@ class UserConfigView(tk.Frame):
             fg="white",
             insertbackground="white"
         )
+
         self.console_text.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
         self.console_text.config(state=tk.DISABLED)
-        self.add_text("Расчеты пока не проведены")
+        self.add_text(localization_manager.tr("ucv_cons1"))
 
         self.summary_frame = tk.Frame(self.results_frame, **AppStyles.frame_style())
         self.summary_frame.columnconfigure(0, weight=3)
         self.summary_frame.columnconfigure(1, weight=1)
         self.summary_frame.columnconfigure(2, weight=3)
 
-        self.summary_label = tk.Label(self.summary_frame, text="Сводка по уравнению номер:",
-                 **AppStyles.label_style())
+        self.summary_label = tk.Label(self.summary_frame,
+                                      text=localization_manager.tr("ucv_l1"),
+                                      **AppStyles.label_style())
         self.summary_equation_number = tk.Entry(self.summary_frame, **AppStyles.entry_style(), width=5)
 
-        self.summary_button = tk.Button(self.summary_frame, text="Получить сводку по уравнению",
+        self.summary_button = tk.Button(self.summary_frame,
+                                        text=localization_manager.tr("ucv_but1"),
                                         command=self.get_summary, **AppStyles.button_style())
 
-        self.sort_menu_frame = tk.LabelFrame(self.sec_column, text="Сортировка уравнений",
+        self.sort_menu_frame = tk.LabelFrame(self.sec_column,
+                                             text=localization_manager.tr("ucv_lf3"),
                                              **AppStyles.labelframe_style())
 
         self.sort_menu_frame.columnconfigure(0, weight=1)
@@ -128,23 +137,30 @@ class UserConfigView(tk.Frame):
         self.sort_menu_frame.columnconfigure(2, weight=1)
         self.sort_menu_frame.columnconfigure(3, weight=1)
 
-        self.first_level_label = tk.Label(self.sort_menu_frame, text="1 уровень",
-                 **AppStyles.label_style())
-        self.second_level_label = tk.Label(self.sort_menu_frame, text="2 уровень",
-                 **AppStyles.label_style())
-        self.third_level_label = tk.Label(self.sort_menu_frame, text="3 уровень",
-                 **AppStyles.label_style())
+        self.first_level_label = tk.Label(self.sort_menu_frame,
+                                          text=localization_manager.tr("ucv_1lvl"),
+                                          **AppStyles.label_style())
+        self.second_level_label = tk.Label(self.sort_menu_frame,
+                                           text=localization_manager.tr("ucv_2lvl"),
+                                           **AppStyles.label_style())
+        self.third_level_label = tk.Label(self.sort_menu_frame,
+                                          text=localization_manager.tr("ucv_3lvl"),
+                                          **AppStyles.label_style())
 
-        sort_opt = ["Минимум", "Оптимум"]
-        self.sort_options_label = tk.Label(self.sort_menu_frame, text="Способ сортировки",
-                 **AppStyles.label_style())
+        sort_opt = [localization_manager.tr("ucv_sort1"),
+                    localization_manager.tr("ucv_sort2")]
+        self.sort_options_label = tk.Label(self.sort_menu_frame,
+                                           text=localization_manager.tr("ucv_sort"),
+                                           **AppStyles.label_style())
 
         self.sort_options = ttk.Combobox(self.sort_menu_frame,
                                          **AppStyles.combobox_config(),
                                          values=sort_opt,
                                          state='readonly')
 
-        self.first_criteria_list = ["Общая масса", "Количество прекурсоров", "Масса конкретного прекурсора"]
+        self.first_criteria_list = [localization_manager.tr("ucv_crit_all"),
+                                    localization_manager.tr("ucv_crit_num"),
+                                    localization_manager.tr("ucv_crit_mass")]
         self.first_level = ttk.Combobox(self.sort_menu_frame,
                                         **AppStyles.combobox_config(), values=self.first_criteria_list)
 
@@ -154,8 +170,10 @@ class UserConfigView(tk.Frame):
         self.third_level = ttk.Combobox(self.sort_menu_frame,
                                         **AppStyles.combobox_config(), state='disabled')
 
-        self.sort_button = tk.Button(self.sort_menu_frame, text="Провести сортировку",
-                                     command=self.sort_process, **AppStyles.button_style(),
+        self.sort_button = tk.Button(self.sort_menu_frame,
+                                     text=localization_manager.tr("ucv_but2"),
+                                     command=self.sort_process,
+                                     **AppStyles.button_style(),
                                      state='disabled')
 
         self.mass_reagent = ttk.Combobox(self.sort_menu_frame,
@@ -163,18 +181,25 @@ class UserConfigView(tk.Frame):
                                          state='readonly',
                                          width=10)
         self.mass_reagent_label = tk.Label(self.sort_menu_frame,
-                                           **AppStyles.label_style(), text="Прекурсор")
+                                           **AppStyles.label_style(),
+                                           text=localization_manager.tr("ucv_l2"))
 
         self.hystogram_frame = tk.Frame(self.sec_column, **AppStyles.frame_style(), width=200)
-        self.num_equations_hyst_label = tk.Label(self.sort_menu_frame, **AppStyles.label_style(),
-                                           text = "Количество уравнений для отображения")
-        self.num_equations_hyst_entry = tk.Entry(self.sort_menu_frame, **AppStyles.entry_style(), width = 5)
+        self.num_equations_hyst_label = tk.Label(self.sort_menu_frame,
+                                                 **AppStyles.label_style(),
+                                                 text = localization_manager.tr("ucv_l3"))
+        self.num_equations_hyst_entry = tk.Entry(self.sort_menu_frame,
+                                                 **AppStyles.entry_style(),
+                                                 width = 5)
 
 
-        self.fav_button = tk.Button(self.first_column, text="Сохранить конфигурацию",
-                                    command=self.save_config, **AppStyles.button_style())
+        self.fav_button = tk.Button(self.first_column,
+                                    text=localization_manager.tr("ucv_but3"),
+                                    command=self.save_config,
+                                    **AppStyles.button_style())
 
-        tk.Label(info_frame, text="Шаблон фазы",
+        tk.Label(info_frame,
+                 text=localization_manager.tr("ucv_l4"),
                  **AppStyles.label_style()).pack(fill='x', pady=5)
         self.phase_template = ttk.Combobox(info_frame,
                                            values=get_templates_list(),
@@ -186,22 +211,28 @@ class UserConfigView(tk.Frame):
         button_frame = tk.Frame(info_frame)
         button_frame.pack(fill='x', pady=5)
 
-        tk.Button(button_frame, text="Просмотр шаблонов",
+        tk.Button(button_frame,
+                  text=localization_manager.tr("ucv_but4"),
                   **AppStyles.button_style(),
                   command=self.open_template_form).pack(side="right", expand=True, fill = 'x', padx=2)
 
-        self.button_entry = tk.Button(button_frame, text="Подтвердить",
-                                      **AppStyles.button_style(), command=self.create_sites)
+        self.button_entry = tk.Button(button_frame,
+                                      text=localization_manager.tr("ucv_but5"),
+                                      **AppStyles.button_style(),
+                                      command=self.create_sites)
         self.button_entry.pack(side="right", expand=True, fill = 'x', padx=2)
 
-        clear_btn = tk.Button(button_frame, text="Очистить форму",
-                              **AppStyles.button_style(), command=self.reset_form)
+        clear_btn = tk.Button(button_frame,
+                              text=localization_manager.tr("ucv_but6"),
+                              **AppStyles.button_style(),
+                              command=self.reset_form)
         clear_btn.pack(side="right", expand=True, fill = 'x', padx=2)
 
     def create_sites(self):
         self.button_entry["state"] = "disabled"
-        self.sites_frame = tk.LabelFrame(self.first_column, text="Структура",
-                 **AppStyles.labelframe_style())
+        self.sites_frame = tk.LabelFrame(self.first_column,
+                                         text=localization_manager.tr("ucv_lf4"),
+                                         **AppStyles.labelframe_style())
         self.sites_frame.pack(fill='both', pady=5, expand=True)
 
         self.name = self.phase_template.get()
@@ -209,6 +240,7 @@ class UserConfigView(tk.Frame):
         sites_data = get_template_sites(self.template_id)
         self.anion_stoichiometry = get_anion_stoichiometry(self.template_id)
         values_sites = ["1", "2", "3", "4"]
+        values_anions = ["1", "2", "3"]
 
         for field in self.sites_frame.winfo_children():
             field["symbol"].destroy()
@@ -219,13 +251,17 @@ class UserConfigView(tk.Frame):
         self.sites_frame.columnconfigure(2, weight=2)
         self.sites_frame.columnconfigure(3, weight=2)
 
-        tk.Label(self.sites_frame, text="Тип сайта",
+        tk.Label(self.sites_frame,
+                 text=localization_manager.tr("ucv_l5"),
                  **AppStyles.label_style()).grid(row=0, column=0, sticky = 'ew', padx=5, pady=2)
-        tk.Label(self.sites_frame, text="Кол-во",
+        tk.Label(self.sites_frame,
+                 text=localization_manager.tr("ucv_l6"),
                  **AppStyles.label_style()).grid(row=0, column=1, sticky = 'ew', padx=5, pady=2)
-        tk.Label(self.sites_frame, text="Катион",
+        tk.Label(self.sites_frame,
+                 text=localization_manager.tr("ucv_l7"),
                  **AppStyles.label_style()).grid(row=0, column=2, sticky = 'ew', padx=5, pady=2)
-        tk.Label(self.sites_frame, text="Доля",
+        tk.Label(self.sites_frame,
+                 text=localization_manager.tr("ucv_l8"),
                  **AppStyles.label_style()).grid(row=0, column=3, sticky = 'ew', padx=5, pady=2)
 
         self.site_widgets = {}
@@ -271,7 +307,7 @@ class UserConfigView(tk.Frame):
         label_site.grid(row=current_row, column=0, padx=5, pady=2, sticky = 'ew')
         combobox_num = ttk.Combobox(
             self.sites_frame,
-            values=values_sites,
+            values=values_anions,
             state="readonly",
             width=5,
             ** AppStyles.combobox_config()
@@ -287,13 +323,18 @@ class UserConfigView(tk.Frame):
             "combobox_num": combobox_num,
             "dynamic_widgets": []
         }
+
         self._update_site(site_type, 0)
         self.antisolv_check = tk.IntVar(self)
-        self.antisolvents_cb = tk.Checkbutton(self.first_column, text = "Наличие антирастворителей",
-                                               variable = self.antisolv_check, **AppStyles.checkbutton_style())
+        self.antisolvents_cb = tk.Checkbutton(self.first_column,
+                                              text = localization_manager.tr("ucv_cb1"),
+                                              variable = self.antisolv_check,
+                                              **AppStyles.checkbutton_style())
         self.antisolvents_cb.pack(fill='x', pady=5)
-        self.upload_button = tk.Button(self.first_column, text = "подтвердить состав",
-                 **AppStyles.button_style(), command = self.create_solvents)
+        self.upload_button = tk.Button(self.first_column,
+                                       text = localization_manager.tr("ucv_but7"),
+                                       **AppStyles.button_style(),
+                                       command = self.create_solvents)
         self.upload_button.pack(pady=5, expand=True, fill = 'x')
 
     def get_next_row(self, widget):
@@ -368,17 +409,21 @@ class UserConfigView(tk.Frame):
         except (ValueError, TypeError):
             return
 
-        self.target_anion_moles_map = calculate_target_anion_moles(self.anions_data, self.anion_stoichiometry)
+        self.target_anion_moles_map = calculate_target_anion_moles(self.anions_data,
+                                                                   self.anion_stoichiometry)
         cation_valences = [cation["valence"] for cation in self.cations_data]
         cation_symbols = [cation["symbol"] for cation in self.cations_data]
         anion_symbols = [anion["symbol"] for anion in self.anions_data]
         for i in range(len(cation_symbols)):
             for anion_symbol in anion_symbols:
-                self.salt_formulas.append(get_salt_formula(cation_symbols[i], anion_symbol, cation_valences[i]))
+                self.salt_formulas.append(get_salt_formula(cation_symbols[i],
+                                                           anion_symbol,
+                                                           cation_valences[i]))
 
         self.upload_button["state"] = "disabled"
         self.antisolvents_cb["state"] = "disabled"
-        self.solvents_frame = tk.LabelFrame(self.first_column, text="растворители",
+        self.solvents_frame = tk.LabelFrame(self.first_column,
+                                            text=localization_manager.tr("ucv_lf5"),
                                             **AppStyles.labelframe_style())
         self.solvents_frame.pack(expand=True, fill = 'x', pady=5)
         self.solvents_frame.columnconfigure(0, weight=1)
@@ -393,22 +438,26 @@ class UserConfigView(tk.Frame):
             field["symbol"].destroy()
             field["fraction"].destroy()
 
-        tk.Label(self.solvents_frame, text="Тип растворителя",
+        tk.Label(self.solvents_frame,
+                 text=localization_manager.tr("ucv_l9"),
                  **AppStyles.label_style()).grid(row=0, column=0, sticky = 'ew', padx=5, pady=2)
-        tk.Label(self.solvents_frame, text="Кол-во",
+        tk.Label(self.solvents_frame,
+                 text=localization_manager.tr("ucv_l10"),
                  **AppStyles.label_style()).grid(row=0, column=1, sticky = 'ew', padx=5, pady=2)
-        tk.Label(self.solvents_frame, text="Название растворителя",
+        tk.Label(self.solvents_frame,
+                 text=localization_manager.tr("ucv_l11"),
                  **AppStyles.label_style()).grid(row=0, column=2, sticky = 'ew', padx=5, pady=2)
-        tk.Label(self.solvents_frame, text="Доля",
+        tk.Label(self.solvents_frame,
+                 text=localization_manager.tr("ucv_l12"),
                  **AppStyles.label_style()).grid(row=0, column=3, sticky = 'ew', padx=5, pady=2)
 
         self.solvents_widgets = {}
 
         for type in self.solvent_types:
             if type == "solvent":
-                text_type = "Растворитель"
+                text_type = localization_manager.tr("ucv_sol")
             else:
-                text_type = "Антирастворитель"
+                text_type = localization_manager.tr("ucv_anti")
             current_row = self.get_next_row(self.solvents_widgets)
             label_solvent = tk.Label(self.solvents_frame, text=text_type,
                  **AppStyles.label_style())
@@ -440,26 +489,31 @@ class UserConfigView(tk.Frame):
 
     def create_k_factors_frame(self):
         self.current_row = 1
-        self.k_factors_frame = tk.LabelFrame(self.first_column, text="K-факторы",
+        self.k_factors_frame = tk.LabelFrame(self.first_column,
+                                             text=localization_manager.tr("ucv_lf6"),
                                              **AppStyles.labelframe_style())
         self.k_factors_frame.pack(expand=True, fill = 'x', pady=5)
 
         self.k_factors_frame.columnconfigure(0, weight=1)
         self.k_factors_frame.columnconfigure(1, weight=1)
 
-        tk.Button(self.k_factors_frame, text="Просмотр возможных солей",
+        tk.Button(self.k_factors_frame,
+                  text=localization_manager.tr("ucv_but8"),
                   command=self.show_salts_info,
                   **AppStyles.button_style()).grid(row=0, column=0, sticky = 'ew', padx=5, pady=2)
 
-        tk.Button(self.k_factors_frame, text="Добавить k-фактор",
+        tk.Button(self.k_factors_frame,
+                  text=localization_manager.tr("ucv_but9"),
                   command=self.create_k_factors_widgets,
                   **AppStyles.button_style()).grid(row=0, column=1, sticky = 'ew', padx=5, pady=2)
 
 
-        tk.Label(self.k_factors_frame, text="Соль",
+        tk.Label(self.k_factors_frame,
+                 text=localization_manager.tr("ucv_l13"),
                  **AppStyles.label_style()).grid(row=1, column=0, sticky = 'ew', padx=5, pady=2)
 
-        tk.Label(self.k_factors_frame, text="К-фактор",
+        tk.Label(self.k_factors_frame,
+                 text=localization_manager.tr("ucv_l14"),
                  **AppStyles.label_style()).grid(row=1, column=1, sticky = 'ew', padx=5, pady=2)
 
         self.k_factors_widgets = {
@@ -468,7 +522,8 @@ class UserConfigView(tk.Frame):
 
 
     def data_button(self):
-        self.data_apply_button = tk.Button(self.first_column, text = "Начать расчет",
+        self.data_apply_button = tk.Button(self.first_column,
+                                           text = localization_manager.tr("ucv_but10"),
                                            command = self.calculations_function,
                                            ** AppStyles.button_style())
         self.data_apply_button.pack(expand=True, fill = 'x', pady=5)
@@ -481,7 +536,8 @@ class UserConfigView(tk.Frame):
         fraction_test(self.solvents_data, solvent_fractions, 'solvent_type')
 
         for element in self.k_factors:
-            k_factor = float_test(element['k_factor'], "К-факторы")
+            k_factor = float_test(element['k_factor'],
+                                  text=localization_manager.tr("ucv_lf6"))
 
         self.calculations = calculate_precursor_masses(
                 self.template_id, self.cations_data,
@@ -520,9 +576,13 @@ class UserConfigView(tk.Frame):
             self.geom_factors_str = "-"
 
         self.clear_console()
-        self.add_text(f"Геометрические факторы: {self.geom_factors_str}\n")
-        self.add_text(f"Формула соединения: {self.perovskite_formula}\n")
-        self.add_text(f"Рассчитанные уравнения:\n {eq_text}")
+
+        cons2 = localization_manager.tr("ucv_cons2")
+        cons3 = localization_manager.tr("ucv_cons3")
+        cons4 = localization_manager.tr("ucv_cons4")
+        self.add_text(f"{cons2} {self.geom_factors_str}\n")
+        self.add_text(f"{cons3} {self.perovskite_formula}\n")
+        self.add_text(f"{cons4}\n {eq_text}")
         self.add_text(format_results_mass_table(self.calculations))
         self.summary_equation_form()
         self.sort_frame()
@@ -580,22 +640,36 @@ class UserConfigView(tk.Frame):
             salts_masses_str += f" {salt_mass} г {salt},"
         salts_masses_str = salts_masses_str[:-1]
 
-        summary_lines = [f"Дата проведения расчета: {today_date}\n",
-                         f"Общая формула соединения: {self.perovskite_formula}\n",
-                         f"Уравнение: {self.equation_formulas[int(eq_num)-1]}\n",
-                         f"Геометрические факторы: {self.geom_factors_str}\n",
-                         f"Концентрация раствора: {c_solv} М, общий объем растворителей: {V_solution} мл, общий объем антирастворителей: {V_antisolvent} мл\n",
-                         f"Растворители:{solvents_str}\n",
-                         f"Антирастворители:{antisolvents_str}\n",
-                         f"K-факторы:{k_factors_str}\n",
-                         f"Массы прекурсоров:{salts_masses_str}"]
+        summary1 = localization_manager.tr("ucv_sum1")
+        summary2 = localization_manager.tr("ucv_sum2")
+        summary3 = localization_manager.tr("ucv_sum3")
+        summary4 = localization_manager.tr("ucv_sum4")
+        summary5 = localization_manager.tr("ucv_sum5")
+        summary6 = localization_manager.tr("ucv_sum6")
+        summary7 = localization_manager.tr("ucv_sum7")
+        summary8 = localization_manager.tr("ucv_sum8")
+        summary9 = localization_manager.tr("ucv_sum9")
+        summary10 = localization_manager.tr("ucv_sum10")
+        summary11 = localization_manager.tr("ucv_sum11")
+        summary12 = localization_manager.tr("ucv_sum12")
+
+        summary_lines = [f"{summary1} {today_date}\n",
+                         f"{summary2} {self.perovskite_formula}\n",
+                         f"{summary3} {self.equation_formulas[int(eq_num)-1]}\n",
+                         f"{summary4} {self.geom_factors_str}\n",
+                         f"{summary5} {c_solv} {summary6} {V_solution} {summary7} {V_antisolvent} {summary8}\n",
+                         f"{summary9}{solvents_str}\n",
+                         f"{summary10}{antisolvents_str}\n",
+                         f"{summary11}{k_factors_str}\n",
+                         f"{summary12}{salts_masses_str}"]
 
         self.show_custom_summary(filename, summary_lines)
 
     def show_custom_summary(self, filename, summary_lines):
         summary_text = ''.join(summary_lines)
         window = tk.Toplevel()
-        window.title("Сводка по уравнению")
+
+        window.title(localization_manager.tr("ucv_tit"))
         window.geometry("600x400")
 
         text_widget = tk.Text(window, wrap='word', width=70, height=15)
@@ -606,11 +680,14 @@ class UserConfigView(tk.Frame):
 
         button_frame = tk.Frame(window, **AppStyles.frame_style())
 
-        save_btn = tk.Button(button_frame, text="Сохранить в файл",
-                          command=lambda: self.get_summary_file(filename, summary_lines),
+        save_btn = tk.Button(button_frame,
+                             text=localization_manager.tr("ucv_but11"),
+                             command=lambda: self.get_summary_file(filename, summary_lines),
                           **AppStyles.button_style())
 
-        close_btn = tk.Button(button_frame, text="Закрыть", command=window.destroy,
+        close_btn = tk.Button(button_frame,
+                              text=localization_manager.tr("ucv_but12"),
+                              command=window.destroy,
                               **AppStyles.button_style())
 
         text_widget.pack(side='top', fill='both', expand=True, padx=10, pady=10)
@@ -645,7 +722,7 @@ class UserConfigView(tk.Frame):
     def select_first_level(self, event):
         selected_sort_key =  self.first_level.get()
         self.mass_reagent.config(values = self.salt_formulas)
-        if selected_sort_key == "Масса конкретного прекурсора":
+        if selected_sort_key == localization_manager.tr("ucv_crit_mass"):
             self.mass_reagent_label.grid(row=1, column=2, sticky='ew', padx=5, pady=2)
             self.mass_reagent.grid(row=1, column=3, sticky='ew', padx=5, pady=2)
         self.sec_criteria_list = self.first_criteria_list.copy()
@@ -655,7 +732,7 @@ class UserConfigView(tk.Frame):
 
     def select_second_level(self, event):
         selected_sort_key = self.second_level.get()
-        if selected_sort_key == "Масса конкретного прекурсора":
+        if selected_sort_key == localization_manager.tr("ucv_crit_mass"):
             self.mass_reagent_label.grid(row=2, column=2, sticky='ew', padx=5, pady=2)
             self.mass_reagent.grid(row=2, column=3, sticky='ew', padx=5, pady=2)
         self.third_criteria_list = self.sec_criteria_list.copy()
@@ -664,7 +741,7 @@ class UserConfigView(tk.Frame):
         self.third_level.configure(state='readonly', values=self.third_criteria_list)
 
     def select_third_level(self, event):
-        if  self.third_level.get() == "Масса конкретного прекурсора":
+        if  self.third_level.get() == localization_manager.tr("ucv_crit_mass"):
             self.mass_reagent_label.grid(row=3, column=2, sticky='ew', padx=5, pady=2)
             self.mass_reagent.grid(row=3, column=3, sticky='ew', padx=5, pady=2)
         self.sort_button.configure(state = 'normal')
@@ -680,9 +757,9 @@ class UserConfigView(tk.Frame):
 
         reagent = self.mass_reagent.get()
         sort_option = self.sort_options.get()
-        if sort_option == "Минимум":
+        if sort_option == localization_manager.tr("ucv_sort1"):
             sorted_equations, sorted_keys = sort_by_minimum_criteria(self.calculations["equations"], criteria, reagent)
-        elif sort_option == "Оптимум":
+        elif sort_option == localization_manager.tr("ucv_sort2"):
             sorted_equations, sorted_keys = optimal_sort(self.calculations["equations"], criteria, reagent)
         new_sorted_equations = [item for item in sorted_equations if item.get('coefficients_detailed')]
         eq_text, equations = generate_reaction_equations_display(self.calculations, sorted_keys)
@@ -701,23 +778,27 @@ class UserConfigView(tk.Frame):
 
     def save_config(self):
         self.top_window = tk.Toplevel(self)
-        self.top_window.title("Ввод данных")
+        self.top_window.title(localization_manager.tr("ucv_tit2"))
         self.top_window.geometry("300x300")  # Размер окна
 
-        tk.Label(self.top_window, text="Название конфигурации",
+        tk.Label(self.top_window,
+                 text=localization_manager.tr("ucv_l15"),
                  **AppStyles.label_style()).pack(pady=10)
 
         self.input_name = tk.Entry(self.top_window, width=30, **AppStyles.entry_style())
         self.input_name.pack(pady=5)
 
-        tk.Label(self.top_window, text="Описание конфигурации",
+        tk.Label(self.top_window,
+                 text=localization_manager.tr("ucv_l16"),
                  **AppStyles.label_style()).pack(pady=10)
 
         self.input_notes = tk.Entry(self.top_window, width=30, **AppStyles.entry_style())
         self.input_notes.pack(pady=5)
 
-        submit_button = tk.Button(self.top_window, text="Подтвердить",
-                                  command=self.get_and_close, **AppStyles.button_style())
+        submit_button = tk.Button(self.top_window,
+                                  text=localization_manager.tr("ucv_but13"),
+                                  command=self.get_and_close,
+                                  **AppStyles.button_style())
         submit_button.pack(pady=10)
 
     def get_and_close(self):
@@ -745,7 +826,9 @@ class UserConfigView(tk.Frame):
             salt_text += salt
             salt_text += ", "
         salt_text = salt_text[:-2]
-        mb.showinfo("Список солей", f"Список возможных солей для данного соединения:{salt_text}")
+        tit = localization_manager.tr("ucv_salts_tit")
+        mes = localization_manager.tr("ucv_salts_mes")
+        mb.showinfo(tit, f"{mes}{salt_text}")
 
     def create_k_factors_widgets(self):
 
@@ -779,7 +862,9 @@ class UserConfigView(tk.Frame):
                 symbol = widget["symbol"].get()
 
                 if symbol in used_symbols:
-                    self.show_error("Ошибка", f"Растворитель '{symbol}' повторяется")
+                    err = localization_manager.tr("ucv_error1")
+                    self.show_error(localization_manager.tr("error_title"),
+                                    f"{err} {symbol}")
                     return None, None
                 used_symbols.add(symbol)
 
@@ -794,7 +879,8 @@ class UserConfigView(tk.Frame):
             if self.antisolv_check.get() == 1:
                 v_antisolvent = float(self.entry_v_antisolvent.get())
         except ValueError:
-            self.show_error(title="error", message="Характеристики раствора должны принимать численные значения")
+            self.show_error(title=localization_manager.tr("error_title"),
+                            message=localization_manager.tr("ucv_error2"))
             return
 
         solution_info = {
@@ -816,10 +902,12 @@ class UserConfigView(tk.Frame):
             symbol = widget["salt"].get()
 
             if symbol in used_salts:
-                self.show_error("Ошибка", f"Соль '{symbol}' повторяется")
+                err = localization_manager.tr("ucv_error3")
+                self.show_error(localization_manager.tr("error_title"), f"{err} {symbol}")
                 return None, None
             used_salts.add(symbol)
-            k_factor = float_test(widget["k_factor"].get(), "К-факторы")
+            k_factor = float_test(widget["k_factor"].get(),
+                                  localization_manager.tr("ucv_lf6"))
             k_factors.append({
                 "salt": widget["salt"].get(),
                 "k_factor": k_factor,
@@ -836,12 +924,14 @@ class UserConfigView(tk.Frame):
             stoichiometry = self.structure_stoichiometry[idx]
             for i in range(num_sites):
                 widget = self.site_widgets[site_type]["dynamic_widgets"][i]
-                fraction = float_test(widget["fraction"].get(), "Доли")
+                fraction = float_test(widget["fraction"].get(),
+                                      localization_manager.tr("ucv_l17"))
                 if fraction is None:
                     return None, None
                 symbol = widget["symbol"].get()
                 if symbol in used_symbols:
-                    self.show_error("Ошибка", f"Катион '{symbol}' повторяется")
+                    err = localization_manager.tr("ucv_error4")
+                    self.show_error(localization_manager.tr("error_title"), f"{err} {symbol}")
                     widget["symbol"].configure(background="#ffcccc")
                     return None, None
                 used_symbols.add(symbol)
@@ -859,7 +949,8 @@ class UserConfigView(tk.Frame):
             widget = self.site_widgets["anion"]["dynamic_widgets"][i]
             symbol = widget["symbol"].get()
             if symbol in used_symbols:
-                self.show_error("Ошибка", f"Анион '{symbol}' повторяется")
+                err = localization_manager.tr("ucv_error5")
+                self.show_error(localization_manager.tr("error_title"), f"{err} {symbol}")
                 widget["symbol"].configure(background="#ffcccc")
                 return None, None
             used_symbols.add(symbol)
@@ -902,18 +993,22 @@ class UserConfigView(tk.Frame):
         self.recalculate_all_positions(self.solvents_widgets)
 
     def create_solvent_properties(self):
-        self.propereties_frame = tk.LabelFrame(self.first_column, text="свойства раствора",
+        self.propereties_frame = tk.LabelFrame(self.first_column,
+                                               text=localization_manager.tr("ucv_l18"),
                                                **AppStyles.labelframe_style())
         self.propereties_frame.pack(expand=True, fill = 'x', pady=5)
         self.propereties_frame.columnconfigure(0, weight=1)
         self.propereties_frame.columnconfigure(1, weight=1)
         self.propereties_frame.columnconfigure(2, weight=1)
-        tk.Label(self.propereties_frame, text="Объем раствора",
+        tk.Label(self.propereties_frame,
+                 text=localization_manager.tr("ucv_l19"),
                  **AppStyles.label_style()).grid(row=0, column=0, sticky = 'ew', padx=5, pady=2)
-        tk.Label(self.propereties_frame, text="Концентрация раствора",
+        tk.Label(self.propereties_frame,
+                 text=localization_manager.tr("ucv_l20"),
                  **AppStyles.label_style()).grid(row=0, column=1, sticky = 'ew', padx=5, pady=2)
         if self.antisolv_check.get() == 1:
-            tk.Label(self.propereties_frame, text="Объем антирастворителя",
+            tk.Label(self.propereties_frame,
+                     text=localization_manager.tr("ucv_l21"),
                  **AppStyles.label_style()).grid(row=0, column=2, sticky = 'ew', padx=5, pady=2)
 
         self.entry_v_solvent = tk.Entry(self.propereties_frame, width=10,
