@@ -3,14 +3,15 @@ from collections import namedtuple
 from analysis.database_utils import get_template_id
 from gui.models.composition_form import CompositionModel
 from gui.views.composition_form import CompositionView
+from gui.language.manager import localization_manager
 
 Numbers = namedtuple("Numbers", ["elements", "solvent"])
-
 
 class CompositionController:
     def __init__(self, parent):
         self.model = CompositionModel()
         self.view = CompositionView(parent, self)
+        localization_manager.register_observer(self)
 
     def handle_info_submit(self, data):
         try:
@@ -18,7 +19,7 @@ class CompositionController:
             num_solvents = int(data['num_solvents'])
             num_k = int(data['num_k'])
         except ValueError:
-            self.view.show_error("Number of elements, solvents and k_factors must be float numbers")
+            self.view.show_error(localization_manager.tr("comp_err1"))
             return
 
         id_info = self.model.add_composition_info(
@@ -40,7 +41,7 @@ class CompositionController:
             try:
                 fraction = float(solvent['fraction'])
             except ValueError:
-                self.view.show_error("Fraction must be a float number")
+                self.view.show_error(localization_manager.tr("comp_err2"))
                 return
 
             solvent_type = solvent['solvent_type']
@@ -48,7 +49,9 @@ class CompositionController:
 
         for stype, total in solvent_fractions.items():
             if total > 0 and not 0.99 <= total <= 1.01:
-                self.view.show_error(f"Total fraction for {stype} must be 1")
+                er1 = localization_manager.tr("comp_err31")
+                er2 = localization_manager.tr("comp_err32")
+                self.view.show_error(f"{er1} {stype} {er2}")
                 return
 
         structure_fractions = {
@@ -62,9 +65,13 @@ class CompositionController:
         for element in structure_data:
             try:
                 fraction = float(element['fraction'])
+            except ValueError:
+                self.view.show_error(localization_manager.tr("comp_err2"))
+                return
+            try:
                 valence = int(element['valence'])
             except ValueError:
-                self.view.show_error("Fraction must be float and valence must be integer")
+                self.view.show_error(localization_manager.tr("comp_err4"))
                 return
 
             stype = element['structure_type']
@@ -72,7 +79,9 @@ class CompositionController:
 
         for stype, total in structure_fractions.items():
             if total > 0 and not 0.99 <= total <= 1.01:
-                self.view.show_error(f"Total fraction for {stype} must be 1")
+                er1 = localization_manager.tr("comp_err31")
+                er2 = localization_manager.tr("comp_err32")
+                self.view.show_error(f"{er1} {stype} {er2}")
                 return
 
         name_phase = self.view.phase_template.get()
@@ -94,7 +103,7 @@ class CompositionController:
             try:
                 k_factor = float(element['k_factor'])
             except ValueError:
-                self.view.show_error("k factors must be float number")
+                self.view.show_error(localization_manager.tr("comp_err5"))
                 return
 
         for factor in factors_data:
@@ -145,11 +154,11 @@ class CompositionController:
                 properties_data['method_description'] if properties_data['method_description'] else None
             ]
         except ValueError:
-            self.view.show_error("All numeric properties must be valid numbers")
+            self.view.show_error(localization_manager.tr("comp_err6"))
             return
 
         success, message = self.model.add_properties(id_info, properties_values)
         if success:
-            self.view.show_success("Composition successfully added to database")
+            self.view.show_success(localization_manager.tr("comp_success"))
         else:
             self.view.show_error(message)

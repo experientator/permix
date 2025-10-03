@@ -1,10 +1,13 @@
 from gui.models.templates_check import TemplatesCheckModel
 from gui.views.templates_check import TemplatesCheckView
+from gui.language.manager import localization_manager
 
 class TemplatesCheckController:
     def __init__(self, parent):
         self.model = TemplatesCheckModel()
         self.view = TemplatesCheckView(parent, self)
+        localization_manager.register_observer(self)
+
         self.load_templates()
         self.view.bind_template_selection(self.on_template_selected)
         self.load_templates()
@@ -12,14 +15,14 @@ class TemplatesCheckController:
 
     def handle_add_sites(self, data):
         if not all([data['name'], data['dimensionality'], data['anion_stoich']]):
-            self.view.show_error("Ошибка", "Название, размерность и стехиометрия анионов должны быть введены")
+            self.view.show_error(localization_manager.tr("temp_err1"))
             return None
 
         try:
             dimensionality = int(data['dimensionality'])
             anion_stoich = int(data['anion_stoich'])
         except ValueError:
-            self.view.show_error("Ошибка","Размерность и стехиометрия анионов должны быть целыми числами")
+            self.view.show_error(localization_manager.tr("temp_err2"))
             return None
 
         template_id, message = self.model.add_template(
@@ -30,7 +33,7 @@ class TemplatesCheckController:
         )
 
         if not template_id:
-            self.view.show_error("Ошибка", message)
+            self.view.show_error(message)
             return None
 
         self.current_template_id = template_id
@@ -38,7 +41,7 @@ class TemplatesCheckController:
 
     def handle_submit_template(self, site_data):
         if not self.current_template_id:
-            self.view.show_error("Ошибка", "Шаблон не выбран")
+            self.view.show_error(localization_manager.tr("temp_err3"))
             return None
 
         for site in site_data:
@@ -46,7 +49,7 @@ class TemplatesCheckController:
                 stoichiometry = int(site['stoichiometry'])
                 valence = int(site['valence'])
             except ValueError:
-                self.view.show_error("Ошибка", "Стехиометрия и валетность должны быть целыми числами")
+                self.view.show_error(localization_manager.tr("temp_err4"))
                 return None
 
         for site in site_data:
@@ -58,10 +61,10 @@ class TemplatesCheckController:
             )
 
             if not success:
-                self.view.show_error("Ошибка",message)
+                self.view.show_error(message)
                 return None
 
-        self.view.show_success("Template with sites successfully uploaded")
+        self.view.show_success(localization_manager.tr("temp_success"))
         self.load_templates()
         self.view.btn_add_sites.config(state='normal')
         self.current_template_id = None
@@ -71,7 +74,8 @@ class TemplatesCheckController:
             template = self.model.get_all_templates()
             self.view.show_template(template)
         except Exception as e:
-            self.view.show_error("Ошибка", f"Не удалось загрузить ионы: {str(e)}")
+            er = localization_manager.tr("temp_err5")
+            self.view.show_error( f"{er} {str(e)}")
 
     def on_template_selected(self, event=None):
         template = self.view.get_selected_template()
@@ -83,26 +87,28 @@ class TemplatesCheckController:
             site = self.model.get_sites_for_template(id_phase)
             self.view.show_sites(site)
         except Exception as e:
-            self.view.show_error("Ошибка", f"Не удалось загрузить структуру: {str(e)}")
+            er = localization_manager.tr("temp_err6")
+            self.view.show_error(f"{er} {str(e)}")
 
     def delete_selected(self):
         item_data = self.view.get_selected_template()
         if not item_data:
-            self.view.show_warning("Предупреждение", "Выберите строку для удаления")
+            self.view.show_warning(localization_manager.tr("ion_war"))
             return
 
         record_id = item_data[0]
 
-        if self.view.ask_confirmation("Подтверждение", "Вы уверены, что хотите удалить эту запись?"):
+        if self.view.ask_confirmation(localization_manager.tr("ion_conf")):
             try:
                 success = self.model.delete_template(record_id)
                 if success:
-                    self.view.show_message("Успех", "Запись успешно удалена")
+                    self.view.show_success(localization_manager.tr("ion_success"))
                     self.load_templates()
                 else:
-                    self.view.show_error("Ошибка", "Не удалось удалить запись")
+                    self.view.show_error(localization_manager.tr("ion_err7"))
             except Exception as e:
-                self.view.show_error("Ошибка", f"Ошибка при удалении: {str(e)}")
+                er = localization_manager.tr("ion_err8")
+                self.view.show_error(f"{er} {str(e)}")
 
     def __del__(self):
         self.model.close()

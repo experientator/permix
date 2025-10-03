@@ -1,4 +1,7 @@
 default_translations = [
+("warning_title", "Warning", "Предупреждение"),
+("success_title", "Success", "Успех"),
+("confirm_title", "Confirmation", "Подтверждение"),
 ("error_title", "Error", "Ошибка"),
 ("ucv_lf1", "Choose template", "Выбор шаблона"),
 ("ucv_lf2", "Calculations results", "Результаты расчетов"),
@@ -248,5 +251,38 @@ default_translations = [
 ("main_9", "Exit", "Выйти"),
 ("main_10", "English", "Английский"),
 ("main_11", "Russian", "Русский"),
-("main_12", "Language", "Язык")
+("main_12", "Language", "Язык"),
+
+("comp_err1", "Number of elements, solvents and k_factors must be float numbers", "Количество элементов, растворителей и k_факторов должно быть дробным или целым числом"),
+("comp_err2", "Fraction must be a float number", "Доля должна быть числом"),
+("comp_err31", "Total fraction for", "Общая доля для"),
+("comp_err32", "must be 1", "Должна быть равна 1"),
+("comp_err4", "Valence must be an integer number", "Валентность должна быть целым числом"),
+("comp_err5", "K-factors must be float number", "К-факторы должны быть числами"),
+("comp_err6", "All numeric properties must be valid numbers", "Все числовые свойства должны принимать числовые значения"),
+("comp_success", "Composition successfully added to database", "Соединение успешно добавлено в базу данных"),
+
+("ion_err1", "All fields are required", "Все поля должны быть заполнены"),
+("ion_err2", "must be a number", "должно быть числом"),
+("ion_err3", "This ion doesn't exist in database", "Данного иона нет в базе данных"),
+("ion_err4", "This ion already exists", "Данный ион уже существует в базе данных"),
+("ion_err5", "Failed to load ions:", "Не удалось загрузить ионы:"),
+("ion_err6", "Failed to load radii:", "Не удалось загрузить радиусы:"),
+("ion_war", "Select line to delete", "Выберите строку для удаления"),
+("ion_conf", "Are you sure you want to delete this entry?", "Вы уверены, что хотите удалить эту запись?"),
+("ion_success", "Failed to delete entry", "Запись успешно удалена"),
+("ion_err7", "Failed to delete entry", "Не удалось удалить запись"),
+("ion_err8", "Error while deleting:", "Ошибка при удалении:"),
+
+("sol_err1", "Failed to load data", "Не удалось загрузить данные:"),
+("sol_err2", "All fields except notes are required", "Все поля кроме заметок должны быть заполнены"),
+("sol_err3", "Density and boiling point must be numbers", "Плотность и температура кипения должны быть числами"),
+
+("temp_err1", "The name, size and stoichiometry of the anions must be entered", "Название, размерность и стехиометрия анионов должны быть введены"),
+("temp_err2", "The dimensions and stoichiometry of anions must be integers", "Размерность и стехиометрия анионов должны быть целыми числами"),
+("temp_err3", "No template selected", "Шаблон не выбран"),
+("temp_err4", "Stoichiometry and valence must be integers", "Стехиометрия и валентность должны быть целыми числами"),
+("temp_success", "Template with sites successfully uploaded", "Шаблон успешно загружен"),
+("temp_err5", "Failed to load ions:", "Не удалось загрузить ионы:"),
+("temp_err6", "Failed to load structure:", "Не удалось загрузить структуру:"),
 ]

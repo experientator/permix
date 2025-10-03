@@ -1,7 +1,7 @@
 from gui.models.user_config_form import UserConfigModel
 from gui.views.user_config_form import UserConfigView
 from collections import namedtuple
-import tkinter as tk
+from gui.language.manager import localization_manager
 
 from analysis.database_utils import get_fav_id
 
@@ -11,16 +11,14 @@ class UserConfigController:
     def __init__(self, parent):
         self.view = UserConfigView(parent, self)
         self.model = UserConfigModel()
-
-    def show_error(self, title, message):
-        tk.messagebox.showerror(title, message)
+        localization_manager.register_observer(self)
 
     def fraction_test(self, data, list, type_name):
         for element in data:
             try:
                 fraction = float(element['fraction'])
             except ValueError:
-                self.show_error(title = "error", message = "Fraction must be a float number")
+                self.view.show_error(localization_manager.tr("comp_err2"))
                 return
 
             if type_name == 'anion':
@@ -31,7 +29,9 @@ class UserConfigController:
 
         for type, total in list.items():
             if total > 0 and not 0.99 <= total <= 1.01:
-                self.show_error(title = "error", message =f"Total fraction for {type} must be 1")
+                er1 = localization_manager.tr("comp_err31")
+                er2 = localization_manager.tr("comp_err32")
+                self.view.show_error(f"{er1} {type} {er2}")
                 return
 
     def handle_main_submit(self, name_fav, notes_fav, solvents_data, cations_data,
@@ -51,7 +51,7 @@ class UserConfigController:
                 factor['k_factor']
             )
             if not success:
-                self.show_error(title = "error", message =message)
+                self.view.show_error(message)
                 return
 
         for solvent in solvents_data:
@@ -62,7 +62,7 @@ class UserConfigController:
                 float(solvent['fraction'])
             )
             if not success:
-                self.show_error(title = "error", message =message)
+                self.view.show_error(message)
                 return
 
         for element in cations_data:
@@ -74,7 +74,7 @@ class UserConfigController:
                 int(element['valence'])
             )
             if not success:
-                self.show_error(title = "error", message =message)
+                self.view.show_error(message)
                 return
 
         for element in anions_data:
@@ -86,5 +86,5 @@ class UserConfigController:
                 1.0
             )
             if not success:
-                self.show_error(title = "error", message =message)
+                self.view.show_error(message)
                 return
