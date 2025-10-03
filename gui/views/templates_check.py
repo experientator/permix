@@ -9,11 +9,7 @@ class TemplatesCheckView(tk.Toplevel):
         self.controller = controller
         localization_manager.register_observer(self)
         self.title(localization_manager.tr("tcv_window_title"))
-        self.attributes('-fullscreen', True)
-        menu = tk.Menu(self)
-        menu.add_command(label=localization_manager.tr("menu_exit"),
-                         command=self.destroy)
-        self.config(menu=menu)
+        #self.attributes('-fullscreen', True)
         self.configure(bg=AppStyles.BACKGROUND_COLOR)
         self.styles = AppStyles()
         self.site_frames = []

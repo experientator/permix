@@ -11,11 +11,7 @@ class IonsCheckView(tk.Toplevel):
         localization_manager.register_observer(self)
         self.title(localization_manager.tr("ccv_window_title"))
         self.configure(bg=AppStyles.BACKGROUND_COLOR)
-        self.attributes('-fullscreen', True)
-        menu = tk.Menu(self)
-        menu.add_command(label=localization_manager.tr("menu_exit"),
-                         command=self.destroy)
-        self.config(menu=menu)
+
         self.styles = AppStyles()
         self.create_widgets()
 

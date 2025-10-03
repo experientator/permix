@@ -9,13 +9,8 @@ class CompositionCheckView(tk.Toplevel):
         self.controller = controller
         localization_manager.register_observer(self)
         self.title(localization_manager.tr("ccv_window_title"))
-        self.attributes('-fullscreen', True)
         self.configure(bg=AppStyles.BACKGROUND_COLOR)
         self.build_ui()
-        menu = tk.Menu(self)
-        menu.add_command(label=localization_manager.tr("menu_exit"),
-                         command=self.destroy)
-        self.config(menu=menu)
 
     def build_ui(self):
 

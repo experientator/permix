@@ -11,26 +11,33 @@ from gui.views.user_config_form import UserConfigView
 from gui.language.manager import localization_manager
 from gui.language.default_widgets import default_translations
 
+
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("PerMix")
-        localization_manager.register_observer(self)
-        self.wm_attributes('-fullscreen',True)
-        menu = tk.Menu(self)
+        self.state('zoomed')
+        self.main_frame = None
+        self.create_calc()
+        self.create_menu()
+
+    def create_calc(self):
+        if self.main_frame:
+            self.main_frame.destroy()
         self.main_frame = ttk.Frame(self)
         self.main_frame.pack(fill=tk.BOTH, expand=True)
-
-        upload_menu = tk.Menu(menu, tearoff=0)
-        view_menu = tk.Menu(menu, tearoff=0)
-
         self.calc_controller = UserConfigController(self.main_frame)
         self.calc_view = UserConfigView(self.main_frame, self.calc_controller)
         self.calc_view.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
+    def create_menu(self):
+        menu = tk.Menu(self)
+        upload_menu = tk.Menu(menu, tearoff=0)
+        view_menu = tk.Menu(menu, tearoff=0)
+        lang_menu = tk.Menu(menu, tearoff=0)
+
         upload_menu.add_command(label=localization_manager.tr("main_1"),
                                 command=self.open_comp_form)
-        #upload_menu.add_command(label="Загрузить кандидатов", command=self.open_candidate_form)
 
         view_menu.add_command(label=localization_manager.tr("main_2"),
                               command=self.get_solvents)
@@ -41,15 +48,34 @@ class App(tk.Tk):
         view_menu.add_command(label=localization_manager.tr("main_5"),
                               command=self.get_compositions)
 
+        lang_menu.add_command(label=localization_manager.tr("main_10"),
+                              command=self.get_english)
+        lang_menu.add_command(label=localization_manager.tr("main_11"),
+                              command=self.get_russian)
+
         menu.add_cascade(label=localization_manager.tr("main_6"),
                          menu=upload_menu)
         menu.add_cascade(label=localization_manager.tr("main_7"),
                          menu=view_menu)
+        menu.add_cascade(label=localization_manager.tr("main_12"),
+                         menu=lang_menu)
+
         menu.add_command(label=localization_manager.tr("main_8"),
-                         command= self.program_info)
+                         command=self.program_info)
         menu.add_command(label=localization_manager.tr("main_9"),
                          command=self.destroy)
+
         self.config(menu=menu)
+
+    def get_english(self):
+        localization_manager.set_language("en")
+        self.create_calc()
+        self.create_menu()
+
+    def get_russian(self):
+        localization_manager.set_language("ru")
+        self.create_calc()
+        self.create_menu()
 
     def get_compositions(self):
         CompositionCheckController(self)
@@ -75,8 +101,8 @@ class App(tk.Tk):
     def open_comp_form(self):
         CompositionController(self)
 
+localization_manager.initialize_default_translations(default_translations)
 if __name__ == "__main__":
-    localization_manager.initialize_default_translations(default_translations)
-    localization_manager.set_language("ru")
+
     app = App()
     app.mainloop()

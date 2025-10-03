@@ -12,11 +12,7 @@ class SolventsCheckView(tk.Toplevel):
 
         self.configure(bg=AppStyles.BACKGROUND_COLOR)
         self.styles = AppStyles()
-        self.attributes('-fullscreen', True)
-        menu = tk.Menu(self)
-        menu.add_command(label=localization_manager.tr("menu_exit"),
-                         command=self.destroy)
-        self.config(menu=menu)
+
         self.title(localization_manager.tr("scv_window_title"))
 
         self.build_ui()

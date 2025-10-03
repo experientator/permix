@@ -9,13 +9,10 @@ class CompositionView(tk.Toplevel):
         super().__init__(parent)
         self.controller = controller
         self.title("Добавить новое соединение")
-        self.attributes('-fullscreen', True)
         self.configure(bg=AppStyles.BACKGROUND_COLOR)
         self.build_ui()
         self.dynamic_widgets = []
-        menu = tk.Menu(self)
-        menu.add_command(label="Выйти", command=self.destroy)
-        self.config(menu=menu)
+
 
     def build_ui(self):
         self.container = tk.Frame(self, **AppStyles.frame_style())

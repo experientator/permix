@@ -245,5 +245,8 @@ default_translations = [
 ("main_6", "Upload", "Загрузить"),
 ("main_7", "Viewing", "Просмотр"),
 ("main_8", "About program", "О программе"),
-("main_9", "Exit", "Выйти")
+("main_9", "Exit", "Выйти"),
+("main_10", "English", "Английский"),
+("main_11", "Russian", "Русский"),
+("main_12", "Language", "Язык")
 ]
