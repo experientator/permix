@@ -39,7 +39,7 @@ default_translations = [
 
 ("ucv_cb1", "Presence of anti-solvents", "Наличие антирастворителей"),
 ("ucv_but7", "Submit composition", "Подтвердить состав"),
-("ucv_lf5", "Solvents", "Ррастворители"),
+("ucv_lf5", "Solvents", "Растворители"),
 
 ("ucv_l9", "Solvent type", "Тип растворителя"),
 ("ucv_l10", "Number", "Кол-во"),
@@ -96,9 +96,9 @@ default_translations = [
 ("ucv_error5", "The anion repeats:", "Анион повторяется:"),
 
 ("ucv_l18", "Solution properties", "Свойства раствора"),
-("ucv_l19", "Solution volume", "Объем раствора"),
-("ucv_l20", "Solution concentration", "Концентрация раствора"),
-("ucv_l21", "Volume of antisolvent", "Объем антирастворителя"),
+("ucv_l19", "Solution volume, ml", "Объем раствора, мл"),
+("ucv_l20", "Solution concentration, М", "Концентрация раствора, М"),
+("ucv_l21", "Volume of antisolvent, ml", "Объем антирастворителя, мл"),
 
 ("icv_window_title", "Composition viewer", "Просмотр ионов"),
 ("menu_exit", "Exit", "Выйти"),

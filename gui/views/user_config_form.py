@@ -863,8 +863,7 @@ class UserConfigView(tk.Frame):
 
                 if symbol in used_symbols:
                     err = localization_manager.tr("ucv_error1")
-                    self.show_error(localization_manager.tr("error_title"),
-                                    f"{err} {symbol}")
+                    self.show_error(f"{err} {symbol}")
                     return None, None
                 used_symbols.add(symbol)
 
@@ -879,8 +878,7 @@ class UserConfigView(tk.Frame):
             if self.antisolv_check.get() == 1:
                 v_antisolvent = float(self.entry_v_antisolvent.get())
         except ValueError:
-            self.show_error(title=localization_manager.tr("error_title"),
-                            message=localization_manager.tr("ucv_error2"))
+            self.show_error(message=localization_manager.tr("ucv_error2"))
             return
 
         solution_info = {
@@ -903,7 +901,7 @@ class UserConfigView(tk.Frame):
 
             if symbol in used_salts:
                 err = localization_manager.tr("ucv_error3")
-                self.show_error(localization_manager.tr("error_title"), f"{err} {symbol}")
+                self.show_error(f"{err} {symbol}")
                 return None, None
             used_salts.add(symbol)
             k_factor = float_test(widget["k_factor"].get(),
@@ -931,7 +929,7 @@ class UserConfigView(tk.Frame):
                 symbol = widget["symbol"].get()
                 if symbol in used_symbols:
                     err = localization_manager.tr("ucv_error4")
-                    self.show_error(localization_manager.tr("error_title"), f"{err} {symbol}")
+                    self.show_error(f"{err} {symbol}")
                     widget["symbol"].configure(background="#ffcccc")
                     return None, None
                 used_symbols.add(symbol)
@@ -950,7 +948,7 @@ class UserConfigView(tk.Frame):
             symbol = widget["symbol"].get()
             if symbol in used_symbols:
                 err = localization_manager.tr("ucv_error5")
-                self.show_error(localization_manager.tr("error_title"), f"{err} {symbol}")
+                self.show_error(f"{err} {symbol}")
                 widget["symbol"].configure(background="#ffcccc")
                 return None, None
             used_symbols.add(symbol)
