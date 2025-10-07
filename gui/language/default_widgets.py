@@ -367,4 +367,15 @@ default_translations = [
  ("mi_label5", "Notes", "Заметки"),
  ("cfv_prop", "Device properties", "Свойства устройства"),
  ("cfv_entry_but","Confirm main information", "Подтвердить основную информацию"),
+ ("file_save_error", "Error saving file", "Ошибка при сохранении файла"),
+("file_saved_success","File saved successfully", "Файл успешно сохранен"),
+
+("acu_err1","Total amount of moles of anions", "Итоговая сумма молей анионов"),
+("acu_err2","does not match the target", "не соответствует целевой"),
+("acu_err3","after calculation. Difference:", "после расчета. Разница:"),
+
+("act_err1","must take a numerical value", "должны принимать числовое значение"),
+("act_err2","Fractions", "Доли"),
+("act_err3","Fraction summ", "Сумма долей"),
+("act_err4","must be equal to 1", "должна быть равна 1"),
 ]

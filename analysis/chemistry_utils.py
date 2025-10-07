@@ -3,6 +3,7 @@ import periodictable
 from analysis.database_utils import get_cation_formula
 import analysis.constants as constants
 import tkinter.messagebox as mb
+from gui.language.manager import localization_manager
 
 def show_error(message):
     mb.showerror(title="error", message=message)
@@ -66,10 +67,12 @@ def calculate_target_anion_moles(anions, total_anion_stoich):
     diff_check = abs(calculated_total_moles_check - total_anion_stoich)
 
     if diff_check > max(absolute_tolerance, relative_tolerance * max_abs_val):
+        er1 = localization_manager.tr("acu_err1")
+        er2 = localization_manager.tr("acu_err2")
+        er3 = localization_manager.tr("acu_err3")
         show_error(
-            f"MC_UTILS: Итоговая сумма молей анионов ({calculated_total_moles_check:.6f}) "
-            f"не соответствует целевой ({total_anion_stoich:.6f}) после расчета. "
-            f"Разница: {float(diff_check):.2E}"
+            f"MC_UTILS: {er1} ({calculated_total_moles_check:.6f}) "
+            f"{er2} ({total_anion_stoich:.6f}) {er3} {float(diff_check):.2E}"
         )
     return target_moles
 

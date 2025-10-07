@@ -170,6 +170,7 @@ class CompositionView(tk.Toplevel):
         self.create_solvents()
         self.create_k_factors_frame()
         self.create_solvent_properties()
+        self.create_submit_button()
 
     def create_properties_frame(self, device_type):
         self.properties_frame = tk.LabelFrame(self.first_column,
@@ -217,11 +218,6 @@ class CompositionView(tk.Toplevel):
         self.property_entries.clear()
         self.properties_data.clear()
 
-    def collect_properties_data(self):
-        data = []
-        for i, entry in enumerate(self.property_entries):
-            data[i] = entry.get()
-        return data
 
     def create_sites(self):
         self.button_info_entry["state"] = "disabled"
@@ -511,10 +507,9 @@ class CompositionView(tk.Toplevel):
         except ValueError:
             self.show_error(message=localization_manager.tr("ucv_error2"))
             return
-        stab_notes = self.entry_stab_notes
-        solution_info = {"v_solvent": v_solvent, "c_solvent": c_solvent,
-                         "v_antisolvent": v_antisolvent, "stability_notes": stab_notes}
-
+        stab_notes = self.entry_stab_notes.get()
+        method_desc = self.entry_method_desc.get()
+        solution_info = [stab_notes, v_antisolvent, v_solvent, c_solvent, method_desc]
         return solvents, solution_info
 
     def get_k_factors_data(self):
@@ -541,8 +536,7 @@ class CompositionView(tk.Toplevel):
 
     def get_structure_data(self):
         used_symbols = set()
-        cations = []
-        anions = []
+        structure_data = []
         for idx, site_type in enumerate(self.structure_types):
             num_sites = int(self.site_widgets[site_type]["combobox_num"].get())
             valence = self.structure_valences[idx]
@@ -560,13 +554,11 @@ class CompositionView(tk.Toplevel):
                     widget["symbol"].configure(background="#ffcccc")
                     return None, None
                 used_symbols.add(symbol)
-                cations.append({
+                structure_data.append({
                     "structure_type": site_type,
                     "symbol": symbol,
                     "fraction": widget["fraction"].get(),
-                    "valence": valence,
-                    "stoichiometry": float(stoichiometry),
-                    "real_stoichiometry": float(stoichiometry) * fraction
+                    "valence": valence
                 })
 
         num_anions = int(self.site_widgets["anion"]["combobox_num"].get())
@@ -579,11 +571,19 @@ class CompositionView(tk.Toplevel):
                 widget["symbol"].configure(background="#ffcccc")
                 return None, None
             used_symbols.add(symbol)
-            anions.append({
+            structure_data.append({
+                "structure_type": "anion",
+                "valence": 1,
                 "symbol": widget["symbol"].get(),
                 "fraction": widget["fraction"].get(),
             })
-        return cations, anions
+        return structure_data
+
+    def collect_properties_data(self):
+        data = []
+        for entry in self.property_entries:
+            data.append(entry.get())
+        return data
 
     def _update_solvent(self, solvent_type):
         for field in self.solvents_widgets[solvent_type]["dynamic_widgets"]:
@@ -635,6 +635,9 @@ class CompositionView(tk.Toplevel):
         tk.Label(self.propereties_frame,
                  text="Stability notes",
                  **AppStyles.label_style()).grid(row=3, column=0, sticky='ew', padx=5, pady=2)
+        tk.Label(self.propereties_frame,
+                 text="Method description",
+                 **AppStyles.label_style()).grid(row=4, column=0, sticky='ew', padx=5, pady=2)
 
         self.entry_v_solvent = tk.Entry(self.propereties_frame, width=10,
                                         **AppStyles.entry_style())
@@ -651,6 +654,17 @@ class CompositionView(tk.Toplevel):
         self.entry_stab_notes = tk.Entry(self.propereties_frame, width=10,
                                          **AppStyles.entry_style())
         self.entry_stab_notes.grid(row=3, column=1, sticky='ew', padx=5, pady=2)
+
+        self.entry_method_desc = tk.Entry(self.propereties_frame, width=10,
+                                         **AppStyles.entry_style())
+        self.entry_method_desc.grid(row=4, column=1, sticky='ew', padx=5, pady=2)
+
+    def create_submit_button(self):
+        self.subm_button = tk.Button(self.sec_column,
+                                    text="Загрузить данные",
+                                    command = self.upload_data,
+                                    **AppStyles.button_style())
+        self.subm_button.pack(expand=True, fill='x', pady=5)
 
     def reset_form(self):
 
@@ -676,5 +690,19 @@ class CompositionView(tk.Toplevel):
         self.create_template_frame()
         self.update()
 
+    def upload_data(self):
+        solvents, solution_info = self.get_solution_data()
+        k_factors = self.get_k_factors_data()
+        structure_data = self.get_structure_data()
+        properties = self.collect_properties_data()
+        main_info = [self.entry_device_type.get(),
+                     self.entry_doi.get(),
+                     self.entry_data_type.get(),
+                     self.entry_notes.get()]
+        self.controller.handle_main_submit(main_info,  solution_info, structure_data,
+                           solvents, properties, k_factors)
+
     def show_error(self, message):
         tk.messagebox.showerror(title=localization_manager.tr("error_title"), message=message)
+    def show_success(self, message):
+        tk.messagebox.showinfo(title=localization_manager.tr("success_title"), message=message)

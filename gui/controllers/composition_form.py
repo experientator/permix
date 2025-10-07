@@ -13,29 +13,11 @@ class CompositionController:
         self.view = CompositionView(parent, self)
         localization_manager.register_observer(self)
 
-    def handle_info_submit(self, data):
-        try:
-            num_elements = int(data['num_elements'])
-            num_solvents = int(data['num_solvents'])
-            num_k = int(data['num_k'])
-        except ValueError:
-            self.view.show_error(localization_manager.tr("comp_err1"))
-            return
+    def handle_main_submit(self, main_data,  solution_info, structure_data,
+                           solvent_data, properties_data, factors_data):
 
-        id_info = self.model.add_composition_info(
-            data['id_template'],
-            data['doi'],
-            data['data_type'],
-            data['notes']
-        )
+        device_type = self.view.entry_device_type.get()
 
-        if id_info:
-            self.view.create_dynamic_widgets(num_elements, num_solvents, num_k)
-            self.view.first_button.destroy()
-            return id_info
-        return None
-
-    def handle_main_submit(self, structure_data, solvent_data, properties_data, factors_data):
         solvent_fractions = {'solvent': 0, 'antisolvent': 0}
         for solvent in solvent_data:
             try:
@@ -55,10 +37,10 @@ class CompositionController:
                 return
 
         structure_fractions = {
-            'A_site': 0,
-            'B_site': 0,
-            'B_double': 0,
-            'spacer_site': 0,
+            'a_site': 0,
+            'b_site': 0,
+            'b_double': 0,
+            'spacer': 0,
             'anion': 0
         }
 
@@ -84,17 +66,9 @@ class CompositionController:
                 self.view.show_error(f"{er1} {stype} {er2}")
                 return
 
-        name_phase = self.view.phase_template.get()
+        name_phase = self.view.entry_template.get()
         id_template = get_template_id(name_phase)
-        id_info = self.handle_info_submit({
-            'doi': self.view.entry_doi.get(),
-            'data_type': self.view.data_box.get(),
-            'notes': self.view.entry_notes.get(),
-            'id_template': id_template,
-            'num_elements': len(structure_data),
-            'num_solvents': len(solvent_data),
-            'num_k': len(factors_data)
-        })
+        id_info = self.model.add_composition_info(id_template, main_data)
 
         if not id_info:
             return
@@ -105,6 +79,7 @@ class CompositionController:
             except ValueError:
                 self.view.show_error(localization_manager.tr("comp_err5"))
                 return
+        self.model.add_syntesis_params(id_info, solution_info)
 
         for factor in factors_data:
             success, message = self.model.add_k_factors(
@@ -138,26 +113,15 @@ class CompositionController:
             if not success:
                 self.view.show_error(message)
                 return
-
+        properties_values = []
         try:
-            properties_values = [
-                float(properties_data['band_gap']) if properties_data['band_gap'] else None,
-                float(properties_data['ff_percent']) if properties_data['ff_percent'] else None,
-                float(properties_data['pce_percent']) if properties_data['pce_percent'] else None,
-                float(properties_data['voc']) if properties_data['voc'] else None,
-                float(properties_data['jsc']) if properties_data['jsc'] else None,
-                properties_data['stability_notes'],
-                float(properties_data['v_antisolvent']) if properties_data['v_antisolvent'] else None,
-                float(properties_data['v_solution']) if properties_data['v_solution'] else None,
-                float(properties_data['c_solution']) if properties_data['c_solution'] else None,
-                float(properties_data['anion_stoichiometry']) if properties_data['anion_stoichiometry'] else None,
-                properties_data['method_description'] if properties_data['method_description'] else None
-            ]
+            for property in properties_data:
+                properties_values.append(float(property) if property else None)
         except ValueError:
             self.view.show_error(localization_manager.tr("comp_err6"))
             return
 
-        success, message = self.model.add_properties(id_info, properties_values)
+        success, message = self.model.add_properties(id_info, device_type, properties_values)
         if success:
             self.view.show_success(localization_manager.tr("comp_success"))
         else:

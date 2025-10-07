@@ -697,8 +697,17 @@ class UserConfigView(tk.Frame):
         close_btn.pack(side='left', padx=5)
 
     def get_summary_file(self, filename, summary_lines):
-        with open(filename, 'w+', encoding='utf-8') as summary_file:
-            summary_file.writelines(summary_lines)
+        try:
+            with open(filename, 'w+', encoding='utf-8') as summary_file:
+                summary_file.writelines(summary_lines)
+            success_message = localization_manager.tr("file_saved_success").format(filename=filename)
+            self.show_success(success_message)
+            return True
+
+        except Exception as e:
+            error_message = localization_manager.tr("file_save_error").format(filename=filename, error=str(e))
+            self.show_error(error_message)
+            return False
 
     def sort_frame(self):
         self.sort_menu_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
@@ -764,7 +773,12 @@ class UserConfigView(tk.Frame):
         new_sorted_equations = [item for item in sorted_equations if item.get('coefficients_detailed')]
         eq_text, equations = generate_reaction_equations_display(self.calculations, sorted_keys)
         self.clear_console()
-        self.add_text(eq_text)
+        cons2 = localization_manager.tr("ucv_cons2")
+        cons3 = localization_manager.tr("ucv_cons3")
+        cons4 = localization_manager.tr("ucv_cons4")
+        self.add_text(f"{cons2} {self.geom_factors_str}\n")
+        self.add_text(f"{cons3} {self.perovskite_formula}\n")
+        self.add_text(f"{cons4}\n {eq_text}")
         self.add_text(format_results_mass_table(self.calculations, sorted_keys))
         self.hystogram_frame.pack(expand=True, padx=5, pady=5)
         actual_num_eq = len(new_sorted_equations)

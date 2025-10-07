@@ -1,6 +1,9 @@
 import sqlite3
 import tkinter.messagebox as mb
 from collections import namedtuple
+
+from pyexpat.errors import messages
+
 from gui.language.manager import localization_manager
 
 Numbers = namedtuple("Numbers", ["elements", "solvent"])
@@ -154,15 +157,31 @@ class CompositionModel:
         except sqlite3.Error as e:
             mb.showerror("Database Error", f"Failed to create tables: {e}")
 
-    def add_composition_info(self, comp_info):
+    def add_syntesis_params(self, id_info, syntesis_data):
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute('''INSERT INTO Compositions_syntesis 
+                            (id_info, stability_notes, v_antisolvent, v_solution, c_solution, method_description)
+                            VALUES (?, ?, ?, ?, ?, ?)''',
+                           (id_info, *syntesis_data))
+            self.conn.commit()
+            return True, "Syntesis parameters added successfully"
+        except sqlite3.Error as e:
+            return False, f"Database error: {e}"
+
+    def add_composition_info(self, id_template, comp_info):
         try:
             cursor = self.conn.cursor()
             cursor.execute('''INSERT INTO Compositions_info  
-                          (id_template, device_type, anion_stoichiometry, doi, data_type, notes) 
-                          VALUES (?, ?, ?, ?, ?, ?)''',
-                           (*comp_info,))
+                          (id_template, device_type, doi, data_type, notes) 
+                          VALUES (?, ?, ?, ?, ?)''',
+                           (id_template, *comp_info,))
             self.conn.commit()
-            return cursor.lastrowid
+
+            new_id = cursor.lastrowid
+            cursor.close()
+
+            return new_id
         except sqlite3.Error as e:
             mb.showerror("Database Error", f"Failed to add composition info: {e}")
             return None
@@ -324,25 +343,26 @@ class CompositionModel:
 
     def add_properties(self, id_info, device_type, properties_data):
         if device_type == localization_manager.tr("ccv_device1"):
-            self.add_solar_cell_properties(id_info, properties_data)
+            success, message = self.add_solar_cell_properties(id_info, properties_data)
         elif device_type == localization_manager.tr("ccv_device2"):
-            self.add_photodetector_properties(id_info, properties_data)
+            success, message = self.add_photodetector_properties(id_info, properties_data)
         elif device_type == localization_manager.tr("ccv_device3"):
-            self.add_direct_xray_properties(id_info, properties_data)
+            success, message = self.add_direct_xray_properties(id_info, properties_data)
         elif device_type == localization_manager.tr("ccv_device4"):
-            self.add_indirect_xray_properties(id_info, properties_data)
+            success, message = self.add_indirect_xray_properties(id_info, properties_data)
         elif device_type == localization_manager.tr("ccv_device5"):
-            self.add_led_properties(id_info, properties_data)
+            success, message = self.add_led_properties(id_info, properties_data)
         elif device_type == localization_manager.tr("ccv_device6"):
-            self.add_memristors_properties(id_info, properties_data)
+            success, message = self.add_memristors_properties(id_info, properties_data)
         elif device_type == localization_manager.tr("ccv_device7"):
-            self.add_lasers_properties(id_info, properties_data)
+            success, message = self.add_lasers_properties(id_info, properties_data)
         elif device_type == localization_manager.tr("ccv_device8"):
-            self.add_fet_properties(id_info, properties_data)
+            success, message = self.add_fet_properties(id_info, properties_data)
         elif device_type == localization_manager.tr("ccv_device9"):
-            self.add_thermo_generators_properties(id_info, properties_data)
+            success, message = self.add_thermo_generators_properties(id_info, properties_data)
         else:
-            return
+            return "error", "no device..."
+        return success, message
 
     def __del__(self):
         if self.conn:

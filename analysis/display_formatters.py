@@ -10,7 +10,6 @@ def format_value_for_cell(
     is_cost_value = False):
     cell_width = constants.TABLE_CELL_WIDTH
     final_cell_format = constants.TABLE_CELL_FORMAT
-
     try:
         value_dec = Decimal(str(value))
     except (decimal.InvalidOperation, TypeError, ValueError):
@@ -94,6 +93,10 @@ def generate_reaction_equations_display(
     calculation_results,
     sorted_equation_keys = None,
 ):
+    ("adf1", "Inv.Val", "[Формула продукта?]"),
+    ("adf2", "Fractions", "Нет данных по уравнениям"),
+    ("act_err3", "Fraction summ", "Сумма долей"),
+    ("act_err4", "must be equal to 1", "должна быть равна 1"),
     output_lines = []
     equation_formulas = list()
     product_formula_str = "[Формула продукта?]"
