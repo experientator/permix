@@ -1,6 +1,7 @@
 import sqlite3
 import tkinter.messagebox as mb
 from collections import namedtuple
+from gui.language.manager import localization_manager
 
 Numbers = namedtuple("Numbers", ["elements", "solvent"])
 
@@ -8,6 +9,7 @@ Numbers = namedtuple("Numbers", ["elements", "solvent"])
 class CompositionModel:
     def __init__(self):
         self.conn = sqlite3.connect('data.db')
+        localization_manager.register_observer(self)
         self.create_tables()
 
     def create_tables(self):
@@ -156,7 +158,8 @@ class CompositionModel:
         try:
             cursor = self.conn.cursor()
             cursor.execute('''INSERT INTO Compositions_info  
-                          (id_template, device_type, anion_stoichiometry, doi, data_type, notes) VALUES (?, ?, ?, ?)''',
+                          (id_template, device_type, anion_stoichiometry, doi, data_type, notes) 
+                          VALUES (?, ?, ?, ?, ?, ?)''',
                            (*comp_info,))
             self.conn.commit()
             return cursor.lastrowid
@@ -213,7 +216,7 @@ class CompositionModel:
     def add_solar_cell_properties(self, id_info, properties_data):
         try:
             cursor = self.conn.cursor()
-            cursor.execute('''INSERT INTO Compositions_properties 
+            cursor.execute('''INSERT INTO Solar_cell_properties 
                           (id_info, pce, v_oc, j_sc, ff, eqe, 
                            op_stab, hyst_ind)
                           VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
@@ -222,6 +225,124 @@ class CompositionModel:
             return True, "Properties added successfully"
         except sqlite3.Error as e:
             return False, f"Database error: {e}"
+
+    def add_photodetector_properties(self, id_info, properties_data):
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute('''INSERT INTO Photodetectors_properties 
+                          (id_info, resp, sd, eqe,rf_time, ldr, nep, srr)
+                          VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
+                           (id_info, *properties_data))
+            self.conn.commit()
+            return True, "Properties added successfully"
+        except sqlite3.Error as e:
+            return False, f"Database error: {e}"
+
+    def add_direct_xray_properties(self, id_info, properties_data):
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute('''INSERT INTO Direct_x_ray_properties 
+                          (id_info, cce, sens, lod, mlp, sp_res, dc, sts)
+                          VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
+                           (id_info, *properties_data))
+            self.conn.commit()
+            return True, "Properties added successfully"
+        except sqlite3.Error as e:
+            return False, f"Database error: {e}"
+
+    def add_indirect_xray_properties(self, id_info, properties_data):
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute('''INSERT INTO Indirect_x_ray_properties 
+                          (id_info, light_y, lod, sp_res, aft_gl, sdt)
+                          VALUES (?, ?, ?, ?, ?, ?)''',
+                           (id_info, *properties_data))
+            self.conn.commit()
+            return True, "Properties added successfully"
+        except sqlite3.Error as e:
+            return False, f"Database error: {e}"
+
+    def add_led_properties(self, id_info, properties_data):
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute('''INSERT INTO LED_properties 
+                          (id_info, lum, cie, fwhm, turn_volt, lt, ce)
+                          VALUES (?, ?, ?, ?, ?, ?, ?)''',
+                           (id_info, *properties_data))
+            self.conn.commit()
+            return True, "Properties added successfully"
+        except sqlite3.Error as e:
+            return False, f"Database error: {e}"
+
+    def add_memristors_properties(self, id_info, properties_data):
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute('''INSERT INTO Memristors_properties 
+                          (id_info, res_rat, end, r_time, ss, sr_volt, mc)
+                          VALUES (?, ?, ?, ?, ?, ?, ?)''',
+                           (id_info, *properties_data))
+            self.conn.commit()
+            return True, "Properties added successfully"
+        except sqlite3.Error as e:
+            return False, f"Database error: {e}"
+
+    def add_lasers_properties(self, id_info, properties_data):
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute('''INSERT INTO Lasers_properties 
+                          (id_info, lt, q_fact, lole, dqe)
+                          VALUES (?, ?, ?, ?, ?)''',
+                           (id_info, *properties_data))
+            self.conn.commit()
+            return True, "Properties added successfully"
+        except sqlite3.Error as e:
+            return False, f"Database error: {e}"
+
+    def add_fet_properties(self, id_info, properties_data):
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute('''INSERT INTO FET_properties 
+                          (id_info, cm, c_rat, t_volt, ss)
+                          VALUES (?, ?, ?, ?, ?)''',
+                           (id_info, *properties_data))
+            self.conn.commit()
+            return True, "Properties added successfully"
+        except sqlite3.Error as e:
+            return False, f"Database error: {e}"
+
+    def add_thermo_generators_properties(self, id_info, properties_data):
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute('''INSERT INTO Thermo_generators_properties 
+                          (id_info, zt, s, sigma, thermal_cond)
+                          VALUES (?, ?, ?, ?, ?)''',
+                           (id_info, *properties_data))
+            self.conn.commit()
+            return True, "Properties added successfully"
+        except sqlite3.Error as e:
+            return False, f"Database error: {e}"
+
+    def add_properties(self, id_info, device_type, properties_data):
+        if device_type == localization_manager.tr("ccv_device1"):
+            self.add_solar_cell_properties(id_info, properties_data)
+        elif device_type == localization_manager.tr("ccv_device2"):
+            self.add_photodetector_properties(id_info, properties_data)
+        elif device_type == localization_manager.tr("ccv_device3"):
+            self.add_direct_xray_properties(id_info, properties_data)
+        elif device_type == localization_manager.tr("ccv_device4"):
+            self.add_indirect_xray_properties(id_info, properties_data)
+        elif device_type == localization_manager.tr("ccv_device5"):
+            self.add_led_properties(id_info, properties_data)
+        elif device_type == localization_manager.tr("ccv_device6"):
+            self.add_memristors_properties(id_info, properties_data)
+        elif device_type == localization_manager.tr("ccv_device7"):
+            self.add_lasers_properties(id_info, properties_data)
+        elif device_type == localization_manager.tr("ccv_device8"):
+            self.add_fet_properties(id_info, properties_data)
+        elif device_type == localization_manager.tr("ccv_device9"):
+            self.add_thermo_generators_properties(id_info, properties_data)
+        else:
+            return
 
     def __del__(self):
         if self.conn:
