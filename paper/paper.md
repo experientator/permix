@@ -1,31 +1,35 @@
-# PerMix: A Python Framework for Perovskite Precursor Mass Calculations
-
-**Authors**: [Your Name], [Your Affiliation]
-
-**DOI**: [To be assigned]
-
-**Software**
-*   Review
-*   Repository
-*   Archive
-
-**Editor**: [To be assigned]
-
-**Reviewers**: [To be assigned]
-
-**Submitted**: [Date]
-**Published**: [Date]
-
-**License**
-Authors of papers retain copyright and release the work under a Creative Commons Attribution 4.0 International License (CC BY 4.0).
+---
+title: 'PerMix: A Python Framework for Perovskite Precursor Mass Calculations'
+tags:
+  - Python
+  - materials science
+  - halide perovskites
+  - computational chemistry
+  - high-throughput synthesis
+authors:
+  - name: Ilia O. Simonenko
+    orcid: 0009-0007-5131-9934
+    corresponding: true
+    affiliation: "1, 2"
+  - name: Arina P. Schmidberskaya
+    orcid: 0009-0007-4416-0072
+    affiliation: "1, 2"
+affiliations:
+ - name: Joint Institute for Nuclear Research, Dubna, Russia
+   index: 1
+ - name: Dubna State University, Dubna, Russia
+   index: 2
+date: 08 October 2025
+bibliography: paper.bib
+---
 
 ## Summary
 
-The synthesis of multicomponent perovskite materials represents a pivotal frontier in materials science, driven by the strategy of "compositional engineering" to create highly efficient and stable optoelectronic devices [@Zhang2023Composition; @Igbari2025Strategies; @Yang2024Achievements]. By systematically exploring a vast combinatorial space of cations, anions, and metals, researchers can fine-tune the thermodynamic and structural properties of perovskites to stabilize desired phases and enhance performance [@Saliba2019Polyelemental; @Kim2020Thermodynamics]. This approach has led to the development of complex, "polyelemental" perovskites that significantly outperform their simpler counterparts [@Turren-Cruz2024Multicomponent].
+The synthesis of multicomponent perovskite materials represents a pivotal frontier in materials science, driven by "compositional engineering" to create efficient and stable devices [@Zhang2023Composition; @Igbari2025Strategies; @Yang2024Achievements]. By exploring a vast combinatorial space of ions, researchers can fine-tune material properties to enhance performance [@Saliba2019Polyelemental; @Kim2020Thermodynamics].
 
-However, the immense potential of compositional engineering is directly hampered by a critical computational bottleneck: the precise calculation of precursor stoichiometry. The literature provides definitive evidence that fractional, and often unintentional, deviations in precursor molar ratios as small as 0.5–1% can dramatically alter surface composition, defect physics, device performance, and storage stability, accounting for significant irreproducibility across research groups [@Fassl2018Fractional; @Falk2020Effect]. This challenge is compounded by variations in the stoichiometry of the precursor salts themselves, which introduces a hidden source of error that can degrade final film quality [@Tsevas2021Controlling]. As the field moves towards automated, high-throughput robotic platforms for materials discovery [@Higgins2020Chemical], the need for an automated, high-precision, and systematic calculation tool has become urgent.
+However, this potential is hampered by a critical computational bottleneck: the precise calculation of precursor stoichiometry. Fractional deviations in molar ratios as small as 0.5–1% can dramatically alter device performance and stability, accounting for significant irreproducibility across research groups [@Fassl2018Fractional; @Falk2020Effect]. As the field moves towards automated, high-throughput robotic platforms for materials discovery [@Higgins2020Chemical], the need for an automated, high-precision calculation tool has become urgent.
 
-To address these challenges, we developed PerMix, a comprehensive Python framework for the automated, high-precision calculation of perovskite precursor masses. PerMix streamlines synthesis planning by providing accurate mass calculations for multicomponent systems, combinatorial algorithms to explore diverse synthesis strategies, and a user-friendly graphical interface for both novice and expert researchers, thereby bridging the gap between compositional design and reproducible experimental execution.
+To address these challenges, we developed PerMix, a Python framework for high-precision calculation of perovskite precursor masses. Its core is a calculation engine using arbitrary-precision arithmetic to eliminate floating-point errors—a known source of stoichiometric deviation. A key feature is its combinatorial algorithm, which automatically generates and ranks all valid synthesis pathways from a user-extensible database of precursor salts. This capability directly supports automated, high-throughput materials discovery workflows. PerMix is delivered with an intuitive graphical user interface built with CustomTkinter, making it accessible for experimental planning, industrial R&D, and educational purposes, thereby bridging the gap between compositional design and reproducible execution.
 
 ## Statement of Need
 
@@ -86,21 +90,6 @@ By automating computational logistics and enforcing precision, PerMix empowers r
 
 ## Acknowledgements
 
-[Include funding acknowledgments, computational resources, and collaborator contributions as appropriate]
+The work was carried out within the state assignment of Russian Science Foundation (project No. 23-19-00884).
 
 ## References
-
-[@Higgins2020Chemical]
-[@Turren-Cruz2024Multicomponent]
-[@Ezike2022Perovskite]
-[@Falk2020Effect]
-[@Tsevas2021Controlling]
-[@Saliba2019Polyelemental]
-[@Kim2020Thermodynamics]
-[@Zhang2023Composition]
-[@Sekh2024All-Perovskite]
-[@He2020Compositional]
-[@Igbari2025Strategies]
-[@Yuan2019Unveiling]
-[@Fassl2018Fractional]
-[@Ling2018Machine]
