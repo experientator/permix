@@ -1,5 +1,6 @@
 import sqlite3
-import tkinter.messagebox as mb
+from analysis.calculation_tests import show_error
+from gui.language.manager import localization_manager
 
 class IonsCheckModel:
     def __init__(self, db_name = 'data.db'):
@@ -26,7 +27,8 @@ class IonsCheckModel:
                                             formula TEXT)''')
             self.conn.commit()
         except sqlite3.Error as e:
-            mb.showerror("Database Error", f"Failed to create tables: {e}")
+            er = localization_manager.tr("db_err2")
+            show_error(f"{er}: {e}")
 
     def validate_ion_exists(self, name, ion_type):
         cursor = self.conn.cursor()
@@ -47,29 +49,32 @@ class IonsCheckModel:
                               VALUES (?, ?, ?, ?, ?)''',
                            (name, ion_type, charge, CN, ionic_radii))
             self.conn.commit()
-            return True, "Ion radii successfully uploaded"
+            return True, localization_manager.tr("mionc1")
         except sqlite3.Error as e:
-            return False, f"Database error: {e}"
+            er = localization_manager.tr("db_err3")
+            return False, f"{er}: {e}"
 
     def add_ion(self, name, ion_type, formula, valence):
         if not all([name, formula]):
-            return False, "All fields are required"
+            return False, localization_manager.tr("mionc2")
         try:
             cursor = self.conn.cursor()
             cursor.execute("SELECT 1 FROM Ions WHERE name = ? OR formula = ? LIMIT 1",
                            (name, formula))
             if cursor.fetchone():
-                return False, "Ion with this name or formula already exists"
+                return False, localization_manager.tr("mionc3")
 
             data_insert_query = '''INSERT INTO Ions
                                   (name, type, formula, valence) VALUES 
                                   (?, ?, ?, ?)'''
             cursor.execute(data_insert_query, (name, ion_type, formula, valence))
             self.conn.commit()
-            return True, f"{ion_type} successfully uploaded"
+            er = localization_manager.tr("mionc4")
+            return True, f"{ion_type} {er}"
 
         except sqlite3.Error as e:
-            return False, f"Database error: {e}"
+            er = localization_manager.tr("db_err3")
+            return False, f"{er}: {e}"
 
     def connect(self):
         self.conn = sqlite3.connect(self.db_name)

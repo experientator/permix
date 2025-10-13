@@ -1,5 +1,5 @@
 import sqlite3
-from tkinter import messagebox as mb
+from analysis.calculation_tests import show_error
 from gui.language.manager import localization_manager
 
 class CompositionCheckModel:
@@ -17,7 +17,8 @@ class CompositionCheckModel:
                              LEFT JOIN Phase_templates pt ON ci.id_template = pt.id''')
             return cursor.fetchall()
         except sqlite3.Error as e:
-            mb.showerror("Database Error", f"Failed to get compositions: {e}")
+            er = localization_manager.tr("mcompc1")
+            show_error(f"{er}: {e}")
             return []
 
     def get_composition_details(self, composition_id):
@@ -66,7 +67,8 @@ class CompositionCheckModel:
                 'k_factors': k_factors
             }
         except sqlite3.Error as e:
-            mb.showerror("Database Error", f"Failed to get composition details: {e}")
+            er = localization_manager.tr("mcompc2")
+            show_error(f"{er}: {e}")
             return None
 
     def _get_device_properties(self, composition_id, device_type):
@@ -106,7 +108,8 @@ class CompositionCheckModel:
 
             return cursor.fetchone()
         except sqlite3.Error as e:
-            mb.showerror("Database Error", f"Failed to get device properties: {e}")
+            er = localization_manager.tr("mcompc3")
+            show_error(f"{er}: {e}")
             return None
 
     def get_related_data(self, table_name, composition_id):
@@ -115,7 +118,8 @@ class CompositionCheckModel:
             cursor.execute(f'SELECT * FROM {table_name} WHERE id_info = ?', (composition_id,))
             return cursor.fetchall()
         except sqlite3.Error as e:
-            mb.showerror("Database Error", f"Failed to get {table_name} data: {e}")
+            er = localization_manager.tr("mcompc4")
+            show_error(f"{er} {table_name}: {e}")
             return []
 
     def get_all_device_properties(self, composition_id):
@@ -162,5 +166,6 @@ class CompositionCheckModel:
 
             return properties
         except sqlite3.Error as e:
-            mb.showerror("Database Error", f"Failed to get all device properties: {e}")
+            er = localization_manager.tr("mcompc5")
+            show_error(f"{er}: {e}")
             return {}

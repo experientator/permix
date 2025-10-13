@@ -4,6 +4,7 @@ from itertools import combinations
 from analysis.chemistry_utils import get_salt_formula
 from analysis.geometry_calculator import show_error
 import analysis.constants as constants
+from gui.language.manager import localization_manager
 
 ANION_REQ_ZERO_THRESHOLD = 1e-6
 COEFF_ZERO_THRESH = 1e-6
@@ -39,6 +40,7 @@ def _calculate_coefficients_all_flexible(flexible_cations, anions):
                 sf = get_salt_formula(cs, hs, cv)
                 coeffs_all_flex[sf] = coeffs_all_flex.get(sf, 0) + sc
             except ValueError as e:
+                er = localization_manager.tr("astrat1")
                 err_det = f"Ошибка соли {cs}(V)-{hs}: {e}"
                 error_msg = (error_msg + "; " if error_msg else "") + err_det
                 show_error(f"STRAT_CALC: _all_flex: {err_det}")
@@ -68,7 +70,8 @@ def _calculate_coefficients_compensatory(rigid_cations, flexible_cations,
             if base_X_anion_for_rigid in anions_provided_by_rigid:
                 anions_provided_by_rigid[base_X_anion_for_rigid] += rc_sc * rcv
         except ValueError as e:
-            err_det = f"Ошибка соли жесткого {rcs}(F)-{base_X_anion_for_rigid}: {e}"
+            er = localization_manager.tr("astrat2")
+            err_det = f"{er} {rcs}(F)-{base_X_anion_for_rigid}: {e}"
             error_msg = (error_msg + "; " if error_msg else "") + err_det
             show_error(f"STRAT_CALC: _compensatory: {err_det}")
             return None, error_msg
@@ -136,7 +139,8 @@ def _calculate_coefficients_compensatory(rigid_cations, flexible_cations,
                     chosen_anion
                 ] += fc_salt_coeff * fcv
             except ValueError as e:
-                err_det = f"Ошибка соли гибкого {fcs}(V)-{chosen_anion}: {e}"
+                er = localization_manager.tr("astrat3")
+                err_det = f"{er} {fcs}(V)-{chosen_anion}: {e}"
                 error_msg = (error_msg + "; " if error_msg else "") + err_det
                 return None, error_msg
 
@@ -167,7 +171,8 @@ def _calculate_coefficients_compensatory(rigid_cations, flexible_cations,
                         req_anion
                     ] += partial_salt_coeff * fcv
                 except ValueError as e:
-                    err_det = f"Ошибка соли гибкого {fcs}(V)-{req_anion}: {e}"
+                    er = localization_manager.tr("astrat3")
+                    err_det = f"{er} {fcs}(V)-{req_anion}: {e}"
                     error_msg = (error_msg + "; " if error_msg else "") + err_det
                     return None, error_msg
         else:  # len(active_required_anions_list) == 0
@@ -179,10 +184,16 @@ def _calculate_coefficients_compensatory(rigid_cations, flexible_cations,
         provided_by_fc_total = anions_actually_provided_by_flex.get(
             hs_check, 0
         )
+
         if abs(needed_from_flex - provided_by_fc_total) > ANION_REQ_ZERO_THRESHOLD:
+            er1 = localization_manager.tr("astrat4")
+            er2 = localization_manager.tr("astrat5")
+            er3 = localization_manager.tr("astrat6")
+            er4 = localization_manager.tr("astrat7")
+            er5 = localization_manager.tr("astrat8")
             tkinter.messagebox.showinfo(message=
-                f"STRAT_CALC: _compensatory: Дисбаланс для аниона {hs_check} от гибких катионов. "
-                f"Требовалось от гибких: {needed_from_flex:.4f}, предоставлено гибкими: {provided_by_fc_total:.4f}. Стратегия невалидна."
+                f"STRAT_CALC: _compensatory: {er1} {hs_check} {er2}. "
+                f"{er3}: {needed_from_flex:.4f}, {er4}: {provided_by_fc_total:.4f}. {er5}."
             )
             return {}, None
 

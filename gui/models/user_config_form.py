@@ -1,5 +1,6 @@
 import sqlite3
-import tkinter.messagebox as mb
+from analysis.calculation_tests import show_error
+from gui.language.manager import localization_manager
 from collections import namedtuple
 
 Numbers = namedtuple("Numbers", ["elements", "solvent"])
@@ -53,7 +54,8 @@ class UserConfigModel:
 
             self.conn.commit()
         except sqlite3.Error as e:
-            mb.showerror("Database Error", f"Failed to create tables: {e}")
+            er = localization_manager.tr("db_err2")
+            show_error(f"{er}: {e}")
 
     def add_favorite_composition(self, name, id_phase, notes, v_sol, v_antisol, c_sol):
         try:
@@ -64,25 +66,27 @@ class UserConfigModel:
             self.conn.commit()
             return cursor.lastrowid
         except sqlite3.Error as e:
-            mb.showerror("Database Error", f"Failed to add composition info: {e}")
+            er = localization_manager.tr("mcompf2")
+            show_error(f"{er}: {e}")
             return None
 
     def add_solvent(self, id_fav, solvent_type, symbol, fraction):
         try:
-            # Проверка существования растворителя
             cursor = self.conn.cursor()
             cursor.execute("SELECT 1 FROM Solvents WHERE name = ?", (symbol,))
             if not cursor.fetchone():
-                return False, f"Solvent {symbol} doesn't exist in database"
+                er = localization_manager.tr("mcompf3")
+                return False, f"{er}: {symbol}"
 
             cursor.execute('''INSERT INTO Compositions_solvents 
                           (id_fav, solvent_type, symbol, fraction) 
                           VALUES (?, ?, ?, ?)''',
                            (id_fav, solvent_type, symbol, fraction))
             self.conn.commit()
-            return True, "Solvent added successfully"
+            return True, localization_manager.tr("mcompf4")
         except sqlite3.Error as e:
-            return False, f"Database error: {e}"
+            er = localization_manager.tr("db_err3")
+            return False, f"{er}: {e}"
 
     def add_structure(self, id_fav, structure_type, symbol, fraction, valence):
         try:
@@ -91,16 +95,18 @@ class UserConfigModel:
             cursor.execute("SELECT 1 FROM Ions WHERE name = ? AND type = ?",
                            (symbol, ion_type))
             if not cursor.fetchone():
-                return False, f"Ion {symbol} doesn't exist in database"
+                er = localization_manager.tr("mcompf6")
+                return False, f"{er}: {symbol}"
 
             cursor.execute('''INSERT INTO Compositions_structure 
                           (id_fav, structure_type, symbol, fraction, valence) 
                           VALUES (?, ?, ?, ?, ?)''',
                            (id_fav, structure_type, symbol, fraction, valence))
             self.conn.commit()
-            return True, "Structure element added successfully"
+            return True, localization_manager.tr("mcompf7")
         except sqlite3.Error as e:
-            return False, f"Database error: {e}"
+            er = localization_manager.tr("db_err3")
+            return False, f"{er}: {e}"
 
     def add_k_factors(self, id_fav, salt, k_factor):
         try:
@@ -110,9 +116,10 @@ class UserConfigModel:
                           VALUES (?, ?, ?)''',
                            (id_fav, salt, k_factor))
             self.conn.commit()
-            return True, "K-factors added successfully"
+            return True, localization_manager.tr("mcompf5")
         except sqlite3.Error as e:
-            return False, f"Database error: {e}"
+            er = localization_manager.tr("db_err3")
+            return False, f"{er}: {e}"
 
     def __del__(self):
         if self.conn:

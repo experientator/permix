@@ -1,5 +1,6 @@
 import sqlite3
-import tkinter.messagebox as mb
+from analysis.calculation_tests import show_error
+from gui.language.manager import localization_manager
 
 class TemplatesCheckModel:
     def __init__(self, db_name = 'data.db'):
@@ -59,14 +60,15 @@ class TemplatesCheckModel:
 
             self.conn.commit()
         except sqlite3.Error as e:
-            mb.showerror("Database Error", f"Failed to create tables: {e}")
+            er = localization_manager.tr("db_err2")
+            show_error(f"{er}: {e}")
 
     def add_template(self, name, description, anion_stoich, dimensionality):
         try:
             cursor = self.conn.cursor()
             cursor.execute("SELECT 1 FROM Phase_templates WHERE name = ? LIMIT 1", (name,))
             if cursor.fetchone():
-                return None, "Phase template with this name already exists"
+                return None, localization_manager.tr("mtempc1")
 
             cursor.execute('''INSERT INTO Phase_templates
                           (name, description, anion_stoichiometry, dimensionality)
@@ -74,9 +76,10 @@ class TemplatesCheckModel:
                            (name, description, anion_stoich, dimensionality))
             self.conn.commit()
 
-            return cursor.lastrowid, "Template successfully uploaded"
+            return cursor.lastrowid, localization_manager.tr("mtempc2")
         except sqlite3.Error as e:
-            return None, f"Database error: {e}"
+            er = localization_manager.tr("db_err3")
+            return None, f"{er}: {e}"
 
     def add_site(self, template_id, stoichiometry, site_type, valence):
         try:
@@ -89,9 +92,10 @@ class TemplatesCheckModel:
                            (template_id, stoichiometry, site_type, valence, name_candidate))
             self.conn.commit()
 
-            return True, "Site added successfully"
+            return True, localization_manager.tr("mtempc3")
         except sqlite3.Error as e:
-            return False, f"Database error: {e}"
+            er = localization_manager.tr("db_err3")
+            return False, f"{er}: {e}"
 
     def get_last_template_id(self):
         try:
@@ -100,7 +104,8 @@ class TemplatesCheckModel:
             result = cursor.fetchone()
             return result[0] if result else None
         except sqlite3.Error as e:
-            mb.showerror("Database Error", f"Failed to get last template ID: {e}")
+            er = localization_manager.tr("mtempc4")
+            show_error(f"{er}: {e}")
             return None
 
     def __del__(self):

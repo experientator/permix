@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, scrolledtext
+from analysis.calculation_tests import show_error
 
 from analysis.database_utils import (get_templates_list, get_template_id, get_template_sites,
                                      get_candidate_cations, get_solvents, get_anion_stoichiometry)
@@ -491,7 +492,7 @@ class CompositionView(tk.Toplevel):
 
                 if symbol in used_symbols:
                     err = localization_manager.tr("ucv_error1")
-                    self.show_error(f"{err} {symbol}")
+                    show_error(f"{err} {symbol}")
                     return None, None
                 used_symbols.add(symbol)
 
@@ -505,7 +506,7 @@ class CompositionView(tk.Toplevel):
             c_solvent = float(self.entry_c_solvent.get())
             v_antisolvent = float(self.entry_v_antisolvent.get())
         except ValueError:
-            self.show_error(message=localization_manager.tr("ucv_error2"))
+            show_error(message=localization_manager.tr("ucv_error2"))
             return
         stab_notes = self.entry_stab_notes.get()
         method_desc = self.entry_method_desc.get()
@@ -523,7 +524,7 @@ class CompositionView(tk.Toplevel):
 
             if symbol in used_salts:
                 err = localization_manager.tr("ucv_error3")
-                self.show_error(f"{err} {symbol}")
+                show_error(f"{err} {symbol}")
                 return None, None
             used_salts.add(symbol)
             k_factor = float_test(widget["k_factor"].get(),
@@ -550,7 +551,7 @@ class CompositionView(tk.Toplevel):
                 symbol = widget["symbol"].get()
                 if symbol in used_symbols:
                     err = localization_manager.tr("ucv_error4")
-                    self.show_error(f"{err} {symbol}")
+                    show_error(f"{err} {symbol}")
                     widget["symbol"].configure(background="#ffcccc")
                     return None, None
                 used_symbols.add(symbol)
@@ -567,7 +568,7 @@ class CompositionView(tk.Toplevel):
             symbol = widget["symbol"].get()
             if symbol in used_symbols:
                 err = localization_manager.tr("ucv_error5")
-                self.show_error(f"{err} {symbol}")
+                show_error(f"{err} {symbol}")
                 widget["symbol"].configure(background="#ffcccc")
                 return None, None
             used_symbols.add(symbol)
@@ -702,7 +703,5 @@ class CompositionView(tk.Toplevel):
         self.controller.handle_main_submit(main_info,  solution_info, structure_data,
                            solvents, properties, k_factors)
 
-    def show_error(self, message):
-        tk.messagebox.showerror(title=localization_manager.tr("error_title"), message=message)
     def show_success(self, message):
         tk.messagebox.showinfo(title=localization_manager.tr("success_title"), message=message)

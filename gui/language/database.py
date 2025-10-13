@@ -37,7 +37,6 @@ class LocalizationDB:
             )
 
     def add_batch_translations(self, translations: list):
-        """Добавить несколько переводов сразу"""
         with sqlite3.connect(self.db_path) as conn:
             conn.executemany(
                 'INSERT OR REPLACE INTO localization (name, en, ru) VALUES (?, ?, ?)',

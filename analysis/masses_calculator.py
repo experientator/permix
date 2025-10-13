@@ -1,13 +1,12 @@
-import logging
-
 from analysis.chemistry_utils import (calculate_target_product_moles,
                                       calculate_target_anion_moles,
                                       get_molar_mass_of_salt,
                                       determine_base_anion_for_rigid_cations,
                                       generate_formula_string)
-from analysis.geometry_calculator import show_error, calculate_geometry_factors
+from analysis.geometry_calculator import calculate_geometry_factors
 from analysis.strategies import calculate_strategies_coefficients
-from analysis.calculation_tests import float_test
+from analysis.calculation_tests import float_test, show_error
+from gui.language.manager import localization_manager
 
 def calculate_precursor_masses(
     template_id, cations,
@@ -42,13 +41,15 @@ def calculate_precursor_masses(
             solvents_by_type[solvent_type].append(solvent)
 
         for solv in solvents_by_type["solvent"]:
-            float_test(solv["fraction"], "Доли растворителей")
+            float_test(solv["fraction"],
+                       localization_manager.tr("amc1"))
             solvent_volume_ml = solution_info["v_solvent"] * float(solv["fraction"])
 
     if solvents_by_type["antisolvent"]:
         v_antisolvent = solution_info["v_antisolvent"]
         for antisolv in solvents_by_type["antisolvent"]:
-            float_test(antisolv["fraction"], "Доли антирастворителей")
+            float_test(antisolv["fraction"],
+                       localization_manager.tr("amc2"))
             antisolvent_volume_ml = solution_info["v_solvent"] * float(antisolv["fraction"])
 
     for strategy_desc, strategy_data in calculated_strategies.items():
@@ -56,8 +57,10 @@ def calculate_precursor_masses(
         strategy_error = strategy_data.get("error_message")
 
         if strategy_error:
+            er1 = localization_manager.tr("amc3")
+            er2 = localization_manager.tr("amc4")
             show_error(
-                f"MASS_CALC_CORE: Стратегия '{strategy_desc}' пропущена: {strategy_error}"
+                f"MASS_CALC_CORE: {er1} '{strategy_desc}' {er2}: {strategy_error}"
             )
             continue
 
@@ -112,7 +115,7 @@ def calculate_precursor_masses(
     if equation_counter == 0 and not results["error_message"]:
         if calculated_strategies:
             show_error(
-                "Ни одна из сгенерированных стратегий не привела к валидному набору реагентов."
+                localization_manager.tr("amc5")
             )
 
     try:
@@ -121,10 +124,11 @@ def calculate_precursor_masses(
         )
         results["product_formula_display"] = product_formula_str
     except Exception as e_formula:
+        er = localization_manager.tr("amc6")
         show_error(
-            f"MASS_CALC_CORE: Ошибка генерации строки формулы продукта: {e_formula}"
+            f"MASS_CALC_CORE: {er}: {e_formula}"
         )
-        results["product_formula_display"] = "[Ошибка генерации формулы]"
+        results["product_formula_display"] = localization_manager.tr("amc7")
     #
     try:
         geometry_factors_res = calculate_geometry_factors(
@@ -135,11 +139,12 @@ def calculate_precursor_masses(
         results["geometry_factors"] = geometry_factors_res
 
     except Exception as e_geom:
+        er = localization_manager.tr("amc8")
         show_error(
-            f"MASS_CALC_CORE: Ошибка при расчете геометрических факторов: {e_geom}"
+            f"MASS_CALC_CORE: {er}: {e_geom}"
         )
         results["geometry_factors"] = {
-            "error": f"Ошибка расчета геом. факторов: {type(e_geom).__name__}"
+            "error": f"{er}: {type(e_geom).__name__}"
         }
 
     results["input_summary"] = {

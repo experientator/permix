@@ -1,5 +1,6 @@
 import sqlite3
-import tkinter.messagebox as mb
+from analysis.calculation_tests import show_error
+from gui.language.manager import localization_manager
 
 class SolventsCheckModel:
     def __init__(self, db_name='data.db'):
@@ -37,7 +38,8 @@ class SolventsCheckModel:
                             notes TEXT)''')
             self.conn.commit()
         except sqlite3.Error as e:
-            mb.showerror("Database Error", f"Failed to create table: {e}")
+            er = localization_manager.tr("db_err2")
+            show_error(f"{er}: {e}")
 
     def add_solvent(self, name, type, formula, density, boiling_point, notes):
         try:
@@ -47,6 +49,7 @@ class SolventsCheckModel:
                           VALUES (?, ?, ?, ?, ?, ?)''',
                            (name, type, formula, density, boiling_point, notes))
             self.conn.commit()
-            return True, "Solvent successfully uploaded"
+            return True, localization_manager.tr("msolvc1")
         except sqlite3.Error as e:
-            return False, f"Database error: {e}"
+            er = localization_manager.tr("db_err3")
+            return False, f"{er}: {e}"

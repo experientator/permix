@@ -1,8 +1,10 @@
+from gui.language.manager import localization_manager
+
 def optimal_sort(equations, criteria_config, reagent):
     min_max = {}
     for config in criteria_config:
         key = config
-        if config == "Масса конкретного реагента":
+        if config == localization_manager.tr("ucv_crit_mass"):
             key += "_" + reagent
 
         values = []
@@ -22,7 +24,7 @@ def optimal_sort(equations, criteria_config, reagent):
         total_score = 0
         for i, config in enumerate(criteria_config):
             key = config
-            if config == "Масса конкретного реагента":
+            if config == localization_manager.tr("ucv_crit_mass"):
                 key += "_" + reagent
 
             val = get_criterion_value(eq, config, reagent)
@@ -63,10 +65,10 @@ def get_criterion_value(
         equation_data,
         criterion_key,
         specific_reagent = None):
-    if criterion_key == "Общая масса":
+    if criterion_key == localization_manager.tr("ucv_crit_all"):
         return equation_data.get("total_mass_g_final_k")
-    elif criterion_key == "Количество прекурсоров":
+    elif criterion_key == localization_manager.tr("ucv_crit_num"):
         return equation_data.get("num_reagents")
-    elif criterion_key == "Масса конкретного прекурсора":
+    elif criterion_key == localization_manager.tr("ucv_crit_mass"):
         return equation_data.get("masses_g_final_k", {}).get(specific_reagent)
     return None

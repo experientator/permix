@@ -2,8 +2,6 @@ import tkinter as tk
 import tkinter.messagebox as mb
 from tkinter import ttk, scrolledtext
 from datetime import date
-import os
-from periodictable.formulas import formula
 
 from analysis.database_utils import (get_templates_list, get_template_id, get_template_sites,
                                      get_candidate_cations, get_solvents, get_anion_stoichiometry)

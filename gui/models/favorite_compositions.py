@@ -1,5 +1,6 @@
 import sqlite3
-from tkinter import messagebox as mb
+from analysis.calculation_tests import show_error
+from gui.language.manager import localization_manager
 
 class FavoriteCompositionsModel:
     def __init__(self, db_path='data.db'):
@@ -15,7 +16,8 @@ class FavoriteCompositionsModel:
                              LEFT JOIN Phase_templates pt ON fc.id_phase = pt.id''')
             return cursor.fetchall()
         except sqlite3.Error as e:
-            mb.showerror("Database Error", f"Ошибка при получении избранных конфигураций: {e}")
+            er = localization_manager.tr("fcompf1")
+            show_error(f"{er}: {e}")
             return []
 
     def get_favorite_details(self, favorite_id):
@@ -48,7 +50,8 @@ class FavoriteCompositionsModel:
                 'k_factors': k_factors
             }
         except sqlite3.Error as e:
-            mb.showerror("Database Error", f"Ошибка при получении деталей избранных конфигураций: {e}")
+            er = localization_manager.tr("fcompf2")
+            show_error(f"{er}: {e}")
             return None
 
     def get_composition_details(self, composition_id):
@@ -87,5 +90,6 @@ class FavoriteCompositionsModel:
                 'k_factors': k_factors
             }
         except sqlite3.Error as e:
-            mb.showerror("Database Error", f"Ошибка при получении деталей соединений: {e}")
+            er = localization_manager.tr("fcompf3")
+            show_error(f"{er}: {e}")
             return None

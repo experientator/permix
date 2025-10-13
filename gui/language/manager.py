@@ -19,14 +19,12 @@ class LocalizationManager:
             self.initialized = True
 
     def set_language(self, language: str):
-        """Установить текущий язык (ru/en)"""
         if language in ['ru', 'en']:
             self.current_language = language
             self.load_translations()
             self.notify_observers()
 
     def load_translations(self):
-        """Загрузить все переводы для текущего языка"""
         self.translations = self.db.get_all_translations(self.current_language)
 
     def tr(self, name: str) -> str:
@@ -35,20 +33,17 @@ class LocalizationManager:
             return translation
         else:
             print(f"Translation not found for key: '{name}'")  # Debug
-            return name  # Возвращаем ключ, если перевод не найден
+            return name
 
     def register_observer(self, observer):
-        """Зарегистрировать окно для обновления при смене языка"""
         if observer not in self.observers:
             self.observers.append(observer)
 
     def unregister_observer(self, observer):
-        """Удалить окно из списка наблюдателей"""
         if observer in self.observers:
             self.observers.remove(observer)
 
     def notify_observers(self):
-        """Уведомить все окна о смене языка"""
         for observer in self.observers:
             if hasattr(observer, 'update_language'):
                 observer.update_language()
@@ -56,6 +51,4 @@ class LocalizationManager:
     def initialize_default_translations(self, default_translations):
         self.db.add_batch_translations(default_translations)
 
-
-# Глобальный экземпляр для удобного доступа
 localization_manager = LocalizationManager()

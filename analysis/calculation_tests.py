@@ -23,8 +23,8 @@ def fraction_test(data, list, type_name):
         if total > 0 and not 0.99 <= total <= 1.01:
             er1 = localization_manager.tr("act_err3")
             er2 = localization_manager.tr("act_err4")
-            show_error(title="error", message=f"{er1} {type} {er2}")
+            show_error(message=f"{er1} {type} {er2}")
             raise ValueError
 
-def show_error(title, message):
-    mb.showerror(title, message)
+def show_error(message):
+    mb.showerror(localization_manager.tr("error_title"), message)

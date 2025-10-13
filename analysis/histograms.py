@@ -1,12 +1,10 @@
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.pyplot as plt
 import tkinter as tk
+from gui.language.manager import localization_manager
+from analysis.calculation_tests import show_error
 
 def prepare_and_draw_mass_histogram(equations_to_plot, target_frame, title_suffix = ""):
-    if not target_frame:
-        print("Ошибка: Контейнер для гистограммы не найден")
-        return
-
     if not equations_to_plot:
         _draw_empty_histogram(target_frame, title_suffix)
         return
@@ -31,7 +29,8 @@ def prepare_and_draw_mass_histogram(equations_to_plot, target_frame, title_suffi
     salt_order = sorted(all_salts)
     salt_colors = _get_salt_colors(salt_order)
 
-    title = f"Гистограмма Масс Реагентов {title_suffix}".strip()
+    tit = localization_manager.tr("ahyst1")
+    title = f"{tit} {title_suffix}".strip()
     _draw_histogram(
         target_frame,
         plot_data,
@@ -45,7 +44,8 @@ def prepare_and_draw_mass_histogram(equations_to_plot, target_frame, title_suffi
 def _draw_empty_histogram(target_frame, title_suffix):
     for widget in target_frame.winfo_children():
         widget.destroy()
-    tk.Label(target_frame, text=f"Нет данных для гистограммы {title_suffix}").pack(padx=5, pady=5)
+    tit = localization_manager.tr("ahyst2")
+    tk.Label(target_frame, text=f"{tit} {title_suffix}").pack(padx=5, pady=5)
 
 
 def _convert_mass_to_float(mass_value):
@@ -69,8 +69,8 @@ def _draw_histogram(target_frame, plot_data, equation_labels, salt_order, salt_c
         equation_labels=equation_labels,
         salt_order=salt_order,
         salt_colors=salt_colors,
-        x_axis_label="Уравнения",
-        y_axis_label="Масса (г)",
+        x_axis_label=localization_manager.tr("ahyst3"),
+        y_axis_label=localization_manager.tr("ahyst4"),
         title=title
     )
 
@@ -100,7 +100,8 @@ def _draw_histogram_generic(
         )
 
     if not has_data:
-        tk.Label(target_frame, text="Нет данных для гистограммы.").pack(padx=5, pady=5)
+        tk.Label(target_frame,
+                 text= localization_manager.tr("ahyst2")).pack(padx=5, pady=5)
         return
 
     try:
@@ -128,7 +129,9 @@ def _draw_histogram_generic(
                 bottoms = [b + v for b, v in zip(bottoms, values)]
 
             if salt_order:
-                ax.legend(title="Прекурсоры", loc='upper right', bbox_to_anchor=(1.0, 1.0))
+                ax.legend(title=localization_manager.tr("ahyst5"),
+                          loc='upper right',
+                          bbox_to_anchor=(1.0, 1.0))
 
         ax.set_ylabel(y_axis_label)
         ax.set_xlabel(x_axis_label)
@@ -143,5 +146,8 @@ def _draw_histogram_generic(
         canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True, padx=2, pady=2)
 
     except Exception as e:
-        print(f"Ошибка при построении гистограммы: {e}")
-        tk.Label(target_frame, text="Ошибка построения", fg="red").pack(padx=5, pady=5)
+        er = localization_manager.tr("ahyst6")
+        show_error(f"{er}: {e}")
+        tk.Label(target_frame,
+                 text=localization_manager.tr("ahyst7"),
+                 fg="red").pack(padx=5, pady=5)
