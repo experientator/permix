@@ -32,13 +32,6 @@ class CandidateFormView(tk.Toplevel):
         }
         self.controller.handle_submit(data)
 
-    def show_success(self, message):
-        tk.messagebox.showinfo(title="success", message=message)
-        self.clear_form()
-
-    def show_error(self, message):
-        tk.messagebox.showerror(title="error", message=message)
-
     def clear_form(self):
         self.entry_name.delete(0, tk.END)
         self.entry_candidates.delete(0, tk.END)

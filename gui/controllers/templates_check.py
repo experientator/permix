@@ -1,6 +1,7 @@
 from gui.models.templates_check import TemplatesCheckModel
 from gui.views.templates_check import TemplatesCheckView
 from gui.language.manager import localization_manager
+from analysis.calculation_tests import show_error, show_warning, show_success, ask_confirmation
 
 class TemplatesCheckController:
     def __init__(self, parent):
@@ -15,14 +16,14 @@ class TemplatesCheckController:
 
     def handle_add_sites(self, data):
         if not all([data['name'], data['dimensionality'], data['anion_stoich']]):
-            self.view.show_error(localization_manager.tr("temp_err1"))
+            show_error(localization_manager.tr("temp_err1"))
             return None
 
         try:
             dimensionality = int(data['dimensionality'])
             anion_stoich = int(data['anion_stoich'])
         except ValueError:
-            self.view.show_error(localization_manager.tr("temp_err2"))
+            show_error(localization_manager.tr("temp_err2"))
             return None
 
         template_id, message = self.model.add_template(
@@ -33,7 +34,7 @@ class TemplatesCheckController:
         )
 
         if not template_id:
-            self.view.show_error(message)
+            show_error(message)
             return None
 
         self.current_template_id = template_id
@@ -41,7 +42,7 @@ class TemplatesCheckController:
 
     def handle_submit_template(self, site_data):
         if not self.current_template_id:
-            self.view.show_error(localization_manager.tr("temp_err3"))
+            show_error(localization_manager.tr("temp_err3"))
             return None
 
         for site in site_data:
@@ -49,7 +50,7 @@ class TemplatesCheckController:
                 stoichiometry = int(site['stoichiometry'])
                 valence = int(site['valence'])
             except ValueError:
-                self.view.show_error(localization_manager.tr("temp_err4"))
+                show_error(localization_manager.tr("temp_err4"))
                 return None
 
         for site in site_data:
@@ -61,10 +62,10 @@ class TemplatesCheckController:
             )
 
             if not success:
-                self.view.show_error(message)
+                show_error(message)
                 return None
 
-        self.view.show_success(localization_manager.tr("temp_success"))
+        show_success(localization_manager.tr("temp_success"))
         self.load_templates()
         self.view.btn_add_sites.config(state='normal')
         self.current_template_id = None
@@ -75,7 +76,7 @@ class TemplatesCheckController:
             self.view.show_template(template)
         except Exception as e:
             er = localization_manager.tr("temp_err5")
-            self.view.show_error( f"{er} {str(e)}")
+            show_error( f"{er} {str(e)}")
 
     def on_template_selected(self, event=None):
         template = self.view.get_selected_template()
@@ -88,27 +89,27 @@ class TemplatesCheckController:
             self.view.show_sites(site)
         except Exception as e:
             er = localization_manager.tr("temp_err6")
-            self.view.show_error(f"{er} {str(e)}")
+            show_error(f"{er} {str(e)}")
 
     def delete_selected(self):
         item_data = self.view.get_selected_template()
         if not item_data:
-            self.view.show_warning(localization_manager.tr("ion_war"))
+            show_warning(localization_manager.tr("ion_war"))
             return
 
         record_id = item_data[0]
 
-        if self.view.ask_confirmation(localization_manager.tr("ion_conf")):
+        if ask_confirmation(localization_manager.tr("ion_conf")):
             try:
                 success = self.model.delete_template(record_id)
                 if success:
-                    self.view.show_success(localization_manager.tr("ion_success"))
+                    show_success(localization_manager.tr("ion_success"))
                     self.load_templates()
                 else:
-                    self.view.show_error(localization_manager.tr("ion_err7"))
+                    show_error(localization_manager.tr("ion_err7"))
             except Exception as e:
                 er = localization_manager.tr("ion_err8")
-                self.view.show_error(f"{er} {str(e)}")
+                show_error(f"{er} {str(e)}")
 
     def __del__(self):
         self.model.close()

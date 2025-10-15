@@ -2,6 +2,7 @@ from gui.models.user_config_form import UserConfigModel
 from gui.views.user_config_form import UserConfigView
 from collections import namedtuple
 from gui.language.manager import localization_manager
+from analysis.calculation_tests import show_error
 
 from analysis.database_utils import get_fav_id
 
@@ -18,7 +19,7 @@ class UserConfigController:
             try:
                 fraction = float(element['fraction'])
             except ValueError:
-                self.view.show_error(localization_manager.tr("comp_err2"))
+                show_error(localization_manager.tr("comp_err2"))
                 return
 
             if type_name == 'anion':
@@ -31,7 +32,7 @@ class UserConfigController:
             if total > 0 and not 0.99 <= total <= 1.01:
                 er1 = localization_manager.tr("comp_err31")
                 er2 = localization_manager.tr("comp_err32")
-                self.view.show_error(f"{er1} {type} {er2}")
+                show_error(f"{er1} {type} {er2}")
                 return
 
     def handle_main_submit(self, name_fav, notes_fav, solvents_data, cations_data,
@@ -51,7 +52,7 @@ class UserConfigController:
                 factor['k_factor']
             )
             if not success:
-                self.view.show_error(message)
+                show_error(message)
                 return
 
         for solvent in solvents_data:
@@ -62,7 +63,7 @@ class UserConfigController:
                 float(solvent['fraction'])
             )
             if not success:
-                self.view.show_error(message)
+                show_error(message)
                 return
 
         for element in cations_data:
@@ -74,7 +75,7 @@ class UserConfigController:
                 int(element['valence'])
             )
             if not success:
-                self.view.show_error(message)
+                show_error(message)
                 return
 
         for element in anions_data:
@@ -86,5 +87,5 @@ class UserConfigController:
                 1.0
             )
             if not success:
-                self.view.show_error(message)
+                show_error(message)
                 return

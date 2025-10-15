@@ -26,5 +26,22 @@ def fraction_test(data, list, type_name):
             show_error(message=f"{er1} {type} {er2}")
             raise ValueError
 
+
+def show_message(title, message):
+    mb.showinfo(title, message)
+
+
+def show_warning(message):
+    mb.showwarning(title=localization_manager.tr("warning_title"), message=message)
+
+
 def show_error(message):
-    mb.showerror(localization_manager.tr("error_title"), message)
+    mb.showerror(title=localization_manager.tr("error_title"), message=message)
+
+
+def ask_confirmation(message):
+    return mb.askyesno(title=localization_manager.tr("confirm_title"), message=message)
+
+
+def show_success(message):
+    mb.showinfo(title=localization_manager.tr("success_title"), message=message)

@@ -273,14 +273,8 @@ class IonsCheckView(tk.Toplevel):
     def show_warning(self, message):
         mb.showwarning(title = localization_manager.tr("warning_title"), message=message)
 
-    def show_error(self, message):
-        mb.showerror(title = localization_manager.tr("error_title"), message=message)
-
     def ask_confirmation(self, message):
         return mb.askyesno(title = localization_manager.tr("confirm_title"), message=message)
-
-    def show_success(self, message):
-        mb.showinfo(title = localization_manager.tr("success_title"), message=message)
 
     def clear_form(self):
         self.entry_name.delete(0, tk.END)

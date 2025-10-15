@@ -14,6 +14,7 @@ from gui.default_style import AppStyles
 from analysis.sort_equations import sort_by_minimum_criteria, optimal_sort
 from analysis.histograms import prepare_and_draw_mass_histogram
 from gui.language.manager import localization_manager
+from analysis.calculation_tests import show_error, show_success
 
 class UserConfigView(tk.Frame):
     def __init__(self, parent, controller):
@@ -700,12 +701,12 @@ class UserConfigView(tk.Frame):
             with open(filename, 'w+', encoding='utf-8') as summary_file:
                 summary_file.writelines(summary_lines)
             success_message = localization_manager.tr("file_saved_success").format(filename=filename)
-            self.show_success(success_message)
+            show_success(success_message)
             return True
 
         except Exception as e:
             error_message = localization_manager.tr("file_save_error").format(filename=filename, error=str(e))
-            self.show_error(error_message)
+            show_error(error_message)
             return False
 
     def sort_frame(self):
@@ -876,7 +877,7 @@ class UserConfigView(tk.Frame):
 
                 if symbol in used_symbols:
                     err = localization_manager.tr("ucv_error1")
-                    self.show_error(f"{err} {symbol}")
+                    show_error(f"{err} {symbol}")
                     return None, None
                 used_symbols.add(symbol)
 
@@ -891,7 +892,7 @@ class UserConfigView(tk.Frame):
             if self.antisolv_check.get() == 1:
                 v_antisolvent = float(self.entry_v_antisolvent.get())
         except ValueError:
-            self.show_error(message=localization_manager.tr("ucv_error2"))
+            show_error(message=localization_manager.tr("ucv_error2"))
             return
 
         solution_info = {
@@ -914,7 +915,7 @@ class UserConfigView(tk.Frame):
 
             if symbol in used_salts:
                 err = localization_manager.tr("ucv_error3")
-                self.show_error(f"{err} {symbol}")
+                show_error(f"{err} {symbol}")
                 return None, None
             used_salts.add(symbol)
             k_factor = float_test(widget["k_factor"].get(),
@@ -942,7 +943,7 @@ class UserConfigView(tk.Frame):
                 symbol = widget["symbol"].get()
                 if symbol in used_symbols:
                     err = localization_manager.tr("ucv_error4")
-                    self.show_error(f"{err} {symbol}")
+                    show_error(f"{err} {symbol}")
                     widget["symbol"].configure(background="#ffcccc")
                     return None, None
                 used_symbols.add(symbol)
@@ -961,7 +962,7 @@ class UserConfigView(tk.Frame):
             symbol = widget["symbol"].get()
             if symbol in used_symbols:
                 err = localization_manager.tr("ucv_error5")
-                self.show_error(f"{err} {symbol}")
+                show_error(f"{err} {symbol}")
                 widget["symbol"].configure(background="#ffcccc")
                 return None, None
             used_symbols.add(symbol)
@@ -1057,17 +1058,32 @@ class UserConfigView(tk.Frame):
         self.create_template_frame()
         self.update()
 
-    def show_message(self, title, message):
-        tk.messagebox.showinfo(title, message)
-
-    def show_warning(self, message):
-        tk.messagebox.showwarning(title=localization_manager.tr("warning_title"), message=message)
-
-    def show_error(self, message):
-        tk.messagebox.showerror(title=localization_manager.tr("error_title"), message=message)
-
-    def ask_confirmation(self, message):
-        return tk.messagebox.askyesno(title=localization_manager.tr("confirm_title"), message=message)
-
-    def show_success(self, message):
-        tk.messagebox.showinfo(title=localization_manager.tr("success_title"), message=message)
+    # def upload_config(self):
+    #     self.reset_form()
+    #     self.phase_template.current(0)
+    #     self.create_sites()
+    #     self.antisolvents_cb
+    #     self.site_widgets[site_type]["combobox_num"].get()
+    #     self.site_widgets[site_type]["dynamic_widgets"].append({
+    #         "symbol": cb_symbol,
+    #         "fraction": entry_fraction
+    #     })
+    #     self.create_solvents()
+    #     self.solvents_widgets[solvent_type]["combobox_num"].get()
+    #     self.solvents_widgets[solvent_type]["dynamic_widgets"].append({
+    #         "symbol": cb_symbol,
+    #         "fraction": entry_fraction
+    #     })
+    #     self.entry_v_solvent = tk.Entry(self.propereties_frame, width=10,
+    #                                     **AppStyles.entry_style())
+    #     self.entry_c_solvent = tk.Entry(self.propereties_frame, width=10,
+    #                                     **AppStyles.entry_style())
+    #     if self.antisolv_check.get() == 1:
+    #         self.entry_v_antisolvent = tk.Entry(self.propereties_frame, width=10,
+    #                                             **AppStyles.entry_style())
+    #         self.entry_v_antisolvent.grid(row=1, column=2, sticky='ew', padx=5, pady=2)
+    #     self.create_k_factors_widgets() нужное количество раз
+    #
+    #     widget = self.solvents_widgets[solvent_type]["dynamic_widgets"][i]
+    #
+    #     symbol = widget["symbol"].get()

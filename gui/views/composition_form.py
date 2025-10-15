@@ -702,6 +702,3 @@ class CompositionView(tk.Toplevel):
                      self.entry_notes.get()]
         self.controller.handle_main_submit(main_info,  solution_info, structure_data,
                            solvents, properties, k_factors)
-
-    def show_success(self, message):
-        tk.messagebox.showinfo(title=localization_manager.tr("success_title"), message=message)

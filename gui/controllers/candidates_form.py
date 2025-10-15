@@ -1,5 +1,6 @@
 from gui.models.candidates_form import CandidateFormModel
 from gui.views.candidates_form import CandidateFormView
+from analysis.calculation_tests import show_error, show_success
 
 class CandidatesFormController:
     def __init__(self, parent):
@@ -12,6 +13,6 @@ class CandidatesFormController:
             data['candidates']
         )
         if success:
-            self.view.show_success(message)
+            show_success(message)
         else:
-            self.view.show_error(message)
+            show_error(message)

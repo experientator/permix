@@ -9,7 +9,6 @@ class TemplatesCheckView(tk.Toplevel):
         self.controller = controller
         localization_manager.register_observer(self)
         self.title(localization_manager.tr("tcv_window_title"))
-        #self.attributes('-fullscreen', True)
         self.configure(bg=AppStyles.BACKGROUND_COLOR)
         self.styles = AppStyles()
         self.site_frames = []
@@ -302,22 +301,6 @@ class TemplatesCheckView(tk.Toplevel):
         item = self.temp_tree.item(selected[0])
         return (item['values'][0], item['values'][1], item['values'][2],
                 item['values'][3], item['values'][4])
-
-    def show_message(self, title, message):
-        tk.messagebox.showinfo(title, message)
-
-    def show_warning(self, message):
-        tk.messagebox.showwarning(title=localization_manager.tr("warning_title"), message=message)
-
-    def show_error(self, message):
-        tk.messagebox.showerror(title=localization_manager.tr("error_title"), message=message)
-
-    def ask_confirmation(self, message):
-        return tk.messagebox.askyesno(title=localization_manager.tr("confirm_title"), message=message)
-
-    def show_success(self, message):
-        tk.messagebox.showinfo(title=localization_manager.tr("success_title"), message=message)
-        self.clear_form()
 
     def clear_form(self):
         self.entry_name.delete(0, tk.END)

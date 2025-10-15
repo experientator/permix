@@ -4,6 +4,7 @@ from analysis.database_utils import get_template_id
 from gui.models.composition_form import CompositionModel
 from gui.views.composition_form import CompositionView
 from gui.language.manager import localization_manager
+from analysis.calculation_tests import show_error, show_success
 
 Numbers = namedtuple("Numbers", ["elements", "solvent"])
 
@@ -23,7 +24,7 @@ class CompositionController:
             try:
                 fraction = float(solvent['fraction'])
             except ValueError:
-                self.view.show_error(localization_manager.tr("comp_err2"))
+                show_error(localization_manager.tr("comp_err2"))
                 return
 
             solvent_type = solvent['solvent_type']
@@ -33,7 +34,7 @@ class CompositionController:
             if total > 0 and not 0.99 <= total <= 1.01:
                 er1 = localization_manager.tr("comp_err31")
                 er2 = localization_manager.tr("comp_err32")
-                self.view.show_error(f"{er1} {stype} {er2}")
+                show_error(f"{er1} {stype} {er2}")
                 return
 
         structure_fractions = {
@@ -48,12 +49,12 @@ class CompositionController:
             try:
                 fraction = float(element['fraction'])
             except ValueError:
-                self.view.show_error(localization_manager.tr("comp_err2"))
+                show_error(localization_manager.tr("comp_err2"))
                 return
             try:
                 valence = int(element['valence'])
             except ValueError:
-                self.view.show_error(localization_manager.tr("comp_err4"))
+                show_error(localization_manager.tr("comp_err4"))
                 return
 
             stype = element['structure_type']
@@ -63,7 +64,7 @@ class CompositionController:
             if total > 0 and not 0.99 <= total <= 1.01:
                 er1 = localization_manager.tr("comp_err31")
                 er2 = localization_manager.tr("comp_err32")
-                self.view.show_error(f"{er1} {stype} {er2}")
+                show_error(f"{er1} {stype} {er2}")
                 return
 
         name_phase = self.view.entry_template.get()
@@ -77,7 +78,7 @@ class CompositionController:
             try:
                 k_factor = float(element['k_factor'])
             except ValueError:
-                self.view.show_error(localization_manager.tr("comp_err5"))
+                show_error(localization_manager.tr("comp_err5"))
                 return
         self.model.add_syntesis_params(id_info, solution_info)
 
@@ -88,7 +89,7 @@ class CompositionController:
                 factor['k_factor']
             )
             if not success:
-                self.view.show_error(message)
+                show_error(message)
                 return
 
         for solvent in solvent_data:
@@ -99,7 +100,7 @@ class CompositionController:
                 float(solvent['fraction'])
             )
             if not success:
-                self.view.show_error(message)
+                show_error(message)
                 return
 
         for element in structure_data:
@@ -111,18 +112,18 @@ class CompositionController:
                 int(element['valence'])
             )
             if not success:
-                self.view.show_error(message)
+                show_error(message)
                 return
         properties_values = []
         try:
             for property in properties_data:
                 properties_values.append(float(property) if property else None)
         except ValueError:
-            self.view.show_error(localization_manager.tr("comp_err6"))
+            show_error(localization_manager.tr("comp_err6"))
             return
 
         success, message = self.model.add_properties(id_info, device_type, properties_values)
         if success:
-            self.view.show_success(localization_manager.tr("comp_success"))
+            show_success(localization_manager.tr("comp_success"))
         else:
-            self.view.show_error(message)
+            show_error(message)
