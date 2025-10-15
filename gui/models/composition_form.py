@@ -19,7 +19,6 @@ class CompositionModel:
                            (id INTEGER PRIMARY KEY,
                            id_template INT,
                            device_type TEXT NULL,
-                           anion_stoichiometry FLOAT NULL,
                             name TEXT NULL, 
                             doi TEXT NULL,
                             data_type TEXT NULL, 
@@ -101,6 +100,7 @@ class CompositionModel:
 
             cursor.execute('''CREATE TABLE IF NOT EXISTS LED_properties 
                                                    (id_info INT NULL,
+                                                    eqe FLOAT NULL,
                                                     lum FLOAT NULL,
                                                     cie FLOAT NULL, 
                                                     fwhm FLOAT NULL, 
@@ -294,8 +294,8 @@ class CompositionModel:
         try:
             cursor = self.conn.cursor()
             cursor.execute('''INSERT INTO LED_properties 
-                          (id_info, lum, cie, fwhm, turn_volt, lt, ce)
-                          VALUES (?, ?, ?, ?, ?, ?, ?)''',
+                          (id_info, eqe, lum, cie, fwhm, turn_volt, lt, ce)
+                          VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
                            (id_info, *properties_data))
             self.conn.commit()
             return True, localization_manager.tr("mcompf8")

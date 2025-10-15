@@ -1,4 +1,6 @@
 import sqlite3
+
+import analysis.database_utils
 from analysis.calculation_tests import show_error
 from gui.language.manager import localization_manager
 
@@ -25,37 +27,33 @@ class CompositionCheckModel:
         try:
             cursor = self.conn.cursor()
 
-            # Основная информация о композиции
             cursor.execute('''SELECT ci.*, pt.name as template_name 
                             FROM Compositions_info ci
                             LEFT JOIN Phase_templates pt ON ci.id_template = pt.id
                             WHERE ci.id = ?''', (composition_id,))
             main_info = cursor.fetchone()
+            main_info = list(main_info)
+            main_info[1] = analysis.database_utils.get_template_name(main_info[1])
 
-            # Растворители
             cursor.execute('''SELECT solvent_type, symbol, fraction 
                             FROM Compositions_solvents 
                             WHERE id_info = ?''', (composition_id,))
             solvents = cursor.fetchall()
 
-            # Структура (ионы)
             cursor.execute('''SELECT structure_type, symbol, fraction, valence 
                             FROM Compositions_structure 
                             WHERE id_info = ?''', (composition_id,))
             structure = cursor.fetchall()
 
-            # Параметры синтеза
             cursor.execute('''SELECT * FROM Compositions_syntesis 
                             WHERE id_info = ?''', (composition_id,))
             synthesis = cursor.fetchone()
 
-            # K-факторы
             cursor.execute('''SELECT name, k_factor FROM K_factors 
                             WHERE id_info = ?''', (composition_id,))
             k_factors = cursor.fetchall()
 
-            # Свойства устройств (в зависимости от типа устройства)
-            device_type = main_info[2] if main_info else None  # device_type находится в 3-й колонке (индекс 2)
+            device_type = main_info[2] if main_info else None
             properties = self._get_device_properties(composition_id, device_type)
 
             return {
@@ -64,7 +62,8 @@ class CompositionCheckModel:
                 'structure': structure,
                 'synthesis': synthesis,
                 'properties': properties,
-                'k_factors': k_factors
+                'k_factors': k_factors,
+                'device_type': device_type
             }
         except sqlite3.Error as e:
             er = localization_manager.tr("mcompc2")
@@ -72,7 +71,6 @@ class CompositionCheckModel:
             return None
 
     def _get_device_properties(self, composition_id, device_type):
-        """Получает свойства устройства в зависимости от его типа"""
         try:
             cursor = self.conn.cursor()
 
@@ -105,8 +103,9 @@ class CompositionCheckModel:
                                 WHERE id_info = ?''', (composition_id,))
             else:
                 return None
-
-            return cursor.fetchone()
+            prop = list(cursor.fetchone())
+            prop.pop(0)
+            return prop
         except sqlite3.Error as e:
             er = localization_manager.tr("mcompc3")
             show_error(f"{er}: {e}")

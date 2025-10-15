@@ -218,6 +218,7 @@ class UserConfigView(tk.Frame):
                                       text=localization_manager.tr("ucv_but5"),
                                       **AppStyles.button_style(),
                                       command=self.create_sites)
+
         self.button_entry.pack(side="right", expand=True, fill = 'x', padx=2)
 
         clear_btn = tk.Button(button_frame,

@@ -3,7 +3,6 @@ from tkinter import ttk
 from gui.default_style import AppStyles
 from gui.language.manager import localization_manager
 
-
 class CompositionCheckView(tk.Toplevel):
     def __init__(self, parent, controller):
         super().__init__(parent)
@@ -18,19 +17,16 @@ class CompositionCheckView(tk.Toplevel):
         main_container = tk.Frame(self, **AppStyles.frame_style())
         main_container.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
-        # Настраиваем колонки: первая в 2 раза больше правой
-        main_container.columnconfigure(0, weight=2)  # Левая колонка - 2/3
-        main_container.columnconfigure(1, weight=1)  # Правая колонка - 1/3
+        main_container.columnconfigure(0, weight=2)
+        main_container.columnconfigure(1, weight=1)
         main_container.rowconfigure(0, weight=1)
 
-        # ЛЕВАЯ КОЛОНКА - композиции и избранное
         left_column = tk.Frame(main_container, **AppStyles.frame_style())
         left_column.grid(row=0, column=0, sticky="nsew", padx=(0, 5))
         left_column.columnconfigure(0, weight=1)
-        left_column.rowconfigure(0, weight=1)  # Первое дерево
-        left_column.rowconfigure(1, weight=1)  # Второе дерево
+        left_column.rowconfigure(0, weight=1)
+        left_column.rowconfigure(1, weight=1)
 
-        # Первое дерево - композиции
         compositions_frame = tk.LabelFrame(left_column,
                                            text=localization_manager.tr("ccv_comp_frame"),
                                            **AppStyles.labelframe_style())
@@ -38,7 +34,6 @@ class CompositionCheckView(tk.Toplevel):
         compositions_frame.columnconfigure(0, weight=1)
         compositions_frame.rowconfigure(0, weight=1)
 
-        # Второе дерево - избранное
         favorites_frame = tk.LabelFrame(left_column,
                                         text=localization_manager.tr("ccv_fav_frame"),
                                         **AppStyles.labelframe_style())
@@ -46,7 +41,6 @@ class CompositionCheckView(tk.Toplevel):
         favorites_frame.columnconfigure(0, weight=1)
         favorites_frame.rowconfigure(0, weight=1)
 
-        # ПРАВАЯ КОЛОНКА - детали
         right_column = tk.Frame(main_container, **AppStyles.frame_style())
         right_column.grid(row=0, column=1, sticky="nsew", padx=(5, 0))
         right_column.columnconfigure(0, weight=1)
@@ -59,9 +53,6 @@ class CompositionCheckView(tk.Toplevel):
         details_frame.columnconfigure(0, weight=1)
         details_frame.rowconfigure(0, weight=1)
 
-        # НАСТРОЙКА ДЕРЕВЬЕВ В ЛЕВОЙ КОЛОНКЕ
-
-        # Дерево композиций
         self.comp_columns = (localization_manager.tr("ccv_comp_col_id"),
                              localization_manager.tr("ccv_comp_col_name"),
                              localization_manager.tr("ccv_comp_col_device_type"),
@@ -96,7 +87,6 @@ class CompositionCheckView(tk.Toplevel):
         comp_v_scrollbar.grid(row=0, column=1, sticky="ns")
         comp_h_scrollbar.grid(row=1, column=0, sticky="ew")
 
-        # Дерево избранного
         fav_container = tk.Frame(favorites_frame, **AppStyles.frame_style())
         fav_container.grid(row=0, column=0, sticky="nsew")
         fav_container.columnconfigure(0, weight=1)
@@ -132,8 +122,6 @@ class CompositionCheckView(tk.Toplevel):
         fav_v_scrollbar.grid(row=0, column=1, sticky="ns")
         fav_h_scrollbar.grid(row=1, column=0, sticky="ew")
 
-        # НАСТРОЙКА ДЕТАЛЕЙ В ПРАВОЙ КОЛОНКЕ
-
         details_container = tk.Frame(details_frame, **AppStyles.frame_style())
         details_container.grid(row=0, column=0, sticky="nsew")
         details_container.columnconfigure(0, weight=1)
@@ -156,7 +144,6 @@ class CompositionCheckView(tk.Toplevel):
         self.notebook.add(self.properties_tab, text=localization_manager.tr("ccv_properties_tab"))
         self.notebook.add(self.kfactors_tab, text=localization_manager.tr("ccv_kfactors_tab"))
 
-        # ПАНЕЛЬ УПРАВЛЕНИЯ
         control_frame = tk.Frame(main_container, **AppStyles.frame_style())
         control_frame.grid(row=1, column=0, columnspan=2, sticky="ew", pady=(10, 0))
 
@@ -169,7 +156,6 @@ class CompositionCheckView(tk.Toplevel):
                   command=self.controller.refresh_all,
                   **AppStyles.button_style()).grid(row=0, column=1, padx=5, pady=5)
 
-        # ПРИВЯЗКА СОБЫТИЙ
         self.comp_tree.bind('<<TreeviewSelect>>', self.on_composition_select)
         self.fav_tree.bind('<<TreeviewSelect>>', self.on_favorite_select)
 
@@ -207,7 +193,7 @@ class CompositionCheckView(tk.Toplevel):
             self.display_synthesis(details.get('synthesis'))
 
             if not is_favorite and details.get('properties'):
-                self.display_properties(details['properties'])
+                self.display_properties(details['properties'], details['device_type'])
 
             self.display_k_factors(details['k_factors'])
 
@@ -216,11 +202,9 @@ class CompositionCheckView(tk.Toplevel):
             for widget in self.main_tab.winfo_children():
                 widget.destroy()
 
-            # Создаем фрейм для основной информации с прокруткой
             main_frame = tk.Frame(self.main_tab, **AppStyles.frame_style())
             main_frame.pack(fill=tk.BOTH, expand=True)
 
-            # Создаем Canvas и Scrollbar для прокрутки
             canvas = tk.Canvas(main_frame, bg=AppStyles.BACKGROUND_COLOR, highlightthickness=0)
             scrollbar = ttk.Scrollbar(main_frame, orient=tk.VERTICAL, command=canvas.yview)
             scrollable_frame = tk.Frame(canvas, **AppStyles.frame_style())
@@ -236,18 +220,18 @@ class CompositionCheckView(tk.Toplevel):
             canvas.pack(side="left", fill="both", expand=True, padx=5, pady=5)
             scrollbar.pack(side="right", fill="y")
 
-            # Определяем метки в зависимости от типа записи
             if is_favorite:
                 labels = self.fav_columns
             else:
+
                 labels = [
                     localization_manager.tr("ccv_comp_col_id"),
-                    localization_manager.tr("ccv_comp_col_name"),
+                    localization_manager.tr("ccv_comp_col_id_template"),
                     localization_manager.tr("ccv_comp_col_device_type"),
+                    localization_manager.tr("ccv_comp_col_name"),
                     localization_manager.tr("ccv_comp_col_doi"),
-                    localization_manager.tr("ccv_comp_col_data"),
-                    localization_manager.tr("ccv_comp_col_notes"),
-                    localization_manager.tr("ccv_comp_col_template")
+                    localization_manager.tr("ccv_comp_col_data_type"),
+                    localization_manager.tr("ccv_comp_col_notes")
                 ]
 
             for i, (label, value) in enumerate(zip(labels, main_info)):
@@ -295,7 +279,6 @@ class CompositionCheckView(tk.Toplevel):
             widget.destroy()
 
         if synthesis:
-            # Создаем фрейм с прокруткой для синтеза
             main_frame = tk.Frame(self.synthesis_tab, **AppStyles.frame_style())
             main_frame.pack(fill=tk.BOTH, expand=True)
 
@@ -334,12 +317,11 @@ class CompositionCheckView(tk.Toplevel):
             tk.Label(self.synthesis_tab, text="No synthesis data",
                      **AppStyles.label_style()).pack(expand=True)
 
-    def display_properties(self, properties):
+    def display_properties(self, properties, device_type):
         for widget in self.properties_tab.winfo_children():
             widget.destroy()
 
         if properties:
-            # Создаем фрейм с прокруткой для свойств
             main_frame = tk.Frame(self.properties_tab, **AppStyles.frame_style())
             main_frame.pack(fill=tk.BOTH, expand=True)
 
@@ -358,8 +340,76 @@ class CompositionCheckView(tk.Toplevel):
             canvas.pack(side="left", fill="both", expand=True, padx=5, pady=5)
             scrollbar.pack(side="right", fill="y")
 
-            # Здесь можно добавить специфичные метки для разных типов устройств
-            labels = [f"Property {i + 1}" for i in range(len(properties))]
+            if device_type == localization_manager.tr("ccv_device1"):
+                labels = [localization_manager.tr("ccv_dev1_prop1"),
+                          localization_manager.tr("ccv_dev1_prop2"),
+                          localization_manager.tr("ccv_dev1_prop3"),
+                          localization_manager.tr("ccv_dev1_prop4"),
+                          localization_manager.tr("ccv_dev1_prop5"),
+                          localization_manager.tr("ccv_dev1_prop6"),
+                          localization_manager.tr("ccv_dev1_prop7")]
+
+            elif device_type == localization_manager.tr("ccv_device2"):
+                labels = [localization_manager.tr("ccv_dev2_prop1"),
+                          localization_manager.tr("ccv_dev2_prop2"),
+                          localization_manager.tr("ccv_dev2_prop3"),
+                          localization_manager.tr("ccv_dev2_prop4"),
+                          localization_manager.tr("ccv_dev2_prop5"),
+                          localization_manager.tr("ccv_dev2_prop6"),
+                          localization_manager.tr("ccv_dev2_prop7")]
+
+            elif device_type == localization_manager.tr("ccv_device3"):
+                labels = [localization_manager.tr("ccv_dev3_prop1"),
+                          localization_manager.tr("ccv_dev3_prop2"),
+                          localization_manager.tr("ccv_dev3_prop3"),
+                          localization_manager.tr("ccv_dev3_prop4"),
+                          localization_manager.tr("ccv_dev3_prop5"),
+                          localization_manager.tr("ccv_dev3_prop6"),
+                          localization_manager.tr("ccv_dev3_prop7")]
+
+            elif device_type == localization_manager.tr("ccv_device4"):
+                labels = [localization_manager.tr("ccv_dev4_prop1"),
+                          localization_manager.tr("ccv_dev4_prop2"),
+                          localization_manager.tr("ccv_dev4_prop3"),
+                          localization_manager.tr("ccv_dev4_prop4"),
+                          localization_manager.tr("ccv_dev4_prop5")]
+
+            elif device_type == localization_manager.tr("ccv_device5"):
+                labels = [localization_manager.tr("ccv_dev5_prop1"),
+                          localization_manager.tr("ccv_dev5_prop2"),
+                          localization_manager.tr("ccv_dev5_prop3"),
+                          localization_manager.tr("ccv_dev5_prop4"),
+                          localization_manager.tr("ccv_dev5_prop5"),
+                          localization_manager.tr("ccv_dev5_prop6"),
+                          localization_manager.tr("ccv_dev5_prop7")]
+
+            elif device_type == localization_manager.tr("ccv_device6"):
+                labels = [localization_manager.tr("ccv_dev6_prop1"),
+                          localization_manager.tr("ccv_dev6_prop2"),
+                          localization_manager.tr("ccv_dev6_prop3"),
+                          localization_manager.tr("ccv_dev6_prop4"),
+                          localization_manager.tr("ccv_dev6_prop5"),
+                          localization_manager.tr("ccv_dev6_prop6")]
+
+            elif device_type == localization_manager.tr("ccv_device7"):
+                labels = [localization_manager.tr("ccv_dev7_prop1"),
+                          localization_manager.tr("ccv_dev7_prop2"),
+                          localization_manager.tr("ccv_dev7_prop3"),
+                          localization_manager.tr("ccv_dev7_prop4")]
+
+            elif device_type == localization_manager.tr("ccv_device8"):
+                labels = [localization_manager.tr("ccv_dev8_prop1"),
+                          localization_manager.tr("ccv_dev8_prop2"),
+                          localization_manager.tr("ccv_dev8_prop3"),
+                          localization_manager.tr("ccv_dev8_prop4")]
+
+            elif device_type == localization_manager.tr("ccv_device9"):
+                labels = [localization_manager.tr("ccv_dev9_prop1"),
+                          localization_manager.tr("ccv_dev9_prop2"),
+                          localization_manager.tr("ccv_dev9_prop3"),
+                          localization_manager.tr("ccv_dev9_prop4")]
+            else:
+                labels = [f"Property {i + 1}" for i in range(len(properties))]
 
             row = 0
             for i, value in enumerate(properties):

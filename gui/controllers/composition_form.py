@@ -84,7 +84,7 @@ class CompositionController:
         for factor in factors_data:
             success, message = self.model.add_k_factors(
                 id_info,
-                factor['precursor'],
+                factor['salt'],
                 factor['k_factor']
             )
             if not success:

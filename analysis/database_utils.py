@@ -122,3 +122,11 @@ def get_solvents(solvent_type):
     values = [row[0] for row in cursor.fetchall()]
     conn.close()
     return values
+
+def get_template_name(id):
+    conn = sqlite3.connect("data.db")
+    cursor = conn.cursor()
+    cursor.execute(f"SELECT name FROM Phase_templates WHERE id = ?", (id,))
+    name = cursor.fetchone()
+    conn.close()
+    return name[0]
