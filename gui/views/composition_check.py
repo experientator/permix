@@ -155,6 +155,10 @@ class CompositionCheckView(tk.Toplevel):
                   text=localization_manager.tr("ccv_refresh_button"),
                   command=self.controller.refresh_all,
                   **AppStyles.button_style()).grid(row=0, column=1, padx=5, pady=5)
+        tk.Button(control_frame,
+                  text="Upload_button",
+                  command=self.controller.get_info_to_ucf,
+                  **AppStyles.button_style()).grid(row=0, column=2, padx=5, pady=5)
 
         self.comp_tree.bind('<<TreeviewSelect>>', self.on_composition_select)
         self.fav_tree.bind('<<TreeviewSelect>>', self.on_favorite_select)
@@ -164,6 +168,8 @@ class CompositionCheckView(tk.Toplevel):
         if selection:
             item = self.comp_tree.item(selection[0])
             composition_id = item['values'][0]
+            self.id_to_ucf = composition_id
+            self.not_fav_to_ucf = True
             self.controller.load_composition_details(composition_id)
 
     def on_favorite_select(self, event):
@@ -171,6 +177,8 @@ class CompositionCheckView(tk.Toplevel):
         if selection:
             item = self.fav_tree.item(selection[0])
             favorite_id = item['values'][0]
+            self.id_to_ucf = favorite_id
+            self.not_fav_to_ucf = False
             self.controller.load_favorite_details(favorite_id)
 
     def display_compositions(self, data):
