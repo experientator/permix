@@ -1,5 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
+
+from analysis.calculation_tests import show_error
 from gui.default_style import AppStyles
 from gui.language.manager import localization_manager
 
@@ -9,9 +11,12 @@ class CompositionCheckView(tk.Toplevel):
         self.controller = controller
         localization_manager.register_observer(self)
         self.title(localization_manager.tr("ccv_window_title"))
+        self.parent = parent
         self.configure(bg=AppStyles.BACKGROUND_COLOR)
         self.geometry("1200x700")
         self.build_ui()
+        self.id_to_ucf = None
+        self.not_fav_to_ucf = None
 
     def build_ui(self):
         main_container = tk.Frame(self, **AppStyles.frame_style())
@@ -479,3 +484,13 @@ class CompositionCheckView(tk.Toplevel):
                     self.synthesis_tab, self.properties_tab, self.kfactors_tab]:
             for widget in tab.winfo_children():
                 widget.destroy()
+
+    def return_to_main(self):
+        if self.not_fav_to_ucf and self.id_to_ucf:
+            id = self.id_to_ucf
+            notfav = self.not_fav_to_ucf
+            self.destroy()
+        else:
+            show_error("no data sorm")
+        if hasattr(self.parent, 'return_from_composition_check'):
+            self.parent.return_from_composition_check(id, notfav)

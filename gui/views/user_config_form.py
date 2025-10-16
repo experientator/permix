@@ -15,13 +15,14 @@ from analysis.sort_equations import sort_by_minimum_criteria, optimal_sort
 from analysis.histograms import prepare_and_draw_mass_histogram
 from gui.language.manager import localization_manager
 from analysis.calculation_tests import show_error, show_success
+from analysis.deafult_filling import get_parameters
 
 class UserConfigView(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent)
         self.controller = controller
         localization_manager.register_observer(self)
-
+        self.parent = parent
         self.configure(bg=AppStyles.BACKGROUND_COLOR)
         self.styles = AppStyles()
         self.build_ui()
@@ -1058,32 +1059,39 @@ class UserConfigView(tk.Frame):
         self.create_template_frame()
         self.update()
 
-    # def upload_config(self):
-    #     self.reset_form()
-    #     self.phase_template.current(0)
-    #     self.create_sites()
-    #     self.antisolvents_cb
-    #     self.site_widgets[site_type]["combobox_num"].get()
-    #     self.site_widgets[site_type]["dynamic_widgets"].append({
-    #         "symbol": cb_symbol,
-    #         "fraction": entry_fraction
-    #     })
-    #     self.create_solvents()
-    #     self.solvents_widgets[solvent_type]["combobox_num"].get()
-    #     self.solvents_widgets[solvent_type]["dynamic_widgets"].append({
-    #         "symbol": cb_symbol,
-    #         "fraction": entry_fraction
-    #     })
-    #     self.entry_v_solvent = tk.Entry(self.propereties_frame, width=10,
-    #                                     **AppStyles.entry_style())
-    #     self.entry_c_solvent = tk.Entry(self.propereties_frame, width=10,
-    #                                     **AppStyles.entry_style())
-    #     if self.antisolv_check.get() == 1:
-    #         self.entry_v_antisolvent = tk.Entry(self.propereties_frame, width=10,
-    #                                             **AppStyles.entry_style())
-    #         self.entry_v_antisolvent.grid(row=1, column=2, sticky='ew', padx=5, pady=2)
-    #     self.create_k_factors_widgets() нужное количество раз
-    #
-    #     widget = self.solvents_widgets[solvent_type]["dynamic_widgets"][i]
-    #
-    #     symbol = widget["symbol"].get()
+    def return_from_composition_check(self, id_info=None, not_fav = None):
+        self.reset_form()
+        (template_name, syntesis, antisol_num,
+         antisolv, sol_num, solv, sites_num,
+         sites, k_f_num, k_fact) = get_parameters(id_info, 'data.db', not_fav)
+        self.phase_template.set(template_name)
+        self.create_sites()
+        if antisol_num != 0:
+            self.antisolv_check.set(1)
+        else:
+            self.antisolv_check.set(0)
+        sites_names = ["a_site", "b_site", "b_double", "spacer", "anion"]
+        for i, site_type in enumerate(sites_names):
+            self.site_widgets[site_type]["combobox_num"].set(sites_num[i])
+            symbol = sites[site_type][i]["name"]
+            frac = sites[site_type][i]["fraction"]
+            self.site_widgets[site_type]["dynamic_widgets"][i]["symbol"].set(symbol)
+            self.site_widgets[site_type]["dynamic_widgets"][i]["fraction"].set(frac)
+
+        self.create_solvents()
+
+        self.solvents_widgets[solvent_type]["combobox_num"].get()
+        self.solvents_widgets[solvent_type]["dynamic_widgets"].append({
+            "symbol": cb_symbol,
+            "fraction": entry_fraction
+        })
+        self.entry_v_solvent.delete(0, tk.END)
+        self.entry_v_solvent.insert(0, syntesis["v_sol"])
+        self.entry_c_solvent.delete(0, tk.END)
+        self.entry_c_solvent.insert(0, syntesis["c_sol"])
+        if self.antisolv_check.get() == 1:
+            self.entry_v_antisolvent.delete(0, tk.END)
+            self.entry_v_antisolvent.insert(0, syntesis["v_anti"])
+
+        for i in range(k_f_num-1):
+            self.create_k_factors_widgets()
