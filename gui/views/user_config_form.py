@@ -1072,19 +1072,37 @@ class UserConfigView(tk.Frame):
             self.antisolv_check.set(0)
         sites_names = ["a_site", "b_site", "b_double", "spacer", "anion"]
         for i, site_type in enumerate(sites_names):
-            self.site_widgets[site_type]["combobox_num"].set(sites_num[i])
-            symbol = sites[site_type][i]["name"]
-            frac = sites[site_type][i]["fraction"]
-            self.site_widgets[site_type]["dynamic_widgets"][i]["symbol"].set(symbol)
-            self.site_widgets[site_type]["dynamic_widgets"][i]["fraction"].set(frac)
+            if site_type in self.site_widgets:
+                self.site_widgets[site_type]["combobox_num"].set(sites_num[i])
+                for j in range(sites_num[i]):
+                    symbol = sites[site_type][j]["name"]
+                    frac = sites[site_type][j]["fraction"]
+                    self.site_widgets[site_type]["dynamic_widgets"][j]["symbol"].delete(0, tk.END)
+                    self.site_widgets[site_type]["dynamic_widgets"][j]["symbol"].insert(0, symbol)
+                    self.site_widgets[site_type]["dynamic_widgets"][j]["fraction"].delete(0, tk.END)
+                    self.site_widgets[site_type]["dynamic_widgets"][j]["fraction"].insert(0, frac)
 
         self.create_solvents()
 
-        self.solvents_widgets[solvent_type]["combobox_num"].get()
-        self.solvents_widgets[solvent_type]["dynamic_widgets"].append({
-            "symbol": cb_symbol,
-            "fraction": entry_fraction
-        })
+        self.solvents_widgets["solvent"]["combobox_num"].set(sol_num)
+        for i in range(sol_num):
+            symbol = solv[i]["name"]
+            frac = solv[i]["fraction"]
+            self.solvents_widgets["solvent"]["dynamic_widgets"][i]["symbol"].delete(0, tk.END)
+            self.solvents_widgets["solvent"]["dynamic_widgets"][i]["fraction"].delete(0, tk.END)
+            self.solvents_widgets["solvent"]["dynamic_widgets"][i]["symbol"].insert(0, symbol)
+            self.solvents_widgets["solvent"]["dynamic_widgets"][i]["fraction"].insert(0, frac)
+
+        if antisol_num != 0:
+            self.solvents_widgets["antisolvent"]["combobox_num"].set(antisol_num)
+            for i in range(antisol_num):
+                symbol = antisolv[i]["name"]
+                frac = antisolv[i]["fraction"]
+                self.solvents_widgets["antisolvent"]["dynamic_widgets"][i]["symbol"].delete(0, tk.END)
+                self.solvents_widgets["antisolvent"]["dynamic_widgets"][i]["fraction"].delete(0, tk.END)
+                self.solvents_widgets["antisolvent"]["dynamic_widgets"][i]["symbol"].insert(0, symbol)
+                self.solvents_widgets["antisolvent"]["dynamic_widgets"][i]["fraction"].insert(0, frac)
+
         self.entry_v_solvent.delete(0, tk.END)
         self.entry_v_solvent.insert(0, syntesis["v_sol"])
         self.entry_c_solvent.delete(0, tk.END)
@@ -1095,3 +1113,9 @@ class UserConfigView(tk.Frame):
 
         for i in range(k_f_num-1):
             self.create_k_factors_widgets()
+            salt = k_fact[i]["salt"]
+            k_factor = k_fact[i]["k_factor"]
+            self.k_factors_widgets["dynamic_widgets"][i]["salt"].delete(0, tk.END)
+            self.k_factors_widgets["dynamic_widgets"][i]["k_factor"].delete(0, tk.END)
+            self.k_factors_widgets["dynamic_widgets"][i]["salt"].insert(0, salt)
+            self.k_factors_widgets["dynamic_widgets"][i]["k_factor"].insert(0, k_factor)

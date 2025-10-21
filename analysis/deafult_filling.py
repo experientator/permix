@@ -9,7 +9,7 @@ def get_composition_syntesis(db_path, id_info, notfav):
             SELECT 
                 cs.v_antisolvent,
                 cs.v_solution, 
-                cs.c_solution,
+                cs.c_solution
             FROM Compositions_info ci
             LEFT JOIN Compositions_syntesis cs ON ci.id = cs.id_info
             WHERE ci.id = ?

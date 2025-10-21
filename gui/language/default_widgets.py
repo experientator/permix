@@ -217,11 +217,13 @@ default_translations = [
 ("ccv_k_col_k_fact", "K-factor", "K-фактор"),
 
 ("ccv_comp_col_id", "ID", "ID"),
-("ccv_comp_col_name", "Name", "Название"),
-("ccv_comp_col_doi", "DOI", "DOI"),
-("ccv_comp_col_data", "Data type", "Тип данных"),
-("ccv_comp_col_notes", "Notes", "Заметки"),
-("ccv_comp_col_template", "Template", "Шаблон"),
+                ("ccv_comp_col_id_template", "Template ID", "ID Шаблона"),
+                ("ccv_comp_col_device_type", "Device type", "Тип устройства"),
+                ("ccv_comp_col_name", "Name", "Название"),
+                ("ccv_comp_col_doi", "DOI", "DOI"),
+                ("ccv_comp_col_data", "Data type", "Тип данных"),
+                ("ccv_comp_col_notes", "Notes", "Заметки"),
+                ("ccv_comp_col_template", "Template", "Шаблон"),
 
 ("ccv_fav_col_id", "ID", "ID"),
 ("ccv_fav_col_name", "Name", "Название"),
@@ -237,6 +239,15 @@ default_translations = [
 ("ccv_structure_tab", "Structure", "Структура"),
 ("ccv_properties_tab", "Properties", "Свойства"),
 ("ccv_kfactors_tab", "K-factors", "K-факторы"),
+("ccv_synthesis_tab", "Syntesis details", "Детали синтеза"),
+
+ ("ccv_upload_but", "Upload data", "Загрузить данные"),
+ ("ccv_no_solv_data", "No solvents data", "Нет данных по растворителям"),
+ ("ccv_no_struct_data", "No structure data", "Нет данных по структуре"),
+ ("ccv_no_synt_data", "No synthesis data", "Нет данных по деталям синтеза"),
+ ("ccv_no_prop_data", "No properties data", "Нет данных по свойствам"),
+ ("ccv_no_fact_data", "No K-factors data", "Нет данных по К-факторам"),
+ ("ccv_no_data", "No data", "Нет данных"),
 
 ("ccv_refresh_button", "Refresh All", "Обновить все"),
 

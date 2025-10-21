@@ -161,10 +161,9 @@ class CompositionCheckView(tk.Toplevel):
                   command=self.controller.refresh_all,
                   **AppStyles.button_style()).grid(row=0, column=1, padx=5, pady=5)
         tk.Button(control_frame,
-                  text="Upload_button",
-                  command=self.controller.get_info_to_ucf,
+                  text=localization_manager.tr("ccv_upload_but"),
+                  command=self.return_to_main,
                   **AppStyles.button_style()).grid(row=0, column=2, padx=5, pady=5)
-
         self.comp_tree.bind('<<TreeviewSelect>>', self.on_composition_select)
         self.fav_tree.bind('<<TreeviewSelect>>', self.on_favorite_select)
 
@@ -236,14 +235,13 @@ class CompositionCheckView(tk.Toplevel):
             if is_favorite:
                 labels = self.fav_columns
             else:
-
                 labels = [
                     localization_manager.tr("ccv_comp_col_id"),
                     localization_manager.tr("ccv_comp_col_id_template"),
                     localization_manager.tr("ccv_comp_col_device_type"),
                     localization_manager.tr("ccv_comp_col_name"),
                     localization_manager.tr("ccv_comp_col_doi"),
-                    localization_manager.tr("ccv_comp_col_data_type"),
+                    localization_manager.tr("ccv_comp_col_data"),
                     localization_manager.tr("ccv_comp_col_notes")
                 ]
 
@@ -268,9 +266,9 @@ class CompositionCheckView(tk.Toplevel):
             for solvent in solvents:
                 tree.insert('', 'end', values=solvent)
         else:
-            tk.Label(self.solvents_tab, text="No solvents data",
+            tk.Label(self.solvents_tab,
+                     text=localization_manager.tr("ccv_no_solv_data"),
                      **AppStyles.label_style()).pack(expand=True)
-
     def display_structure(self, structure):
         for widget in self.structure_tab.winfo_children():
             widget.destroy()
@@ -284,7 +282,8 @@ class CompositionCheckView(tk.Toplevel):
             for element in structure:
                 tree.insert('', 'end', values=element)
         else:
-            tk.Label(self.structure_tab, text="No structure data",
+            tk.Label(self.structure_tab,
+                     text=localization_manager.tr("ccv_no_struct_data"),
                      **AppStyles.label_style()).pack(expand=True)
 
     def display_synthesis(self, synthesis):
@@ -311,14 +310,14 @@ class CompositionCheckView(tk.Toplevel):
             scrollbar.pack(side="right", fill="y")
 
             labels = [
-                localization_manager.tr("ccv_synth_col_stab_notes"),
-                localization_manager.tr("ccv_synth_col_v_antisol"),
-                localization_manager.tr("ccv_synth_col_v_sol"),
-                localization_manager.tr("ccv_synth_col_conc"),
-                localization_manager.tr("ccv_synth_col_method")
+                localization_manager.tr("ccv_prop_col_stab_notes"),
+                localization_manager.tr("ccv_prop_col_v_antisol"),
+                localization_manager.tr("ccv_prop_col_v_sol"),
+                localization_manager.tr("ccv_prop_col_conc"),
+                localization_manager.tr("ccv_prop_col_method")
             ]
 
-            for i, (label, value) in enumerate(zip(labels, synthesis[1:])):  # Пропускаем id_info
+            for i, (label, value) in enumerate(zip(labels, synthesis[1:])):
                 label_widget = tk.Label(scrollable_frame, text=f"{label}:",
                                         anchor=tk.W, **AppStyles.label_style())
                 label_widget.grid(row=i, column=0, sticky="w", padx=2, pady=1)
@@ -327,7 +326,8 @@ class CompositionCheckView(tk.Toplevel):
                                         anchor=tk.W, **AppStyles.label_style())
                 value_widget.grid(row=i, column=1, sticky="w", padx=2, pady=1)
         else:
-            tk.Label(self.synthesis_tab, text="No synthesis data",
+            tk.Label(self.synthesis_tab,
+                     text=localization_manager.tr("ccv_no_synt_data"),
                      **AppStyles.label_style()).pack(expand=True)
 
     def display_properties(self, properties, device_type):
@@ -436,7 +436,8 @@ class CompositionCheckView(tk.Toplevel):
                     value_widget.grid(row=row, column=1, sticky="w", padx=2, pady=1)
                     row += 1
         else:
-            tk.Label(self.properties_tab, text="No properties data",
+            tk.Label(self.properties_tab,
+                     text=localization_manager.tr("ccv_no_prop_data"),
                      **AppStyles.label_style()).pack(expand=True)
 
     def display_k_factors(self, k_factors):
@@ -450,7 +451,8 @@ class CompositionCheckView(tk.Toplevel):
             for factor in k_factors:
                 tree.insert('', 'end', values=factor)
         else:
-            tk.Label(self.kfactors_tab, text="No K-factors data",
+            tk.Label(self.kfactors_tab,
+                     text=localization_manager.tr("ccv_no_fact_data"),
                      **AppStyles.label_style()).pack(expand=True)
 
     def create_treeview(self, parent, columns):
@@ -489,8 +491,10 @@ class CompositionCheckView(tk.Toplevel):
         if self.not_fav_to_ucf and self.id_to_ucf:
             id = self.id_to_ucf
             notfav = self.not_fav_to_ucf
+
+            if hasattr(self.parent, 'return_from_composition_check'):
+                self.parent.return_from_composition_check(id, notfav)
+
             self.destroy()
         else:
-            show_error("no data sorm")
-        if hasattr(self.parent, 'return_from_composition_check'):
-            self.parent.return_from_composition_check(id, notfav)
+            show_error(localization_manager.tr("ccv_no_data"))

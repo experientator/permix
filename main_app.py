@@ -101,6 +101,9 @@ class App(tk.Tk):
     def open_comp_form(self):
         CompositionController(self)
 
+    def return_from_composition_check(self, id_info=None, not_fav=None):
+        self.calc_view.return_from_composition_check(id_info, not_fav)
+
 localization_manager.initialize_default_translations(default_translations)
 if __name__ == "__main__":
 
