@@ -398,6 +398,12 @@ class UserConfigView(tk.Frame):
                 current_row += 1
 
     def create_solvents(self):
+        self.sites_update_button = tk.Button(self.first_column,
+                                       text=localization_manager.tr("ucv_lf_sites_upd"),
+                                       **AppStyles.button_style(),
+                                       command=self.reset_sites)
+        self.sites_update_button.pack(pady=5, expand=True, fill='x')
+
         self.salt_formulas = []
         self.cations_data, self.anions_data = self.get_structure_data()
 
@@ -1111,7 +1117,7 @@ class UserConfigView(tk.Frame):
             self.entry_v_antisolvent.delete(0, tk.END)
             self.entry_v_antisolvent.insert(0, syntesis["v_anti"])
 
-        for i in range(k_f_num-1):
+        for i in range(k_f_num):
             self.create_k_factors_widgets()
             salt = k_fact[i]["salt"]
             k_factor = k_fact[i]["k_factor"]
@@ -1119,3 +1125,32 @@ class UserConfigView(tk.Frame):
             self.k_factors_widgets["dynamic_widgets"][i]["k_factor"].delete(0, tk.END)
             self.k_factors_widgets["dynamic_widgets"][i]["salt"].insert(0, salt)
             self.k_factors_widgets["dynamic_widgets"][i]["k_factor"].insert(0, k_factor)
+
+    def reset_sites(self):
+
+        self.solvents_frame.destroy()
+
+        self.k_factors_frame.destroy()
+        self.propereties_frame.destroy()
+        self.data_apply_button.destroy()
+
+        for widget in self.sec_column.winfo_children():
+            widget.destroy()
+
+        self.first_column.update()
+        self.sec_column.update()
+
+        self.upload_button["state"] = "normal"
+        self.antisolvents_cb["state"] = "normal"
+        self.sites_update_button.destroy()
+
+        for attr in ['sites_frame', 'solvents_frame', 'propereties_frame',
+                     'k_factors_frame', 'data_apply_button_frame', 'results_frame',
+                     'console_text', 'fav_button']:
+            if hasattr(self, attr):
+                delattr(self, attr)
+
+        self.solvents_widgets = {}
+        self.k_factors_widgets = {}
+        self.dynamic_widgets = []
+        self.update()

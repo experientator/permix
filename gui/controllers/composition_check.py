@@ -31,3 +31,9 @@ class CompositionCheckController:
         self.id = self.view.id_to_ucf
         self.notfav = self.view.not_fav_to_ucf
 
+    def delete_selected(self, id_del, not_fav):
+        if not_fav:
+            self.comp_model.delete_selected(id_del)
+        else:
+            self.fav_model.delete_selected(id_del)
+

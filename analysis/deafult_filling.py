@@ -47,16 +47,21 @@ def get_template(db_path, id_info, notfav):
     name = get_template_name(int(result[0]))
     return name
 
-def get_composition_solvents(db_path, id_info):
+def get_composition_solvents(db_path, id_info, notfav):
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
-
-    query = '''
-    SELECT solvent_type, symbol, fraction
-    FROM Compositions_solvents 
-    WHERE id_info = ?
-    '''
-
+    if notfav:
+        query = '''
+        SELECT solvent_type, symbol, fraction
+        FROM Compositions_solvents 
+        WHERE id_info = ?
+        '''
+    else:
+        query = '''
+               SELECT solvent_type, symbol, fraction
+               FROM Compositions_solvents 
+               WHERE id_fav = ?
+               '''
     cursor.execute(query, (id_info,))
     solvents = cursor.fetchall()
     conn.close()
@@ -64,15 +69,21 @@ def get_composition_solvents(db_path, id_info):
     return solvents
 
 
-def get_composition_structures(db_path, id_info):
+def get_composition_structures(db_path, id_info, notfav):
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
-
-    query = '''
-    SELECT structure_type, symbol, fraction
-    FROM Compositions_structure 
-    WHERE id_info = ?
-    '''
+    if notfav:
+        query = '''
+        SELECT structure_type, symbol, fraction
+        FROM Compositions_structure 
+        WHERE id_info = ?
+        '''
+    else:
+        query = '''
+               SELECT structure_type, symbol, fraction
+               FROM Compositions_structure 
+               WHERE id_fav = ?
+               '''
 
     cursor.execute(query, (id_info,))
     structures = cursor.fetchall()
@@ -80,16 +91,21 @@ def get_composition_structures(db_path, id_info):
 
     return structures
 
-def get_composition_k_factors(db_path, id_info):
+def get_composition_k_factors(db_path, id_info, notfav):
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
-
-    query = '''
-    SELECT  name, k_factor
-    FROM K_factors 
-    WHERE id_info = ?
-    '''
-
+    if notfav:
+        query = '''
+        SELECT  name, k_factor
+        FROM K_factors 
+        WHERE id_info = ?
+        '''
+    else:
+        query = '''
+               SELECT  name, k_factor
+               FROM K_factors 
+               WHERE id_fav = ?
+               '''
     cursor.execute(query, (id_info,))
     k_factors = cursor.fetchall()
     conn.close()
@@ -104,7 +120,7 @@ def get_parameters(id_info, db_path, notfav):
         "v_sol": v_solution,
         "c_sol": c_solution
     }
-    solvents = get_composition_solvents(db_path, id_info)
+    solvents = get_composition_solvents(db_path, id_info, notfav)
     antisol_num = 0
     antisolv = {}
     sol_num = 0
@@ -130,7 +146,7 @@ def get_parameters(id_info, db_path, notfav):
                 "name": solvent[1],
                 "fraction": solvent[2]
             }
-    structure = get_composition_structures(db_path, id_info)
+    structure = get_composition_structures(db_path, id_info, notfav)
     for struct in structure:
         if struct[0] == "a_site":
             sites_num[0] += 1
@@ -162,7 +178,7 @@ def get_parameters(id_info, db_path, notfav):
                 "name": struct[1],
                 "fraction": struct[2]
             }
-    k_factors = get_composition_k_factors(db_path, id_info)
+    k_factors = get_composition_k_factors(db_path, id_info, notfav)
     k_f_num = 0
     k_fact = {}
     for k_f in k_factors:

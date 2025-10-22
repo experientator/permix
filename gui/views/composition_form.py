@@ -6,7 +6,7 @@ from analysis.database_utils import (get_templates_list, get_template_id, get_te
                                      get_candidate_cations, get_solvents, get_anion_stoichiometry)
 from gui.default_style import AppStyles
 from gui.language.manager import localization_manager
-from analysis.calculation_tests import fraction_test, float_test
+from analysis.calculation_tests import float_test
 
 class CompositionView(tk.Toplevel):
     def __init__(self, parent, controller):
@@ -140,10 +140,18 @@ class CompositionView(tk.Toplevel):
         self.mi_label5 = tk.Label(self.main_info_frame,
                                   text=localization_manager.tr("mi_label5"),
                                   **AppStyles.label_style())
-        self.mi_label5.grid(row=2, column=1, sticky='ew', padx=5, pady=2)
+        self.mi_label5.grid(row=2, column=1, columnspan=2, sticky='ew', padx=5, pady=2)
+        self.entry_name = tk.Entry(self.main_info_frame,
+                                    **AppStyles.entry_style())
+        self.entry_name.grid(row=3, column=1, columnspan=2, sticky='ew', padx=5, pady=2)
+
+        self.mi_label6 = tk.Label(self.main_info_frame,
+                                  text=localization_manager.tr("mi_label6"),
+                                  **AppStyles.label_style())
+        self.mi_label6.grid(row=4, column=0, columnspan=3, sticky='ew', padx=5, pady=2)
         self.entry_notes = tk.Entry(self.main_info_frame,
                                     **AppStyles.entry_style())
-        self.entry_notes.grid(row=3, column=1, sticky='ew', padx=5, pady=2)
+        self.entry_notes.grid(row=5, column=0, columnspan=3, sticky='ew', padx=5, pady=2)
 
         self.submit_button_frame = tk.Frame(self.first_column,
                                             **AppStyles.frame_style())
@@ -662,7 +670,7 @@ class CompositionView(tk.Toplevel):
 
     def create_submit_button(self):
         self.subm_button = tk.Button(self.sec_column,
-                                    text="Загрузить данные",
+                                    text=localization_manager.tr("cfv_upl_but"),
                                     command = self.upload_data,
                                     **AppStyles.button_style())
         self.subm_button.pack(expand=True, fill='x', pady=5)
@@ -699,6 +707,7 @@ class CompositionView(tk.Toplevel):
         main_info = [self.entry_device_type.get(),
                      self.entry_doi.get(),
                      self.entry_data_type.get(),
-                     self.entry_notes.get()]
+                     self.entry_notes.get(),
+                     self.entry_name.get()]
         self.controller.handle_main_submit(main_info,  solution_info, structure_data,
                            solvents, properties, k_factors)

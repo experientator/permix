@@ -172,8 +172,8 @@ class CompositionModel:
         try:
             cursor = self.conn.cursor()
             cursor.execute('''INSERT INTO Compositions_info  
-                          (id_template, device_type, doi, data_type, notes) 
-                          VALUES (?, ?, ?, ?, ?)''',
+                          (id_template, device_type, doi, data_type, notes, name) 
+                          VALUES (?, ?, ?, ?, ?, ?)''',
                            (id_template, *comp_info,))
             self.conn.commit()
 

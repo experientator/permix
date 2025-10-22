@@ -1,7 +1,7 @@
 from gui.models.ions_check import IonsCheckModel
 from gui.views.ions_check import IonsCheckView
 from gui.language.manager import localization_manager
-from analysis.calculation_tests import show_error, show_success
+from analysis.calculation_tests import show_error, show_success, ask_confirmation, show_warning
 
 class IonsCheckController:
     def __init__(self, parent):
@@ -84,12 +84,12 @@ class IonsCheckController:
         item = self.view.get_selected_ion()
         charge, CN, radii = self.view.get_selected_radii()
         if not item:
-            self.view.show_warning(localization_manager.tr("ion_war"))
+            show_warning(localization_manager.tr("ion_war"))
             return
 
         record_name = item[0]
 
-        if self.view.ask_confirmation(localization_manager.tr("ion_conf")):
+        if ask_confirmation(localization_manager.tr("ion_conf")):
             try:
                 success = self.model.delete_ionic_radii(record_name, charge, CN, radii)
                 if success:

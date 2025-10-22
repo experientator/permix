@@ -32,12 +32,8 @@ class App(tk.Tk):
 
     def create_menu(self):
         menu = tk.Menu(self)
-        upload_menu = tk.Menu(menu, tearoff=0)
         view_menu = tk.Menu(menu, tearoff=0)
         lang_menu = tk.Menu(menu, tearoff=0)
-
-        upload_menu.add_command(label=localization_manager.tr("main_1"),
-                                command=self.open_comp_form)
 
         view_menu.add_command(label=localization_manager.tr("main_2"),
                               command=self.get_solvents)
@@ -53,8 +49,6 @@ class App(tk.Tk):
         lang_menu.add_command(label=localization_manager.tr("main_11"),
                               command=self.get_russian)
 
-        menu.add_cascade(label=localization_manager.tr("main_6"),
-                         menu=upload_menu)
         menu.add_cascade(label=localization_manager.tr("main_7"),
                          menu=view_menu)
         menu.add_cascade(label=localization_manager.tr("main_12"),

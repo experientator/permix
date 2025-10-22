@@ -1,5 +1,4 @@
 import tkinter as tk
-import tkinter.messagebox as mb
 from tkinter import ttk
 from gui.default_style import AppStyles
 from gui.language.manager import localization_manager
@@ -266,15 +265,6 @@ class IonsCheckView(tk.Toplevel):
             self.ions_tree.delete(item)
         for row in data:
             self.ions_tree.insert('', 'end', values=row)
-
-    def show_message(self, title, message):
-        mb.showinfo(title, message)
-
-    def show_warning(self, message):
-        mb.showwarning(title = localization_manager.tr("warning_title"), message=message)
-
-    def ask_confirmation(self, message):
-        return mb.askyesno(title = localization_manager.tr("confirm_title"), message=message)
 
     def clear_form(self):
         self.entry_name.delete(0, tk.END)

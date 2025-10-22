@@ -10,8 +10,7 @@ class FavoriteCompositionsModel:
     def get_all_favorites(self):
         try:
             cursor = self.conn.cursor()
-            cursor.execute('''SELECT fc.id, fc.name, fc.id_phase, pt.name as phase_name, 
-                             fc.V_solution, fc.V_antisolvent, fc.C_solution, fc.notes
+            cursor.execute('''SELECT fc.id, fc.name, pt.name as phase_name, fc.notes
                              FROM Fav_compositions fc
                              LEFT JOIN Phase_templates pt ON fc.id_phase = pt.id''')
             return cursor.fetchall()
@@ -20,14 +19,33 @@ class FavoriteCompositionsModel:
             show_error(f"{er}: {e}")
             return []
 
+    def delete_selected(self, favorite_id):
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute("DELETE FROM Compositions_structure WHERE id_fav = ?", (favorite_id,))
+            cursor.execute("DELETE FROM Compositions_solvents WHERE id_fav = ?", (favorite_id,))
+            cursor.execute("DELETE FROM K_factors WHERE id_fav = ?", (favorite_id,))
+            cursor.execute("DELETE FROM Fav_compositions WHERE id = ?", (favorite_id,))
+            self.conn.commit()
+            return None
+        except sqlite3.Error as e:
+            er = localization_manager.tr("fcompf2")
+            show_error(f"{er}: {e}")
+            return None
+
     def get_favorite_details(self, favorite_id):
         try:
             cursor = self.conn.cursor()
-            cursor.execute('''SELECT fc.*, pt.name as phase_name 
+            cursor.execute('''SELECT fc.id, fc.name, pt.name as phase_name, fc.notes
                             FROM Fav_compositions fc
                             LEFT JOIN Phase_templates pt ON fc.id_phase = pt.id
                             WHERE fc.id = ?''', (favorite_id,))
             main_info = cursor.fetchone()
+
+            cursor.execute('''SELECT fc.V_solution, fc.V_antisolvent, fc.C_solution
+                                        FROM Fav_compositions fc
+                                        WHERE fc.id = ?''', (favorite_id,))
+            synthesis = cursor.fetchone()
 
             cursor.execute('''SELECT solvent_type, symbol, fraction 
                             FROM Compositions_solvents 
@@ -45,6 +63,7 @@ class FavoriteCompositionsModel:
 
             return {
                 'main_info': main_info,
+                'synthesis': synthesis,
                 'solvents': solvents,
                 'structure': structure,
                 'k_factors': k_factors

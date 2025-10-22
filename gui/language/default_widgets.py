@@ -9,6 +9,7 @@ default_translations = [
 ("ucv_l1", "Summary of equation number:", "Сводка по уравнению номер:"),
 ("ucv_but1", "Get the equation summary", "Получить сводку по уравнению"),
 ("ucv_lf3", "Sorting equations", "Сортировка уравнений"),
+("ucv_lf_sites_upd", "Sites update", "Обновление структуры"),
 
 ("ucv_1lvl", "1 level", "1 уровень"),
 ("ucv_2lvl", "2 level", "2 уровень"),
@@ -80,7 +81,7 @@ default_translations = [
 
 ("ucv_tit2", "Data entry", "Ввод данных"),
 ("ucv_l15", "Configuration name", "Название конфигурации"),
-("ucv_l16", "Configuration descprition", "Описание конфигурации"),
+("ucv_l16", "Configuration description", "Описание конфигурации"),
 ("ucv_but13", "Submit", "Подтвердить"),
 
 ("ucv_salts_tit", "Salts list", "Список солей"),
@@ -250,6 +251,7 @@ default_translations = [
  ("ccv_no_data", "No data", "Нет данных"),
 
 ("ccv_refresh_button", "Refresh All", "Обновить все"),
+("ccv_upload_structure_but", "Add new structure", "Добавить новую структуру"),
 
 ("main_1", "Upload structure", "Загрузить структуру"),
 ("main_2", "Viewing solvents", "Просмотр растворителей"),
@@ -407,8 +409,10 @@ default_translations = [
  ("mi_label2", "Data type", "Тип данных"),
  ("mi_label3", "Device type", "Тип устройства"),
  ("mi_label4", "Reference doi", "doi источника"),
- ("mi_label5", "Notes", "Заметки"),
+ ("mi_label5", "Name", "Название"),
+ ("mi_label6", "Notes", "Заметки"),
  ("cfv_prop", "Device properties", "Свойства устройства"),
+("cfv_upl_but", "Upload data", "Загрузить данные"),
  ("cfv_entry_but","Confirm main information", "Подтвердить основную информацию"),
  ("file_save_error", "Error saving file", "Ошибка при сохранении файла"),
 ("file_saved_success","File saved successfully", "Файл успешно сохранен"),
