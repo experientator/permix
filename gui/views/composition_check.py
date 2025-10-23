@@ -14,6 +14,7 @@ class CompositionCheckView(tk.Toplevel):
         self.title(localization_manager.tr("ccv_window_title"))
         self.parent = parent
         self.configure(bg=AppStyles.BACKGROUND_COLOR)
+        self.comp_cont = CompositionController(self)
         self.geometry("1200x700")
         self.build_ui()
         self.id_to_ucf = None
@@ -26,24 +27,6 @@ class CompositionCheckView(tk.Toplevel):
         main_container.columnconfigure(0, weight=2)
         main_container.columnconfigure(1, weight=1)
         main_container.rowconfigure(0, weight=1)
-
-        search_frame = tk.Frame(main_container, **AppStyles.frame_style())
-        search_frame.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 10))
-        search_frame.columnconfigure(0, weight=1)
-        search_frame.columnconfigure(1, weight=0)
-
-        tk.Label(search_frame, text="Поиск по имени:", **AppStyles.label_style()).grid(
-            row=0, column=0, sticky="w", padx=(0, 5))
-
-        self.search_var = tk.StringVar()
-        self.search_entry = tk.Entry(search_frame, textvariable=self.search_var, width=30)
-        self.search_entry.grid(row=0, column=1, sticky="ew", padx=(0, 5))
-
-        tk.Button(search_frame, text="Найти",
-                  command=self.search_by_name, **AppStyles.button_style()).grid(
-            row=0, column=2, padx=(5, 0))
-
-        self.search_entry.bind('<Return>', lambda event: self.search_by_name())
 
         left_column = tk.Frame(main_container, **AppStyles.frame_style())
         left_column.grid(row=1, column=0, sticky="nsew", padx=(0, 5))
@@ -69,13 +52,32 @@ class CompositionCheckView(tk.Toplevel):
         right_column.grid(row=1, column=1, sticky="nsew", padx=(5, 0))
         right_column.columnconfigure(0, weight=1)
         right_column.rowconfigure(0, weight=1)
+        right_column.rowconfigure(1, weight=4)
 
         details_frame = tk.LabelFrame(right_column,
                                       text=localization_manager.tr("ccv_det_frame"),
                                       **AppStyles.labelframe_style())
-        details_frame.grid(row=0, column=0, sticky="nsew")
+        details_frame.grid(row=1, column=0, sticky="nsew")
         details_frame.columnconfigure(0, weight=1)
         details_frame.rowconfigure(0, weight=1)
+
+        search_frame = tk.Frame(right_column, **AppStyles.frame_style())
+        search_frame.grid(row=0, column=0, sticky="ew", pady=(0, 10))
+        search_frame.columnconfigure(0, weight=1)
+        search_frame.columnconfigure(1, weight=0)
+
+        tk.Label(search_frame, text="Поиск по имени:", **AppStyles.label_style()).grid(
+            row=0, column=0, sticky="w", padx=(0, 5))
+
+        self.search_var = tk.StringVar()
+        self.search_entry = tk.Entry(search_frame, textvariable=self.search_var, width=30)
+        self.search_entry.grid(row=0, column=1, sticky="ew", padx=(0, 5))
+
+        tk.Button(search_frame, text="Найти",
+                  command=self.search_by_name, **AppStyles.button_style()).grid(
+            row=0, column=2, padx=(5, 0))
+
+        self.search_entry.bind('<Return>', lambda event: self.search_by_name())
 
         self.comp_columns = (localization_manager.tr("ccv_comp_col_id"),
                              localization_manager.tr("ccv_comp_col_name"),
@@ -184,6 +186,11 @@ class CompositionCheckView(tk.Toplevel):
                   text="delete selected",
                   command=self.delete_selected,
                   **AppStyles.button_style()).grid(row=0, column=1, padx=5, pady=5)
+        tk.Button(control_frame,
+                  text="Отредактировать соединение..",
+                  command=self.update_composition,
+                  **AppStyles.button_style()).grid(row=0, column=0, padx=5, pady=5)
+
         self.comp_tree.bind('<<TreeviewSelect>>', self.on_composition_select)
         self.fav_tree.bind('<<TreeviewSelect>>', self.on_favorite_select)
 
@@ -593,3 +600,11 @@ class CompositionCheckView(tk.Toplevel):
            self.controller.delete_selected(self.id_to_ucf, self.not_fav_to_ucf)
         else:
             localization_manager.tr("ion_war")
+
+    def update_composition(self):
+        if self.id_to_ucf:
+            id = self.id_to_ucf
+            notfav = self.not_fav_to_ucf
+
+            if hasattr(self.comp_cont, 'update_composition'):
+                self.comp_cont.update_composition(id, notfav)

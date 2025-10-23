@@ -7,6 +7,7 @@ from analysis.database_utils import (get_templates_list, get_template_id, get_te
 from gui.default_style import AppStyles
 from gui.language.manager import localization_manager
 from analysis.calculation_tests import float_test
+from analysis.deafult_filling import get_parameters
 
 class CompositionView(tk.Toplevel):
     def __init__(self, parent, controller):
@@ -28,7 +29,7 @@ class CompositionView(tk.Toplevel):
         self.paned_window.pack(fill="both", expand=True, padx=10, pady=5)
 
         first_column_container = tk.Frame(self.paned_window, **AppStyles.frame_style())
-        self.paned_window.add(first_column_container, weight=1)
+        self.paned_window.add(first_column_container, weight=2)
 
         canvas1 = tk.Canvas(first_column_container, borderwidth=0, highlightthickness=0)
         scrollbar1 = tk.Scrollbar(first_column_container, orient="vertical", command=canvas1.yview)
@@ -53,7 +54,7 @@ class CompositionView(tk.Toplevel):
         self.first_column.bind("<Leave>", unbind_mousewheel1)
 
         sec_column_container = tk.Frame(self.paned_window, **AppStyles.frame_style())
-        self.paned_window.add(sec_column_container, weight=3)
+        self.paned_window.add(sec_column_container, weight=1)
 
         canvas2 = tk.Canvas(sec_column_container, borderwidth=0, highlightthickness=0)
         scrollbar2 = tk.Scrollbar(sec_column_container, orient="vertical", command=canvas2.yview)
@@ -108,8 +109,10 @@ class CompositionView(tk.Toplevel):
         self.mi_label1.grid(row=0, column=0, sticky='ew', padx=5, pady=2)
         self.entry_template = ttk.Combobox(self.main_info_frame,
                                            values=phase_t,
-                                           **AppStyles.combobox_config())
+                                           **AppStyles.combobox_config(),
+                                           state="readonly")
         self.entry_template.grid(row=1, column=0, sticky='ew', padx=5, pady=2)
+        self.entry_template.current(0)
 
         self.mi_label2 = tk.Label(self.main_info_frame,
                                   text=localization_manager.tr("mi_label2"),
@@ -117,7 +120,8 @@ class CompositionView(tk.Toplevel):
         self.mi_label2.grid(row=0, column=1, sticky='ew', padx=5, pady=2)
         self.entry_data_type = ttk.Combobox(self.main_info_frame,
                                             values=data_type,
-                                            **AppStyles.combobox_config())
+                                            **AppStyles.combobox_config(),
+                                            state="readonly")
         self.entry_data_type.grid(row=1, column=1, sticky='ew', padx=5, pady=2)
 
         self.mi_label3 = tk.Label(self.main_info_frame,
@@ -126,8 +130,10 @@ class CompositionView(tk.Toplevel):
         self.mi_label3.grid(row=0, column=2, sticky='ew', padx=5, pady=2)
         self.entry_device_type = ttk.Combobox(self.main_info_frame,
                                               values=device_type,
-                                              **AppStyles.combobox_config())
+                                              **AppStyles.combobox_config(),
+                                              state="readonly")
         self.entry_device_type.grid(row=1, column=2, sticky='ew', padx=5, pady=2)
+        self.entry_device_type.current(0)
 
         self.mi_label4 = tk.Label(self.main_info_frame,
                                   text=localization_manager.tr("mi_label4"),
@@ -711,3 +717,64 @@ class CompositionView(tk.Toplevel):
                      self.entry_name.get()]
         self.controller.handle_main_submit(main_info,  solution_info, structure_data,
                            solvents, properties, k_factors)
+
+    def update_composition(self, id_info=None, not_fav = None):
+        self.reset_form()
+        (template_name, syntesis, antisol_num,
+         antisolv, sol_num, solv, sites_num,
+         sites, k_f_num, k_fact) = get_parameters(id_info, 'data.db', not_fav)
+        self.phase_template.set(template_name)
+        self.create_sites()
+        if antisol_num != 0:
+            self.antisolv_check.set(1)
+        else:
+            self.antisolv_check.set(0)
+        sites_names = ["a_site", "b_site", "b_double", "spacer", "anion"]
+        for i, site_type in enumerate(sites_names):
+            if site_type in self.site_widgets:
+                self.site_widgets[site_type]["combobox_num"].set(sites_num[i])
+                for j in range(sites_num[i]):
+                    symbol = sites[site_type][j]["name"]
+                    frac = sites[site_type][j]["fraction"]
+                    self.site_widgets[site_type]["dynamic_widgets"][j]["symbol"].delete(0, tk.END)
+                    self.site_widgets[site_type]["dynamic_widgets"][j]["symbol"].insert(0, symbol)
+                    self.site_widgets[site_type]["dynamic_widgets"][j]["fraction"].delete(0, tk.END)
+                    self.site_widgets[site_type]["dynamic_widgets"][j]["fraction"].insert(0, frac)
+
+        self.create_solvents()
+
+        self.solvents_widgets["solvent"]["combobox_num"].set(sol_num)
+        for i in range(sol_num):
+            symbol = solv[i]["name"]
+            frac = solv[i]["fraction"]
+            self.solvents_widgets["solvent"]["dynamic_widgets"][i]["symbol"].delete(0, tk.END)
+            self.solvents_widgets["solvent"]["dynamic_widgets"][i]["fraction"].delete(0, tk.END)
+            self.solvents_widgets["solvent"]["dynamic_widgets"][i]["symbol"].insert(0, symbol)
+            self.solvents_widgets["solvent"]["dynamic_widgets"][i]["fraction"].insert(0, frac)
+
+        if antisol_num != 0:
+            self.solvents_widgets["antisolvent"]["combobox_num"].set(antisol_num)
+            for i in range(antisol_num):
+                symbol = antisolv[i]["name"]
+                frac = antisolv[i]["fraction"]
+                self.solvents_widgets["antisolvent"]["dynamic_widgets"][i]["symbol"].delete(0, tk.END)
+                self.solvents_widgets["antisolvent"]["dynamic_widgets"][i]["fraction"].delete(0, tk.END)
+                self.solvents_widgets["antisolvent"]["dynamic_widgets"][i]["symbol"].insert(0, symbol)
+                self.solvents_widgets["antisolvent"]["dynamic_widgets"][i]["fraction"].insert(0, frac)
+
+        self.entry_v_solvent.delete(0, tk.END)
+        self.entry_v_solvent.insert(0, syntesis["v_sol"])
+        self.entry_c_solvent.delete(0, tk.END)
+        self.entry_c_solvent.insert(0, syntesis["c_sol"])
+        if self.antisolv_check.get() == 1:
+            self.entry_v_antisolvent.delete(0, tk.END)
+            self.entry_v_antisolvent.insert(0, syntesis["v_anti"])
+
+        for i in range(k_f_num):
+            self.create_k_factors_widgets()
+            salt = k_fact[i]["salt"]
+            k_factor = k_fact[i]["k_factor"]
+            self.k_factors_widgets["dynamic_widgets"][i]["salt"].delete(0, tk.END)
+            self.k_factors_widgets["dynamic_widgets"][i]["k_factor"].delete(0, tk.END)
+            self.k_factors_widgets["dynamic_widgets"][i]["salt"].insert(0, salt)
+            self.k_factors_widgets["dynamic_widgets"][i]["k_factor"].insert(0, k_factor)
