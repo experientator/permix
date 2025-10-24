@@ -1,7 +1,7 @@
 import pytest
 import tkinter as tk
 from unittest.mock import Mock, MagicMock, patch
-from gui.views.templates_check import TemplatesCheckView, SiteFrame
+from src.views.templates_check import TemplatesCheckView, SiteFrame
 
 
 class TestTemplatesCheckView:
@@ -23,8 +23,8 @@ class TestTemplatesCheckView:
     @pytest.fixture
     def templates_view(self, mock_parent, mock_controller):
         """Создает экземпляр TemplatesCheckView для тестирования"""
-        with patch('gui.views.templates_check.localization_manager'), \
-                patch('gui.views.templates_check.AppStyles'):
+        with patch('src.views.templates_check.localization_manager'), \
+                patch('src.views.templates_check.AppStyles'):
             view = TemplatesCheckView(mock_parent, mock_controller)
             return view
 
@@ -204,7 +204,7 @@ class TestTemplatesCheckView:
         templates_view.sites_container = mock_container
         mock_container.winfo_children.return_value = []
 
-        with patch('gui.templates_check_view.SiteFrame') as mock_site_frame:
+        with patch('src.templates_check_view.SiteFrame') as mock_site_frame:
             mock_frame1 = Mock()
             mock_frame2 = Mock()
             mock_site_frame.side_effect = [mock_frame1, mock_frame2]
@@ -248,8 +248,8 @@ class TestSiteFrame:
     @pytest.fixture
     def site_frame(self, mock_parent):
         """Создает экземпляр SiteFrame для тестирования"""
-        with patch('gui.templates_check_view.localization_manager'), \
-                patch('gui.templates_check_view.AppStyles'):
+        with patch('src.templates_check_view.localization_manager'), \
+                patch('src.templates_check_view.AppStyles'):
             frame = SiteFrame(mock_parent, 'A Site')
             return frame
 
@@ -315,8 +315,8 @@ class TestIntegration:
 
     def test_template_lifecycle(self, mock_parent, mock_controller):
         """Полный тест жизненного цикла шаблона с числовой размерностью"""
-        with patch('gui.templates_check_view.localization_manager'), \
-                patch('gui.templates_check_view.AppStyles'):
+        with patch('src.templates_check_view.localization_manager'), \
+                patch('src.templates_check_view.AppStyles'):
             view = TemplatesCheckView(mock_parent, mock_controller)
 
             templates = [
