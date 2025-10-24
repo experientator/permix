@@ -261,7 +261,7 @@ default_translations = [
 ("main_1", "Upload structure", "Загрузить структуру"),
 ("main_2", "Viewing solvents", "Просмотр растворителей"),
 ("main_3", "Viewing ion radii", "Просмотр ионных радиусов"),
-("main_4", "Viewing Templates", "Просмотр шаблонов"),
+("main_4", "Viewing templates", "Просмотр шаблонов"),
 ("main_5", "Viewing compounds", "Просмотр соединений"),
 ("main_6", "Upload", "Загрузить"),
 ("main_7", "Viewing", "Просмотр"),
