@@ -1,6 +1,7 @@
 from src.views.composition_check import CompositionCheckView
 from src.models.composition_check import CompositionCheckModel
 from src.models.favorite_compositions import FavoriteCompositionsModel
+from src.utils.calculation_tests import ask_confirmation, show_warning, show_success, localization_manager
 
 class CompositionCheckController:
     def __init__(self, parent):
@@ -32,8 +33,16 @@ class CompositionCheckController:
         self.notfav = self.view.not_fav_to_ucf
 
     def delete_selected(self, id_del, not_fav):
-        if not_fav:
-            self.comp_model.delete_selected(id_del)
-        else:
-            self.fav_model.delete_selected(id_del)
+        if id_del is None:
+            show_warning(localization_manager.tr("ion_war"))
+            return
+
+        if ask_confirmation(localization_manager.tr("ion_conf")):
+            if not_fav:
+                self.comp_model.delete_selected(id_del)
+            else:
+                self.fav_model.delete_selected(id_del)
+
+            show_success(localization_manager.tr("ion_success"))
+            self.refresh_all()
 

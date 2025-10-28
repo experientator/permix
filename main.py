@@ -10,7 +10,7 @@ from src.controllers.composition_check import CompositionCheckController
 from src.views.user_config_form import UserConfigView
 from src.language.manager import localization_manager
 from src.language.default_widgets import default_translations
-
+from src.views.about_program_view import AboutProgramView
 
 class App(tk.Tk):
     def __init__(self):
@@ -87,7 +87,7 @@ class App(tk.Tk):
         SolventsCheckController(self)
 
     def program_info(self):
-        pass
+        AboutProgramView(self)
 
     def open_candidate_form(self):
         CandidatesFormController(self)
@@ -97,6 +97,7 @@ class App(tk.Tk):
 
     def return_from_composition_check(self, id_info=None, not_fav=None):
         self.calc_view.return_from_composition_check(id_info, not_fav)
+
 
 localization_manager.initialize_default_translations(default_translations)
 if __name__ == "__main__":

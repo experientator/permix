@@ -8,10 +8,32 @@ DEFAULT_CN_A = 12
 DEFAULT_CN_B = 6
 DEFAULT_CN_X = 6
 
+SPECIAL_CN_RULES = {
+    4: { # Для фазы A2BX3 (id=4)
+        "b_site": {
+            "Cu": 4,
+            "Ag": 4
+        }
+    },
+    5: { # Для фазы A3B2X5 (id=5)
+        "b_site": {
+            "Cu": 4,
+            "Ag": 4
+        }
+    },
+    6: { # Для фазы ABX2 (id=6)
+        "b_site": {
+            "Cu": 4,
+            "Ag": 4
+        }
+    }
+}
+
 def show_error(message):
     mb.showerror(title="error", message=message)
 
-def calculate_effective_radius(components, charge, cn):
+
+def calculate_effective_radius(components, site_name, template_id, default_charge=None):
     total_fraction = 0.0
     weighted_radius_sum = 0
     missing_radius_for_significant_component = False
@@ -20,12 +42,33 @@ def calculate_effective_radius(components, charge, cn):
         name = comp_data.get("symbol")
         fraction = float(comp_data.get("fraction"))
 
-        total_fraction += fraction
-        radius_comp = get_ionic_radius(name, charge, cn)
+        # Берем валентность из данных компонента
+        charge = int(comp_data.get("valence", default_charge))
+
+        # --- НОВАЯ ЛОГИКА ОПРЕДЕЛЕНИЯ КЧ ---
+        cn_for_ion = None
+        # 1. Проверяем словарь исключений
+        if template_id in SPECIAL_CN_RULES:
+            if site_name in SPECIAL_CN_RULES[template_id]:
+                if name in SPECIAL_CN_RULES[template_id][site_name]:
+                    cn_for_ion = SPECIAL_CN_RULES[template_id][site_name][name]
+
+        # 2. Если исключения нет, используем правило по умолчанию
+        if cn_for_ion is None:
+            if site_name in ["a_site", "spacer"]:
+                cn_for_ion = DEFAULT_CN_A
+            elif site_name in ["b_site", "b_double"]:
+                cn_for_ion = DEFAULT_CN_B
+            else:  # Для анионов
+                cn_for_ion = DEFAULT_CN_X
+        # --- КОНЕЦ НОВОЙ ЛОГИКИ ---
+
+        radius_comp = get_ionic_radius(name, charge, cn_for_ion)
 
         if radius_comp is None:
-            show_error( f"GEOM_CALC: calculate_effective_radius: Не найден радиус для компонента {name} (заряд {charge}, CN {cn})"
-            )
+            # Эта ошибка теперь будет содержать правильное КЧ
+            show_error(
+                f"Не найден ионный радиус для компонента {name} с зарядом {charge} и коорд. числом {cn_for_ion}. Проверьте базу данных.")
             missing_radius_for_significant_component = True
             break
         else:
@@ -35,8 +78,7 @@ def calculate_effective_radius(components, charge, cn):
     if missing_radius_for_significant_component:
         return None
 
-    effective_radius = weighted_radius_sum
-    return effective_radius
+    return weighted_radius_sum
 
 
 def _calculate_goldschmidt_factor(rA, rB, rX):
@@ -63,16 +105,21 @@ def _calculate_octahedral_factor(rB, rX):
         )
         return None
 
+
 def get_effective_geometry_radius(cations_by_site, site_name, template_id):
     components_list = cations_by_site[site_name]
-    charge = get_template_site_valences(template_id, site_name)
+    """
+    Просто передает данные в calculate_effective_radius, который теперь выполняет всю логику.
+    """
+    components_list = cations_by_site[site_name]
 
     r_eff = calculate_effective_radius(
-        components_list, charge=charge, cn=DEFAULT_CN_A
+        components_list, site_name=site_name, template_id=template_id
     )
+
     if r_eff is None:
         show_error(
-            f"GEOM_CALC: Не удалось рассчитать r для сайта {site_name}. Фактор 't' может быть не рассчитан."
+            f"GEOM_CALC: Не удалось рассчитать эффективный радиус для сайта {site_name}."
         )
     return r_eff
 
@@ -89,7 +136,7 @@ def calculate_geometry_factors(cation_config, anion_config, template_id):
     dimensionality = get_dimensionality(template_id)
 
     # --- 1. Расчет эффективного радиуса аниона rX ---
-    rX_eff = calculate_effective_radius(anion_config, charge=1, cn=DEFAULT_CN_X)
+    rX_eff = calculate_effective_radius(anion_config, site_name='anion', template_id=template_id, default_charge=1)
 
     # --- 2. Определение ключевых сайтов из шаблона ---
     # будет true or false

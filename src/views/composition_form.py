@@ -7,7 +7,7 @@ from src.utils.database_utils import (get_templates_list, get_template_id, get_t
 from src.default_style import AppStyles
 from src.language.manager import localization_manager
 from src.utils.calculation_tests import float_test
-from src.utils.deafult_filling import get_parameters, get_extra_parameters, get_device_properties
+from src.utils.default_filling import get_parameters, get_extra_parameters, get_device_properties
 from src.controllers.user_config_form import UserConfigController
 
 class CompositionView(tk.Toplevel):

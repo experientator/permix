@@ -13,7 +13,7 @@ def format_value_for_cell(
     try:
         value_dec = Decimal(str(value))
     except (decimal.InvalidOperation, TypeError, ValueError):
-        error_text = "Inv.Val"
+        error_text = "-"
         return final_cell_format.format(error_text[:cell_width])
 
     precision = 4
@@ -71,7 +71,7 @@ def format_value_for_cell(
     return final_cell_format.format(final_output)
 
 def sort_key_salt(salt_formula_str):
-    match = re.match(r"([A-Z][a-zA-Z0-9_]*)(Cl|Br|I)(\d*)$", salt_formula_str.strip())
+    match = re.match(r"([A-Z][a-zA-Z0-9_]*)(F|Cl|Br|I)(\d*)$", salt_formula_str.strip())
 
     cation_key = match.group(1)
     halide = match.group(2)
@@ -86,26 +86,26 @@ def sort_key_salt(salt_formula_str):
     ) or cation_key in get_cation_list_by_key("spacer_val_2"):
         category_priority = 1
 
-    halide_priority = {"Cl": 0, "Br": 1, "I": 2}.get(halide, 9)
+    halide_priority = {"F": 0, "Cl": 1, "Br": 2, "I": 3}.get(halide, 9)
     return (category_priority, valence, cation_key, halide_priority)
 
 def generate_reaction_equations_display(
     calculation_results,
     sorted_equation_keys = None,
 ):
-    ("adf1", "Inv.Val", "[Формула продукта?]"),
+    ("adf1", "-", "-"),
     ("adf2", "Fractions", "Нет данных по уравнениям"),
     ("act_err3", "Fraction summ", "Сумма долей"),
     ("act_err4", "must be equal to 1", "должна быть равна 1"),
     output_lines = []
     equation_formulas = list()
-    product_formula_str = "[Формула продукта?]"
+    product_formula_str = "[Formula?]"
 
     product_formula_str = calculation_results["product_formula_display"]
 
     equations_data_map = calculation_results.get("equations", {})
     if not equations_data_map:
-        return "Нет данных по уравнениям."
+        return "No data."
 
     input_summary = calculation_results.get("input_summary", {})
 
@@ -137,7 +137,7 @@ def generate_reaction_equations_display(
     )
 
     if not keys_to_iterate:
-        return "Не найдено уравнений для отображения.\n"
+        return "No equations found to display.\n"
 
     solvent_info_str_part = ""
     main_solvent_details_parts = []
@@ -148,13 +148,13 @@ def generate_reaction_equations_display(
             try:
                 ms_vol = v_main_solution_ml_input * ms_fr
                 main_solvent_details_parts.append(
-                    f"{ms_sym}{ms_fr if ms_fr else ''} [{ms_vol:.2f}мл]"
+                    f"{ms_sym} {ms_fr if ms_fr else ''} [{ms_vol:.2f} mL]"
                 )
             except:
                 main_solvent_details_parts.append(f"{ms_sym}({ms_fr})")
     if main_solvent_details_parts:
         solvent_info_str_part += (
-            f" | Раств-ль: {', '.join(main_solvent_details_parts)}"
+            f" | Solvent: {', '.join(main_solvent_details_parts)}"
         )
 
     antisolvent_details_parts = []
@@ -165,13 +165,15 @@ def generate_reaction_equations_display(
             try:
                 as_vol = v_antisolvent_ml_input * as_fr
                 antisolvent_details_parts.append(
-                    f"{as_sym}{as_fr if as_fr else ''} [{as_vol:.2f}мл]"
+                    f"{as_sym} {as_fr if as_fr else ''} [{as_vol:.2f}mL]"
                 )
             except:
                 antisolvent_details_parts.append(f"{as_sym}({as_fr})")
 
     if antisolvent_details_parts:
-        solvent_info_str_part += f" | Антираств-ль ({v_antisolvent_ml_input:.2f}мл общ.): {', '.join(antisolvent_details_parts)}"
+        solvent_info_str_part += (
+            f" | Antisolvent: {', '.join(antisolvent_details_parts)}"
+        )
 
     for eq_key in keys_to_iterate:
         eq_data = equations_data_map.get(eq_key)
@@ -205,7 +207,7 @@ def generate_reaction_equations_display(
                 f"{eq_key} ({eq_data.get('description', 'N/A')}): {reactants_str}  ⟶  {product_formula_str}{solvent_info_str_part}\n"
             )
     return (
-        "".join(output_lines) if output_lines else "Не найдено применимых уравнений.\n", equation_formulas
+        "".join(output_lines) if output_lines else "No applicable equations found.\n", equation_formulas
     )
 
 def format_results_mass_table(
@@ -213,7 +215,7 @@ def format_results_mass_table(
     sorted_equation_keys = None,
     authoritative_salt_list = None):
     if not calculation_results or not calculation_results.get("equations"):
-        return "Нет данных для таблицы масс"
+        return "There is no data for the mass table"
 
     equations_data_map = calculation_results["equations"]
 
@@ -242,7 +244,7 @@ def format_results_mass_table(
             valid_equations_for_table.append(eq_key)
 
     if not valid_equations_for_table:
-        return f"\nТаблица Масс (г)):\nНет валидных уравнений для отображения."
+        return f"\nMass Table (g):\nThere are no valid equations to display."
 
     if authoritative_salt_list is None:
         temp_header_salts_set: set = set()
@@ -263,13 +265,13 @@ def format_results_mass_table(
         header_salts_sorted_list = authoritative_salt_list
 
     if not header_salts_sorted_list:
-        return f"\nТаблица Масс (г):\nНет солей для отображения в таблице."
+        return f"\nMass Table (g):\nThere are no salts to display in the table."
 
     cell_width = constants.TABLE_CELL_WIDTH
     header_cell_format = constants.TABLE_CELL_FORMAT
     first_col_width = 10
 
-    header_parts = ["{:<{width}}".format("Уравнение", width=first_col_width)]
+    header_parts = ["{:<{width}}".format("Equation", width=first_col_width)]
     for salt_in_header in header_salts_sorted_list:
         display_salt_name = salt_in_header[:cell_width]
         header_parts.append(header_cell_format.format(display_salt_name))
@@ -277,7 +279,7 @@ def format_results_mass_table(
     table_separator_str = "=" * len(header_line_str)
 
     output_lines = [
-        f"\nТаблица Масс (г):",
+        f"\nMass Table (g):",
         table_separator_str,
         header_line_str,
         table_separator_str,
@@ -287,7 +289,7 @@ def format_results_mass_table(
         eq_data = equations_data_map[eq_key]
         mass_dict_final = eq_data.get("masses_g_final_k", {})
 
-        eq_num_str = eq_key.split(" ")[1] if eq_key.startswith("Equation ") else eq_key
+        eq_num_str = eq_key.split(" ")[1] if eq_key.startswith("Equation") else eq_key
         row_name_str = f"Eq {eq_num_str}"[:first_col_width]
         row_str_parts = ["{:<{width}}".format(row_name_str, width=first_col_width)]
 
@@ -307,9 +309,9 @@ def format_results_mass_table(
 
 def format_geometry_factors(factors_dict):
     if not factors_dict:
-        return "Геометрические факторы: Н/Д"
+        return "Geometric factors: N/A"
     if "error" in factors_dict:
-        return f"Геометрические факторы: [{factors_dict['error']}]"
+        return f"Geometric factors: [{factors_dict['error']}]"
 
     parts = []
     t_val = factors_dict.get("t")
@@ -340,6 +342,6 @@ def format_geometry_factors(factors_dict):
         parts.append(f"μ'' = {mu_double_prime_str}")
 
     if not parts:
-        return "Геометрические факторы: Н/Д"
+        return "Geometric factors: N/A"
     else:
-        return "Геометрические факторы: " + ", ".join(parts)
+        return "Geometric factors: " + ", ".join(parts)

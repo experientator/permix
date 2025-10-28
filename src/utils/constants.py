@@ -1,4 +1,4 @@
-halides = ["Cl", "Br", "I"]
+halides = ["F", "Cl", "Br", "I"]
 SITE_DISPLAY_ORDER = [
         "a_site",
         "spacer",

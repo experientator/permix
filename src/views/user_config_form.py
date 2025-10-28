@@ -15,7 +15,7 @@ from src.utils.sort_equations import sort_by_minimum_criteria, optimal_sort
 from src.utils.histograms import prepare_and_draw_mass_histogram
 from src.language.manager import localization_manager
 from src.utils.calculation_tests import show_error, show_success
-from src.utils.deafult_filling import get_parameters
+from src.utils.default_filling import get_parameters
 
 class UserConfigView(tk.Frame):
     def __init__(self, parent, controller):
@@ -208,6 +208,11 @@ class UserConfigView(tk.Frame):
         self.phase_template.current(0)
         self.phase_template.pack(fill='x', pady=5)
 
+        # --- ДОБАВЛЕНИЕ ЗДЕСЬ ---
+        # Привязываем событие выбора нового элемента к нашему обработчику
+        self.phase_template.bind("<<ComboboxSelected>>", self._on_phase_template_change)
+        # --- КОНЕЦ ДОБАВЛЕНИЯ ---
+
         button_frame = tk.Frame(info_frame)
         button_frame.pack(fill='x', pady=5)
 
@@ -241,7 +246,7 @@ class UserConfigView(tk.Frame):
         sites_data = get_template_sites(self.template_id)
         self.anion_stoichiometry = get_anion_stoichiometry(self.template_id)
         values_sites = ["1", "2", "3", "4"]
-        values_anions = ["1", "2", "3"]
+        values_anions = ["1", "2", "3", "4"]
 
         for field in self.sites_frame.winfo_children():
             field["symbol"].destroy()
@@ -357,7 +362,7 @@ class UserConfigView(tk.Frame):
         self.site_widgets[site_type]["dynamic_widgets"] = []
         num_sites = int(self.site_widgets[site_type]["combobox_num"].get())
         if site_type == "anion":
-            symbols = ["Cl", "Br", "I"]
+            symbols = ["F", "Cl", "Br", "I"]
         else:
             symbols = get_candidate_cations(site_candidate)
         start_row = self.site_widgets[site_type]["label"].grid_info()["row"] + 1
@@ -376,8 +381,18 @@ class UserConfigView(tk.Frame):
             cb_symbol.grid(row=row_pos, column=2, padx=5, pady=2, sticky = 'ew')
 
             entry_fraction = tk.Entry(self.sites_frame, width=10, **AppStyles.entry_style())
-            entry_fraction.insert(0, "1")
-            entry_fraction.grid(row=row_pos, column=3, padx=5, pady=2, sticky = 'ew')
+            # --- ИЗМЕНЕНИЕ ЗДЕСЬ ---
+            if num_sites > 1:
+                entry_fraction.insert(0, "")  # Оставляем поле пустым, если ионов несколько
+            else:
+                entry_fraction.insert(0, "1")  # Вставляем "1", если ион всего один
+
+            entry_fraction.grid(row=row_pos, column=3, padx=5, pady=2, sticky='ew')
+
+            # Привязываем событие к этому полю
+            # Мы передаем site_type, чтобы знать, какую группу полей обновлять
+            entry_fraction.bind("<KeyRelease>", lambda event, st=site_type: self._on_fraction_change(event, st))
+            # --- КОНЕЦ ИЗМЕНЕНИЙ ---
             self.site_widgets[site_type]["dynamic_widgets"].append({
                 "symbol": cb_symbol,
                 "fraction": entry_fraction
@@ -398,23 +413,46 @@ class UserConfigView(tk.Frame):
                 current_row += 1
 
     def create_solvents(self):
-        self.sites_update_button = tk.Button(self.first_column,
-                                       text=localization_manager.tr("ucv_lf_sites_upd"),
-                                       **AppStyles.button_style(),
-                                       command=self.reset_sites)
-        self.sites_update_button.pack(pady=5, expand=True, fill='x')
-
         self.salt_formulas = []
+        # 1. Сначала выполняем все проверки
         self.cations_data, self.anions_data = self.get_structure_data()
 
         cation_fractions = {'a_site': 0, 'b_site': 0, 'b_double': 0, 'spacer': 0}
         anions_fractions = {'anions': 0}
 
         try:
+            # Если здесь будет ошибка, метод прервется ДО создания кнопки
             fraction_test(self.cations_data, cation_fractions, 'structure_type')
             fraction_test(self.anions_data, anions_fractions, 'anion')
         except (ValueError, TypeError):
-            return
+            return  # <-- Правильное прерывание
+
+        # --- ИЗМЕНЕНИЯ ЗДЕСЬ ---
+
+        # 1. Блокируем все виджеты в self.sites_frame
+        if hasattr(self, 'sites_frame') and self.sites_frame.winfo_exists():
+            self._disable_widgets(self.sites_frame)
+
+        # 2. Блокируем кнопку "Подтвердить" (которая вызывает этот метод)
+        self.upload_button["state"] = "disabled"
+
+        # 3. Блокируем чекбокс антирастворителей
+        self.antisolvents_cb["state"] = "disabled"
+
+        # 4. Блокируем кнопку "Подтвердить шаблон"
+        self.button_entry["state"] = "disabled"
+
+        # --- КОНЕЦ ИЗМЕНЕНИЙ ---
+
+        # 2. Только если проверки прошли успешно, создаем кнопку и другие виджеты
+        # --- ИЗМЕНЕНИЕ ЗДЕСЬ ---
+        # Создаем кнопку "Обновление структуры" только если она еще не существует.
+        if not hasattr(self, 'sites_update_button') or not self.sites_update_button.winfo_exists():
+            self.sites_update_button = tk.Button(self.first_column,
+                                                 text=localization_manager.tr("ucv_lf_sites_upd"),
+                                                 **AppStyles.button_style(),
+                                                 command=self.reset_sites)
+            self.sites_update_button.pack(pady=5, expand=True, fill='x')
 
         self.target_anion_moles_map = calculate_target_anion_moles(self.anions_data,
                                                                    self.anion_stoichiometry)
@@ -537,10 +575,29 @@ class UserConfigView(tk.Frame):
 
     def calculations_function(self):
         self.equation_formulas = []
-        self.k_factors = self.get_k_factors_data()
-        self.solvents_data, self.solution_info = self.get_solution_data()
+
+        # --- ИЗМЕНЕНИЕ 1 ---
+        # Собираем данные и сразу проверяем
+        k_factors_data = self.get_k_factors_data()
+        if k_factors_data is None:
+            return  # Прерываем, если были ошибки
+        self.k_factors = k_factors_data
+
+        # --- ИЗМЕНЕНИЕ 2 ---
+        # Собираем данные и сразу проверяем
+        solution_data_tuple = self.get_solution_data()
+        if solution_data_tuple is None:
+            return  # Прерываем, если были ошибки
+        self.solvents_data, self.solution_info = solution_data_tuple
+        # --- КОНЕЦ ИЗМЕНЕНИЙ ---
+
+        # Проверка долей растворителей
         solvent_fractions = {'solvent': 0, 'antisolvent': 0}
-        fraction_test(self.solvents_data, solvent_fractions, 'solvent_type')
+        try:
+            # fraction_test может вызвать исключение, которое тоже надо поймать
+            fraction_test(self.solvents_data, solvent_fractions, 'solvent_type')
+        except (ValueError, TypeError):
+            return  # Прерываем, если сумма долей неверна
 
         for element in self.k_factors:
             k_factor = float_test(element['k_factor'],
@@ -620,13 +677,13 @@ class UserConfigView(tk.Frame):
                 v_antisol = float(V_antisolvent) * float(antisolv["fraction"])
                 v_antisol = round(v_antisol, 4)
                 name = antisolv["symbol"]
-                antisolvents_str += f" {v_antisol} мл {name},"
+                antisolvents_str += f" {v_antisol} mL {name},"
 
         for solvent in self.calculations["input_summary"]["main_solvents_mix_input"]:
             v_sol = float(V_solution)*float(solvent["fraction"])
             v_sol = round(v_sol, 4)
             name = solvent["symbol"]
-            solvents_str += f" {v_sol} мл {name},"
+            solvents_str += f" {v_sol} mL {name},"
         solvents_str = solvents_str[:-1]
 
         if antisolvents_str == "":
@@ -644,7 +701,7 @@ class UserConfigView(tk.Frame):
         for salt, salt_mass in self.calculations["equations"][eq_key]["masses_g_final_k"].items():
             salt_mass = float(salt_mass)
             salt_mass = round(salt_mass, 4)
-            salts_masses_str += f" {salt_mass} г {salt},"
+            salts_masses_str += f" {salt_mass} g {salt},"
         salts_masses_str = salts_masses_str[:-1]
 
         summary1 = localization_manager.tr("ucv_sum1")
@@ -1002,8 +1059,18 @@ class UserConfigView(tk.Frame):
             cb_symbol.grid(row=row_pos, column=2, sticky = 'ew', padx=5, pady=2)
 
             entry_fraction = tk.Entry(self.solvents_frame, width=10, **AppStyles.entry_style())
-            entry_fraction.insert(0, "1")
-            entry_fraction.grid(row=row_pos, column=3, sticky = 'ew', padx=5, pady=2)
+            # --- ИЗМЕНЕНИЕ ЗДЕСЬ ---
+            if num_solvents > 1:
+                entry_fraction.insert(0, "")  # Пустое поле, если растворителей несколько
+            else:
+                entry_fraction.insert(0, "1")  # "1", если растворитель один
+
+            entry_fraction.grid(row=row_pos, column=3, sticky='ew', padx=5, pady=2)
+
+            # Привязываем событие к новому обработчику
+            entry_fraction.bind("<KeyRelease>",
+                                lambda event, st=solvent_type: self._on_solvent_fraction_change(event, st))
+            # --- КОНЕЦ ИЗМЕНЕНИЙ ---
             self.solvents_widgets[solvent_type]["dynamic_widgets"].append({
                 "symbol": cb_symbol,
                 "fraction": entry_fraction
@@ -1127,30 +1194,344 @@ class UserConfigView(tk.Frame):
             self.k_factors_widgets["dynamic_widgets"][i]["k_factor"].insert(0, k_factor)
 
     def reset_sites(self):
+        """
+        Сбрасывает состояние формы к моменту после выбора структуры.
+        """
+        # 1. Уничтожаем динамически созданные виджеты в левой колонке
+        if hasattr(self, 'solvents_frame') and self.solvents_frame.winfo_exists():
+            self.solvents_frame.destroy()
+        if hasattr(self, 'k_factors_frame') and self.k_factors_frame.winfo_exists():
+            self.k_factors_frame.destroy()
+        if hasattr(self, 'propereties_frame') and self.propereties_frame.winfo_exists():
+            self.propereties_frame.destroy()
+        if hasattr(self, 'data_apply_button') and self.data_apply_button.winfo_exists():
+            self.data_apply_button.destroy()
+        if hasattr(self, 'sites_update_button') and self.sites_update_button.winfo_exists():
+            self.sites_update_button.destroy()
 
-        self.solvents_frame.destroy()
+        # 2. Уничтожаем/скрываем динамические виджеты в правой колонке
+        if hasattr(self, 'sort_menu_frame') and self.sort_menu_frame.winfo_exists():
+            self.sort_menu_frame.pack_forget()
+        if hasattr(self, 'hystogram_frame') and self.hystogram_frame.winfo_exists():
+            self.hystogram_frame.pack_forget()
+        if hasattr(self, 'summary_frame') and self.summary_frame.winfo_exists():
+            self.summary_frame.pack_forget()  # Просто скрываем, НЕ УДАЛЯЕМ
+        if hasattr(self, 'fav_button') and self.fav_button.winfo_exists():
+            self.fav_button.pack_forget()  # Просто скрываем, НЕ УДАЛЯЕМ
 
-        self.k_factors_frame.destroy()
-        self.propereties_frame.destroy()
-        self.data_apply_button.destroy()
+        # 3. Делаем виджеты в блоке структуры снова активными
+        if hasattr(self, 'sites_frame') and self.sites_frame.winfo_exists():
+            self._enable_widgets(self.sites_frame)
 
-        for widget in self.sec_column.winfo_children():
-            widget.destroy()
-
-        self.first_column.update()
-        self.sec_column.update()
-
+        # 4. Возвращаем кнопки в активное состояние
         self.upload_button["state"] = "normal"
         self.antisolvents_cb["state"] = "normal"
-        self.sites_update_button.destroy()
+        self.button_entry["state"] = "normal"
 
-        for attr in ['sites_frame', 'solvents_frame', 'propereties_frame',
-                     'k_factors_frame', 'data_apply_button_frame', 'results_frame',
-                     'console_text', 'fav_button']:
+        # 5. Очищаем консоль
+        self.clear_console()
+        self.add_text(localization_manager.tr("ucv_cons1"))
+
+        # 6. Обновляем GUI
+        self.first_column.update_idletasks()
+        self.sec_column.update_idletasks()
+
+        # 7. Удаляем атрибуты только для УНИЧТОЖЕННЫХ виджетов
+        attrs_to_delete = [
+            'solvents_frame', 'k_factors_frame', 'propereties_frame',
+            'data_apply_button', 'sites_update_button',
+            # sort_menu_frame и hystogram_frame тоже лучше уничтожать, а не скрывать,
+            # так как они могут меняться. Но для простоты пока оставим pack_forget.
+        ]
+        for attr in attrs_to_delete:
             if hasattr(self, attr):
-                delattr(self, attr)
+                # Проверяем, существует ли виджет, перед удалением атрибута
+                widget = getattr(self, attr)
+                if not widget.winfo_exists():
+                    delattr(self, attr)
 
         self.solvents_widgets = {}
         self.k_factors_widgets = {}
         self.dynamic_widgets = []
+
         self.update()
+
+    def _disable_widgets(self, parent_widget):
+        """Рекурсивно делает неактивными все виджеты внутри родительского виджета."""
+        for child in parent_widget.winfo_children():
+            # ttk виджеты (Combobox) используют метод 'state'
+            if isinstance(child, (ttk.Combobox, ttk.Entry, ttk.Checkbutton, ttk.Button)):
+                child.config(state='disabled')
+            # Обычные tk виджеты (Entry, Checkbutton, Button) используют 'state' в config
+            elif isinstance(child, (tk.Entry, tk.Checkbutton, tk.Button)):
+                child.config(state='disabled')
+            # Если дочерний элемент сам является контейнером (Frame, LabelFrame),
+            # рекурсивно вызываем для него эту же функцию.
+            if child.winfo_children():
+                self._disable_widgets(child)
+
+    def _enable_widgets(self, parent_widget):
+        """Рекурсивно делает активными все виджеты внутри родительского виджета."""
+        for child in parent_widget.winfo_children():
+            widget_type = child.winfo_class()
+            # Для Combobox и некоторых других ttk виджетов нужно ставить 'readonly'
+            if widget_type == 'TCombobox':
+                child.config(state='readonly')
+            elif isinstance(child, (ttk.Entry, ttk.Checkbutton, ttk.Button, tk.Entry, tk.Checkbutton, tk.Button)):
+                child.config(state='normal')
+
+            if child.winfo_children():
+                self._enable_widgets(child)
+
+    # src/views/user_config_form.py -> внутри класса UserConfigView
+
+    # src/views/user_config_form.py -> метод _on_fraction_change
+
+    # src/views/user_config_form.py -> метод _on_fraction_change
+
+    def _on_fraction_change(self, event, site_type):
+        """
+        Обрабатывает изменение в поле 'Доля' и автоматически заполняет/корректирует
+        поля для достижения суммы 1.
+        """
+        fraction_entries = [
+            widget["fraction"] for widget in self.site_widgets[site_type]["dynamic_widgets"]
+        ]
+
+        if len(fraction_entries) <= 1:
+            return
+
+        # event.widget - это поле, которое вызвало событие (которое мы редактируем)
+        current_widget = event.widget
+
+        total_fraction = 0.0
+        empty_field = None
+        validly_filled_count = 0
+
+        # Сначала очистим подсветку со всех полей
+        for entry in fraction_entries:
+            if entry is not current_widget:  # Не сбрасываем цвет у текущего поля, если оно автозаполнено
+                entry.config(bg='White')
+
+        # Проходим по всем полям для подсчета и валидации
+        for entry in fraction_entries:
+            value_str = entry.get().strip()
+
+            if not value_str:
+                if empty_field is None:
+                    empty_field = entry
+                else:
+                    return
+                continue
+
+            try:
+                fraction = float(value_str)
+                if fraction < 0:
+                    entry.config(bg='#ffcccc')
+                    return
+
+                if fraction > 0.0:
+                    total_fraction += fraction
+                    validly_filled_count += 1
+            except ValueError:
+                entry.config(bg='#ffcccc')
+                return
+
+        if total_fraction > 1.0001:
+            for entry in fraction_entries:
+                if entry.get().strip():
+                    entry.config(bg='#ffcccc')
+            return
+
+        # Сценарий 1: Автозаполнение пустого поля (как и раньше)
+        if validly_filled_count == len(fraction_entries) - 1 and empty_field is not None:
+            remaining_fraction = 1.0 - total_fraction
+            if remaining_fraction < 0: return
+
+            remaining_fraction_str = f"{remaining_fraction:.4f}".rstrip('0').rstrip('.') or "0"
+
+            empty_field.delete(0, tk.END)
+            empty_field.insert(0, remaining_fraction_str)
+            empty_field.config(bg='#e0ffe0')
+
+        # --- НОВЫЙ БЛОК ---
+        # Сценарий 2: Пересчет, если все поля уже заполнены
+        elif validly_filled_count == len(fraction_entries):
+            # Находим поле для обновления. Это будет последнее поле, которое НЕ является текущим
+            target_field = None
+            for entry in reversed(fraction_entries):
+                if entry is not current_widget:
+                    target_field = entry
+                    break
+
+            # Если такого поля нет (например, всего 2 поля и мы редактируем второе),
+            # то выберем первое поле.
+            if target_field is None:
+                target_field = fraction_entries[0] if fraction_entries[0] is not current_widget else None
+
+            if target_field:
+                # Считаем сумму всех полей, КРОМЕ целевого
+                sum_without_target = 0
+                for entry in fraction_entries:
+                    if entry is not target_field:
+                        sum_without_target += float(entry.get())
+
+                new_value = 1.0 - sum_without_target
+                if new_value < 0:
+                    current_widget.config(bg='#ffcccc')  # Показываем ошибку в текущем поле
+                    return
+
+                new_value_str = f"{new_value:.4f}".rstrip('0').rstrip('.') or "0"
+
+                target_field.config(bg='White')  # Убираем зеленую подсветку перед обновлением
+                target_field.delete(0, tk.END)
+                target_field.insert(0, new_value_str)
+                target_field.config(bg='#e0ffe0')  # Подсвечиваем обновленное поле
+
+    # src/views/user_config_form.py -> внутри класса UserConfigView
+
+    def _on_solvent_fraction_change(self, event, solvent_type):
+        """
+        Обрабатывает изменение в поле 'Доля' для растворителей и автоматически
+        заполняет/корректирует поля для достижения суммы 1.
+        """
+        # Получаем список полей 'Доля' для конкретного типа растворителей
+        fraction_entries = [
+            widget["fraction"] for widget in self.solvents_widgets[solvent_type]["dynamic_widgets"]
+        ]
+
+        if len(fraction_entries) <= 1:
+            return
+
+        current_widget = event.widget
+
+        total_fraction = 0.0
+        empty_field = None
+        validly_filled_count = 0
+
+        for entry in fraction_entries:
+            if entry is not current_widget:
+                entry.config(bg='White')
+
+        for entry in fraction_entries:
+            value_str = entry.get().strip()
+
+            if not value_str:
+                if empty_field is None:
+                    empty_field = entry
+                else:
+                    return
+                continue
+
+            try:
+                fraction = float(value_str)
+                if fraction < 0:
+                    entry.config(bg='#ffcccc')
+                    return
+
+                if fraction > 0.0:
+                    total_fraction += fraction
+                    validly_filled_count += 1
+            except ValueError:
+                entry.config(bg='#ffcccc')
+                return
+
+        if total_fraction > 1.0001:
+            for entry in fraction_entries:
+                if entry.get().strip():
+                    entry.config(bg='#ffcccc')
+            return
+
+        # Сценарий 1: Автозаполнение пустого поля
+        if validly_filled_count == len(fraction_entries) - 1 and empty_field is not None:
+            remaining_fraction = 1.0 - total_fraction
+            if remaining_fraction < 0: return
+
+            remaining_fraction_str = f"{remaining_fraction:.4f}".rstrip('0').rstrip('.') or "0"
+
+            empty_field.delete(0, tk.END)
+            empty_field.insert(0, remaining_fraction_str)
+            empty_field.config(bg='#e0ffe0')
+
+        # Сценарий 2: Пересчет, если все поля уже заполнены
+        elif validly_filled_count == len(fraction_entries):
+            target_field = None
+            for entry in reversed(fraction_entries):
+                if entry is not current_widget:
+                    target_field = entry
+                    break
+
+            if target_field is None:
+                target_field = fraction_entries[0] if fraction_entries[0] is not current_widget else None
+
+            if target_field:
+                sum_without_target = 0
+                for entry in fraction_entries:
+                    if entry is not target_field:
+                        sum_without_target += float(entry.get())
+
+                new_value = 1.0 - sum_without_target
+                if new_value < 0:
+                    current_widget.config(bg='#ffcccc')
+                    return
+
+                new_value_str = f"{new_value:.4f}".rstrip('0').rstrip('.') or "0"
+
+                target_field.config(bg='White')
+                target_field.delete(0, tk.END)
+                target_field.insert(0, new_value_str)
+                target_field.config(bg='#e0ffe0')
+
+    def _on_phase_template_change(self, event=None):
+        """
+        Вызывается при изменении шаблона фазы. Сбрасывает все последующие
+        элементы формы, связанные со структурой и расчетами.
+        """
+        # Если фрейм со структурой уже был создан, нам нужно все сбросить
+        if hasattr(self, 'sites_frame') and self.sites_frame.winfo_exists():
+
+            # Сначала сбрасываем все, что идет ПОСЛЕ структуры (растворители, расчеты)
+            # Наш уже существующий метод reset_sites идеально для этого подходит!
+            # Но он разблокирует sites_frame, что нам не нужно. Поэтому сделаем чуть иначе.
+
+            # 1. Уничтожаем фрейм структуры и связанные с ним виджеты
+            self.sites_frame.destroy()
+            self.upload_button.destroy()
+            self.antisolvents_cb.destroy()
+            if hasattr(self, 'sites_update_button') and self.sites_update_button.winfo_exists():
+                self.sites_update_button.destroy()
+
+            # 2. Сбрасываем все, что идет после: растворители, к-факторы, результаты
+            # Для этого вызовем частичный сброс, как в reset_sites
+            widgets_to_destroy = [
+                'solvents_frame', 'k_factors_frame', 'propereties_frame',
+                'data_apply_button', 'sort_menu_frame', 'hystogram_frame'
+            ]
+            for attr in widgets_to_destroy:
+                if hasattr(self, attr) and getattr(self, attr).winfo_exists():
+                    getattr(self, attr).destroy()
+
+            if hasattr(self, 'summary_frame') and self.summary_frame.winfo_exists():
+                self.summary_frame.pack_forget()
+            if hasattr(self, 'fav_button') and self.fav_button.winfo_exists():
+                self.fav_button.pack_forget()
+
+            # 3. Очищаем консоль
+            self.clear_console()
+            self.add_text(localization_manager.tr("ucv_cons1"))
+
+            # 4. Сбрасываем атрибуты состояния
+            self.site_widgets = {}
+            attrs_to_delete = widgets_to_destroy + [
+                'sites_frame', 'upload_button', 'antisolvents_cb', 'sites_update_button',
+                'solvents_widgets', 'k_factors_widgets', 'dynamic_widgets'
+            ]
+            for attr in attrs_to_delete:
+                if hasattr(self, attr):
+                    delattr(self, attr)
+
+            # 5. Возвращаем кнопку "Подтвердить" в исходное состояние
+            self.button_entry['state'] = 'normal'
+
+            # Обновляем интерфейс
+            self.update_idletasks()
