@@ -10,7 +10,8 @@ class IonsCheckView(tk.Toplevel):
         localization_manager.register_observer(self)
         self.title(localization_manager.tr("ccv_window_title"))
         self.configure(bg=AppStyles.BACKGROUND_COLOR)
-
+        self.transient(parent)
+        self.grab_set()
         self.styles = AppStyles()
         self.create_widgets()
 

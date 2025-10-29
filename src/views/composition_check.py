@@ -13,9 +13,11 @@ class CompositionCheckView(tk.Toplevel):
         localization_manager.register_observer(self)
         self.title(localization_manager.tr("ccv_window_title"))
         self.parent = parent
+        self.transient(parent)
+        self.grab_set()
         self.configure(bg=AppStyles.BACKGROUND_COLOR)
         self.comp_cont = None
-        self.geometry("1200x900")
+        self.geometry("1200x850")
         self.build_ui()
         self.id_to_ucf = None
         self.not_fav_to_ucf = None

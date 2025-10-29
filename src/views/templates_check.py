@@ -12,7 +12,8 @@ class TemplatesCheckView(tk.Toplevel):
         self.configure(bg=AppStyles.BACKGROUND_COLOR)
         self.styles = AppStyles()
         self.site_frames = []
-
+        self.transient(parent)
+        self.grab_set()
         self.build_ui()
 
     def bind_template_selection(self, callback):

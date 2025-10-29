@@ -18,6 +18,8 @@ class CompositionView(tk.Toplevel):
         self.geometry("1200x700")
         self.configure(bg=AppStyles.BACKGROUND_COLOR)
         self.styles = AppStyles()
+        self.transient(parent)
+        self.grab_set()
         self.ucv_cont = None
         self.build_ui()
         self.create_template_frame()

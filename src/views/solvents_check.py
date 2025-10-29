@@ -12,7 +12,8 @@ class SolventsCheckView(tk.Toplevel):
 
         self.configure(bg=AppStyles.BACKGROUND_COLOR)
         self.styles = AppStyles()
-
+        self.transient(parent)
+        self.grab_set()
         self.title(localization_manager.tr("scv_window_title"))
 
         self.build_ui()

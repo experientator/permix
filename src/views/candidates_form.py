@@ -4,6 +4,8 @@ from src.default_style import AppStyles
 class CandidateFormView(tk.Toplevel):
     def __init__(self, parent, controller):
         super().__init__(parent)
+        self.transient(parent)
+        self.grab_set()
         self.controller = controller
         self.configure(bg=AppStyles.BACKGROUND_COLOR)
         self.title("Add new candidates")
