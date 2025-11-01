@@ -11,12 +11,22 @@ from src.views.user_config_form import UserConfigView
 from src.language.manager import localization_manager
 from src.language.default_widgets import default_translations
 from src.views.about_program_view import AboutProgramView
+from PIL import Image, ImageTk
 
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("PerMix")
-        self.state('zoomed')
+        try:
+            # Для Windows
+            self.state('zoomed')
+        except:
+            try:
+                # Для Linux
+                self.attributes('-zoomed', True)
+            except:
+                # Если ничего не работает - фиксированный размер
+                self.geometry("1200x800")
         self.main_frame = None
         self.create_calc()
         self.create_menu()

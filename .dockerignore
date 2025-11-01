@@ -1,0 +1,9 @@
+.dockerignore
+Dockerfile
+docker.bat
+docker.sh
+.git
+.gitignore
+README.md
+*.tmp
+*.log
