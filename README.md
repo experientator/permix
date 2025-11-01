@@ -110,7 +110,7 @@ If you use PerMix in your research, please cite our paper in the *Journal of Ope
 > Schmidberskaya & Simonenko, (2025). PerMix: A Python Framework for Perovskite Precursor Mass Calculations. *Journal of Open Source Software*, X(XX), 12345. https://doi.org/10.21105/joss.01234
 
 ```bibtex
-@article{Simonenko2025,
+@article{Schmidberskaya2025,
   doi = {10.21105/joss.01234},
   url = {https://doi.org/10.21105/joss.01234},
   year = {2025},
