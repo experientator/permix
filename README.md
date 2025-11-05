@@ -20,15 +20,6 @@
     <a href="https://github.com/your-github-username/PerMix/actions/workflows/tests.yml">
         <img src="https://github.com/your-github-username/PerMix/actions/workflows/tests.yml/badge.svg" alt="Build Status">
     </a>
-    <a href="https://codecov.io/gh/your-github-username/PerMix">
-        <img src="https://codecov.io/gh/your-github-username/PerMix/branch/main/graph/badge.svg" alt="Codecov">
-    </a>
-    <a href="https://pypi.org/project/permix/">
-        <img src="https://img.shields.io/pypi/v/permix?logo=pypi" alt="PyPI - Version">
-    </a>
-    <a href="https://www.python.org/">
-        <img src="https://img.shields.io/pypi/pyversions/permix.svg" alt="Python Versions">
-    </a>
     <!-- ACTION ITEM: Once your JOSS paper is accepted, replace this with the real badge. -->
     <a href="https://joss.theoj.org/">
         <img src="https://joss.theoj.org/papers/10.21105/joss.01234/status.svg" alt="JOSS Status">
