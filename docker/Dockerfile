@@ -10,9 +10,11 @@ RUN apt-get update && apt-get install -y \
 # Set working directory
 WORKDIR /app
 
-# Copy project files
-COPY *.py ./
 COPY requirements.txt ./
+COPY src/ ./src/
+COPY main.py ./
+COPY setup.py ./
+COPY icon.ico ./
 COPY data.db ./
 
 # Install Python dependencies

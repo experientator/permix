@@ -2,9 +2,9 @@
 echo ================================
 echo  DOCKER BUILD STARTED
 echo ================================
+cd ..
 
-:: Build the image
-docker build -t tkinter-app .
+docker build -f docker/Dockerfile -t tkinter-app .
 
 if %ERRORLEVEL% NEQ 0 (
     echo.

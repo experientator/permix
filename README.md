@@ -5,7 +5,6 @@
   <p align="center">
     <i>A Python Framework for Perovskite Precursor Mass Calculations</i>
   </p>
-</p>
 
 <!-- ACTION ITEM: This is the MOST IMPORTANT change. Replace 'your-github-username/PerMix' with your actual repository path in ALL links below (e.g., 'iosimonenko/PerMix'). -->
 <p align="center">
@@ -58,31 +57,95 @@
 
 ## 📦 Installation
 
-PerMix is a pure Python package and can be installed via `pip`.
+### 📥 Download Ready-to-Use Versions
 
+#### Windows
+1. Download both files from [Windows v1.0.0](https://github.com/experientator/permix_versions/tree/main/versions/1.0.0/windows):
+   - `PerMix.exe`
+   - `data.db`
+2. Place both files in the same directory
+3. Run `PerMix.exe`
+
+#### Ubuntu/Debian
+1. Download the .deb package from [Ubuntu v1.0.0](https://github.com/experientator/permix_versions/tree/main/versions/1.0.0/ubuntu/permix_1.0.0_all.deb)
+2. Install via terminal:
 ```bash
-pip install permix
+sudo apt update
+sudo apt install ./permix_1.0.0_all.deb
 ```
 
-Alternatively, to install the latest development version from source:
+### 🐳 Run with Docker
 
+#### *Initial Setup (First Time Only)*
+
+#### Windows:
+1. Install [VcXsrv](https://sourceforge.net/projects/vcxsrv/)
+2. Launch **XLaunch** from Start Menu
+3. Settings:
+   - **Multiple windows**
+   - **Display number**: 0
+   - **Start no client**
+   - ✅ **Disable access control** (important!)
+4. Save configuration for future use
+
+#### macOS:
+1. Install [XQuartz](https://www.xquartz.org/)
+2. Restart your computer
+3. Launch XQuartz
+4. In terminal execute:
 ```bash
-git clone https://github.com/your-github-username/PerMix.git
-cd PerMix
-pip install -e .
+xhost +localhost
+```
+#### Linux:
+X11 is usually pre-installed. If not:
+```bash
+# Ubuntu/Debian
+sudo apt install x11-xserver-utils
+xhost +local:docker
 ```
 
-## 🚀 Getting Started
+#### *Run Application*
 
-Once installed, you can launch the PerMix graphical user interface from your terminal:
-
+#### Windows:
 ```bash
-python -m permix
+# Double click the file:
+docker/start.bat
+
+# Or via command line:
+cd docker
+start.bat
 ```
 
-This will open the main window, where you can start defining your target perovskite composition and generating synthesis recipes.
+#### Linux/macOS:
+```bash
+cd docker
+chmod +x docker.sh
+./docker.sh
+```
 
-<!-- ACTION ITEM: Consider adding a screenshot of your application's main window here to show users what to expect. -->
+### 🔧 Installation from Source Code
+
+#### Prerequisites
+- Python 3.11 or higher
+- pip (Python package manager)
+
+#### Installation
+
+1. Clone the repository:
+```bash
+git clone https://github.com/experientator/permixrem.git
+cd permixrem
+```
+
+2. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+3. Run the application:
+```bash
+python main.py
+```
 
 ## 📖 Documentation
 
