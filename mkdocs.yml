@@ -18,7 +18,6 @@ repo_url: https://github.com/experientator/permixrem
 nav:
   - Home: index.md
   - Installation: installation.md
-  - Usage: usage.md
   - Docker: docker.md
   - Development: development.md
 
