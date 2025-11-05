@@ -45,7 +45,7 @@ PerMix addresses these limitations by providing an integrated, high-precision co
 
 ## Software Description
 
-PerMix is a pure Python package with a comprehensive GUI designed to streamline the entire experimental planning lifecycle in perovskite synthesis.
+PerMix is a Python package with a comprehensive GUI and integrated SQLite database, designed to streamline the entire experimental planning lifecycle in perovskite synthesis.
 
 ### Key Features
 - **High-Precision Core Calculation Engine**: Utilizes Python's `decimal` library for arbitrary-precision arithmetic, robustly handling any number of A, B, and X-site substitutions while ensuring charge balance [@Fassl2018Fractional; @Falk2020Effect].
