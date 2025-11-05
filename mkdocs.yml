@@ -1,0 +1,30 @@
+site_name: PerMix
+site_description: Documentation for PerMix application
+site_author: Schmidberskaya & Simonenko
+
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - toc.integrate
+    - navigation.top
+    - search.suggest
+    - search.highlight
+
+repo_name: experientator/permixrem
+repo_url: https://github.com/experientator/permixrem
+
+nav:
+  - Home: index.md
+  - Installation: installation.md
+  - Usage: usage.md
+  - Docker: docker.md
+  - Development: development.md
+
+markdown_extensions:
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.tabbed
+  - toc:
+      permalink: true
