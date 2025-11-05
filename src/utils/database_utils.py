@@ -1,5 +1,56 @@
 import sqlite3
 import pandas as pd
+from typing import List, Dict, Any, Optional
+
+import sqlite3
+import os
+from typing import List, Dict, Any, Optional
+
+def get_database_path() -> str:
+    """Get the path to the database file"""
+    return 'data.db'
+
+def get_template_id(template_name: str) -> Optional[int]:
+    db_path = get_database_path()
+    try:
+        with sqlite3.connect(db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT id FROM Phase_templates WHERE name = ?", (template_name,))
+            result = cursor.fetchone()
+            return result[0] if result else None
+    except sqlite3.Error:
+        return None
+
+def get_connection():
+    """Get database connection"""
+    return sqlite3.connect(get_database_path())
+
+# Add other database utility functions as needed
+def execute_query(query: str, params: tuple = ()) -> List[Dict[str, Any]]:
+    db_path = get_database_path()
+    with sqlite3.connect(db_path) as conn:
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute(query, params)
+        return [dict(row) for row in cursor.fetchall()]
+
+def execute_update(query: str, params: tuple = ()) -> int:
+    """Execute an update query and return number of affected rows"""
+    db_path = get_database_path()
+    with sqlite3.connect(db_path) as conn:
+        cursor = conn.cursor()
+        cursor.execute(query, params)
+        conn.commit()
+        return cursor.rowcount
+
+def get_templates_list() -> List[Dict[str, Any]]:
+    db_path = get_database_path()
+    import sqlite3
+    with sqlite3.connect(db_path) as conn:
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, name FROM Phase_templates")
+        return [dict(row) for row in cursor.fetchall()]
 
 def get_cation_list_by_key(key):
     conn = sqlite3.connect("data.db")
@@ -17,14 +68,6 @@ def get_ionic_radius(name, charge, cn):
             (name, charge, cn))
         result = cursor.fetchone()
         return float(result[0]) if result else None
-
-def get_templates_list():
-    conn = sqlite3.connect("data.db")
-    cursor = conn.cursor()
-    cursor.execute(f"SELECT DISTINCT name FROM Phase_templates ORDER BY dimensionality")
-    values = [row[0] for row in cursor.fetchall()]
-    conn.close()
-    return values
 
 def get_cation_formula(cation_name):
     conn = sqlite3.connect("data.db")
@@ -49,14 +92,6 @@ def get_dimensionality(id_template):
     dimensionality = cursor.fetchone()
     conn.close()
     return int(dimensionality[0])
-
-def get_template_id(name):
-    conn = sqlite3.connect("data.db")
-    cursor = conn.cursor()
-    cursor.execute(f"SELECT id FROM Phase_templates WHERE name = ?", (name,))
-    id_phase = cursor.fetchone()
-    conn.close()
-    return int(id_phase[0])
 
 def get_fav_id(name):
     conn = sqlite3.connect("data.db")
@@ -130,3 +165,11 @@ def get_template_name(id):
     name = cursor.fetchone()
     conn.close()
     return name[0]
+
+def get_template_ions(template_id: int) -> List[Dict[str, Any]]:
+    db_path = get_database_path()
+    with sqlite3.connect(db_path) as conn:
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM template_ions WHERE template_id = ?", (template_id,))
+        return [dict(row) for row in cursor.fetchall()]

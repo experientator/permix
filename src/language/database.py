@@ -1,7 +1,33 @@
 import sqlite3
+import os
+import sys
 
 class LocalizationDB:
-    def __init__(self, db_path="data.db"):
+    def __init__(self, db_path: str = None):
+        if db_path is None:
+            # Determine OS and set appropriate database path
+            if hasattr(sys, 'getwindowsversion'):  # Windows
+                # Use AppData directory in Windows
+                app_data = os.getenv('APPDATA')
+                db_dir = os.path.join(app_data, 'permix') if app_data else os.path.expanduser('~/.permix')
+            else:  # Linux/WSL
+                # Use /tmp in WSL, home directory in real Linux
+                db_dir = os.path.expanduser('~/.permix')
+
+            os.makedirs(db_dir, exist_ok=True)
+            db_path = os.path.join(db_dir, 'data.db')
+
+            # Copy database from project directory if it doesn't exist
+            if not os.path.exists(db_path):
+                try:
+                    project_db = os.path.join(os.path.dirname(__file__), '../../data.db')
+                    if os.path.exists(project_db):
+                        import shutil
+                        shutil.copy2(project_db, db_path)
+                        print(f"Database copied to: {db_path}")
+                except Exception as e:
+                    print(f"Warning: Could not copy database: {e}")
+
         self.db_path = db_path
         self.init_db()
 
@@ -42,3 +68,6 @@ class LocalizationDB:
                 'INSERT OR REPLACE INTO localization (name, en, ru) VALUES (?, ?, ?)',
                 translations
             )
+
+    def clear_translations(self, language_code: str = None):
+        pass

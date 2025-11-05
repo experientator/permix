@@ -11,21 +11,18 @@ from src.views.user_config_form import UserConfigView
 from src.language.manager import localization_manager
 from src.language.default_widgets import default_translations
 from src.views.about_program_view import AboutProgramView
-from PIL import Image, ImageTk
+from src.utils.init_database import init_database
 
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("PerMix")
         try:
-            # Для Windows
             self.state('zoomed')
         except:
             try:
-                # Для Linux
                 self.attributes('-zoomed', True)
             except:
-                # Если ничего не работает - фиксированный размер
                 self.geometry("1200x800")
         self.main_frame = None
         self.create_calc()
@@ -108,9 +105,9 @@ class App(tk.Tk):
     def return_from_composition_check(self, id_info=None, not_fav=None):
         self.calc_view.return_from_composition_check(id_info, not_fav)
 
-
 localization_manager.initialize_default_translations(default_translations)
-if __name__ == "__main__":
 
+if __name__ == "__main__":
+    init_database()
     app = App()
     app.mainloop()
