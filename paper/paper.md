@@ -25,7 +25,7 @@ bibliography: paper.bib
 
 ## Summary
 
-PerMix is a Python framework designed to address a critical bottleneck in perovskite materials science: the precise and reproducible calculation of precursor stoichiometry for multicomponent synthesis. The field's advancement via "compositional engineering" [@Zhang2023Composition; @Saliba2019Polyelemental] is often hindered by minor stoichiometric deviations that cause significant irreproducibility in device performance and stability [@Fassl2018Fractional; @Falk2020Effect]. PerMix automates high-precision mass calculations, bridging the gap between compositional design and experimental execution. It features an arbitrary-precision engine to eliminate floating-point errors, a combinatorial algorithm for generating and ranking all valid synthesis pathways, and an intuitive graphical user interface (GUI) built with CustomTkinter. These capabilities are essential for accelerating automated, high-throughput materials discovery workflows [@Higgins2020Chemical].
+PerMix is a Python framework designed to address a critical bottleneck in perovskite materials science: the precise and reproducible calculation of precursor stoichiometry for multicomponent synthesis. The field's advancement via "compositional engineering" [@Zhang2023Composition; @Saliba2019Polyelemental] is often hindered by minor stoichiometric deviations that cause significant irreproducibility in device performance and stability [@Fassl2018Fractional; @Falk2020Effect]. PerMix automates high-precision mass calculations, bridging the gap between compositional design and experimental execution. It features an arbitrary-precision engine to eliminate floating-point errors, a combinatorial algorithm for generating and ranking all valid synthesis pathways, and an intuitive graphical user interface (GUI) built with Tkinter. These capabilities are essential for accelerating automated, high-throughput materials discovery workflows [@Higgins2020Chemical].
 
 ## Statement of Need
 
@@ -45,7 +45,7 @@ PerMix directly addresses these limitations by providing an integrated, high-pre
 
 ## Software Description
 
-PerMix - a Python-based GUI application with SQLite backend for perovskite experiment planning.
+PerMix - a Python-based GUI application with SQLite backend for perovskite syntesis experiment planning.
 
 ### Key Features
 - **High-Precision Core Calculation Engine**: Utilizes Python's `decimal` library for arbitrary-precision arithmetic, robustly handling any number of A, B, and X-site substitutions while ensuring charge balance for complex compositions [@Fassl2018Fractional; @Falk2020Effect].
@@ -55,7 +55,7 @@ PerMix - a Python-based GUI application with SQLite backend for perovskite exper
 - **Geometric Stability Factor Calculation**: Automatically calculates the Goldschmidt tolerance factor (t) and octahedral factor (μ) for mixed-ion systems, providing a rapid check for structural stability.
 
 ### Architecture and Availability
-The software is architected with a modular design that separates core logic (`business_logic`) from the user interface (`ui`), ensuring maintainability and extensibility. PerMix is implemented in pure Python, leveraging established libraries like NumPy and Pandas, and is available under the MIT license. The source code, comprehensive documentation, and installation instructions are hosted on GitHub at [https://github.com/experientator/permix/tree/main].
+The software is architected with a modular design that separates core logic (`business_logic`) from the user interface (`ui`), ensuring maintainability and extensibility. PerMix is implemented in Python, leveraging established libraries like NumPy and Pandas, using SQLite database and is available under the MIT license. The source code, comprehensive documentation, and installation instructions are hosted on GitHub at [https://github.com/experientator/permix/tree/main].
 
 ## Acknowledgements
 
