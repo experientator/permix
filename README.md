@@ -14,11 +14,9 @@
     <a href="https://permix.readthedocs.io/en/latest/">
         <img src="https://img.shields.io/badge/docs-latest-green?logo=readthedocs" alt="Documentation">
     </a>
-    <a href="https://github.com/experientator/permix/blob/main/LICENSE">
-        <img src="https://img.shields.io/github/license/your-github-username/PerMix" alt="GitHub license">
     </a>
-    <a href="https://github.com/your-github-username/PerMix/actions/workflows/tests.yml">
-        <img src="https://github.com/your-github-username/PerMix/actions/workflows/tests.yml/badge.svg" alt="Build Status">
+    <a href="https://github.com/experientator/permix/blob/main/LICENSE">
+        <img src="https://img.shields.io/github/license/experientator/permix" alt="GitHub license">
     </a>
     <!-- ACTION ITEM: Once your JOSS paper is accepted, replace this with the real badge. -->
     <a href="https://joss.theoj.org/">
