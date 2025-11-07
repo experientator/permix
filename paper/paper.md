@@ -60,6 +60,6 @@ The software has been refactored into a Model-View-Controller (MVC) architecture
 
 ## Acknowledgements
 
-The authors would like to express their sincere gratitude to their scientific supervisor, Prof. R.G. Nazmitdinov, Doctor of Sciences (Physics and Mathematics) and Leading Researcher at the Bogoliubov Laboratory of Theoretical Physics, JINR, for his invaluable guidance and unwavering support throughout this project. This work was conducted as part of a university research project at Dubna State University (Order No. 167 of February 12, 2025). Financial support from the Ministry of Science and Higher Education of the Russian Federation under theme no. 124110600041-0 is gratefully acknowledged.
+The authors would like to express their sincere gratitude to their scientific supervisor, Prof. R.G. Nazmitdinov, Doctor of Sciences (Physics and Mathematics) and Leading Researcher at the Bogoliubov Laboratory of Theoretical Physics, JINR, for his invaluable guidance and unwavering support throughout this project. This work was conducted as part of a university research project at Dubna State University (Order No. 167 of February 12, 2025). Financial support from the Russian Science Foundation under project no. 23-19-00884 is gratefully acknowledged.
 
 ## References
