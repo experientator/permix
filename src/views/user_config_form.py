@@ -1415,8 +1415,6 @@ class UserConfigView(tk.Frame):
     def _on_phase_template_change(self, event=None):
 
         if hasattr(self, 'sites_frame') and self.sites_frame.winfo_exists():
-
-
             self.sites_frame.destroy()
             self.upload_button.destroy()
             self.antisolvents_cb.destroy()

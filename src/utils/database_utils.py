@@ -44,13 +44,11 @@ def execute_update(query: str, params: tuple = ()) -> int:
         return cursor.rowcount
 
 def get_templates_list() -> List[Dict[str, Any]]:
-    db_path = get_database_path()
-    import sqlite3
-    with sqlite3.connect(db_path) as conn:
-        conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
-        cursor.execute("SELECT id, name FROM Phase_templates")
-        return [dict(row) for row in cursor.fetchall()]
+    conn = sqlite3.connect("data.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT name FROM Phase_templates")
+    result = cursor.fetchall()
+    return result
 
 def get_cation_list_by_key(key):
     conn = sqlite3.connect("data.db")
