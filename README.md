@@ -14,20 +14,9 @@
     <a href="https://permix.readthedocs.io/en/latest/">
         <img src="https://img.shields.io/badge/docs-latest-green?logo=readthedocs" alt="Documentation">
     </a>
-    <a href="https://github.com/your-github-username/PerMix/blob/main/LICENSE">
-        <img src="https://img.shields.io/github/license/your-github-username/PerMix" alt="GitHub license">
     </a>
-    <a href="https://github.com/your-github-username/PerMix/actions/workflows/tests.yml">
-        <img src="https://github.com/your-github-username/PerMix/actions/workflows/tests.yml/badge.svg" alt="Build Status">
-    </a>
-    <a href="https://codecov.io/gh/your-github-username/PerMix">
-        <img src="https://codecov.io/gh/your-github-username/PerMix/branch/main/graph/badge.svg" alt="Codecov">
-    </a>
-    <a href="https://pypi.org/project/permix/">
-        <img src="https://img.shields.io/pypi/v/permix?logo=pypi" alt="PyPI - Version">
-    </a>
-    <a href="https://www.python.org/">
-        <img src="https://img.shields.io/pypi/pyversions/permix.svg" alt="Python Versions">
+    <a href="https://github.com/experientator/permix/blob/main/LICENSE">
+        <img src="https://img.shields.io/github/license/experientator/permix" alt="GitHub license">
     </a>
     <!-- ACTION ITEM: Once your JOSS paper is accepted, replace this with the real badge. -->
     <a href="https://joss.theoj.org/">
