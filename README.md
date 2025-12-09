@@ -1,12 +1,10 @@
 <p align="center">
-  <!-- ACTION ITEM: If you have a logo, place its path here. If not, this block can be deleted. -->
   <img src="path/to/your/logo.png" height="120">
   <h1 align="center">PerMix</h1>
   <p align="center">
     <i>A Python Framework for Perovskite Precursor Mass Calculations</i>
   </p>
 
-<!-- ACTION ITEM: This is the MOST IMPORTANT change. Replace 'your-github-username/PerMix' with your actual repository path in ALL links below (e.g., 'iosimonenko/PerMix'). -->
 <p align="center">
     <a href="https://www.repostatus.org/#active">
         <img src="https://www.repostatus.org/badges/latest/active.svg" alt="Project Status: Active">
@@ -18,11 +16,9 @@
     <a href="https://github.com/experientator/permix/blob/main/LICENSE">
         <img src="https://img.shields.io/github/license/experientator/permix" alt="GitHub license">
     </a>
-    <!-- ACTION ITEM: Once your JOSS paper is accepted, replace this with the real badge. -->
     <a href="https://joss.theoj.org/">
         <img src="https://joss.theoj.org/papers/10.21105/joss.01234/status.svg" alt="JOSS Status">
     </a>
-    <!-- ACTION ITEM: Once you have a DOI from Zenodo, replace this with the real badge. -->
     <a href="https://zenodo.org/">
         <img src="https://zenodo.org/badge/DOI/10.5281/zenodo.1234567.svg" alt="DOI">
     </a>
@@ -32,8 +28,6 @@
 
 **PerMix** is a graphical user interface (GUI) application designed to address a critical bottleneck in materials science: the precise and reproducible calculation of precursor stoichiometry for multicomponent perovskite synthesis. It provides a standardized, high-precision tool to eliminate a major source of experimental variation, allowing for more reliable comparison of results between different laboratories and studies.
 
-<!-- ACTION ITEM: A GIF showcasing your application is HIGHLY recommended. It significantly increases the appeal of the README. Replace this with your GIF. -->
-<!-- You can use tools like LICEcap or ScreenToGif to create it easily. -->
 ![](path/to/your/showcase.gif)
 
 ## ✨ Highlights
@@ -158,7 +152,6 @@ The software is architected with a modular design that separates core logic from
 
 If you use PerMix in your research, please cite our paper in the *Journal of Open Source Software*.
 
-<!-- ACTION ITEM: Replace placeholders with real data after publication. -->
 > Schmidberskaya & Simonenko, (2025). PerMix: A Python Framework for Perovskite Precursor Mass Calculations. *Journal of Open Source Software*, X(XX), 12345. https://doi.org/10.21105/joss.01234
 
 ```bibtex
@@ -184,5 +177,4 @@ Please read our [**Contributing Guidelines**](CONTRIBUTING.md) for details on ou
 
 ## 📄 License
 
-<!-- ACTION ITEM: Choose a license and replace the placeholder. MIT License is a great default choice for open-source projects. -->
 This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
