@@ -19,7 +19,7 @@ affiliations:
    index: 1
  - name: Dubna State University, Dubna, Russia
    index: 2
-date: 05 November 2025
+date: 10 February 2026
 bibliography: paper.bib
 ---
 
