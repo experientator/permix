@@ -23,13 +23,13 @@ date: 05 November 2025
 bibliography: paper.bib
 ---
 
-## Summary
+# Summary
 
-PerMix is a Python framework designed to address a critical bottleneck in perovskite materials science: the precise and reproducible calculation of precursor stoichiometry for multicomponent synthesis. The field's advancement via "compositional engineering" [@Zhang2023Composition; @Saliba2019Polyelemental] is often hindered by minor stoichiometric deviations that cause significant irreproducibility in device performance and stability [@Fassl2018Fractional; @Falk2020Effect]. PerMix automates high-precision mass calculations, bridging the gap between compositional design and experimental execution. It features an arbitrary-precision engine to eliminate floating-point errors, a combinatorial algorithm for generating and ranking all valid synthesis pathways, and an intuitive graphical user interface (GUI) built with standard Python libraries (Tkinter/ttk) for maximum cross-platform compatibility. Beyond calculations, PerMix now acts as a digital laboratory notebook, allowing researchers to archive successful recipes and track experimental parameters, capabilities essential for accelerating automated, high-throughput materials discovery workflows [@Higgins2020Chemical].
+`PerMix` is a Python framework designed to address a critical bottleneck in perovskite materials science: the precise and reproducible calculation of precursor stoichiometry for multicomponent synthesis. The field's advancement via "compositional engineering" [@Zhang2023Composition; @Saliba2019Polyelemental] is often hindered by minor stoichiometric deviations that cause significant irreproducibility in device performance and stability [@Fassl2018Fractional; @Falk2020Effect]. `PerMix` automates high-precision mass calculations, bridging the gap between compositional design and experimental execution. It features an arbitrary-precision engine to eliminate floating-point errors, a combinatorial algorithm for generating and ranking all valid synthesis pathways, and an intuitive graphical user interface (GUI) built with standard Python libraries (Tkinter/ttk) for maximum cross-platform compatibility. Beyond calculations, `PerMix` now acts as a digital laboratory notebook, allowing researchers to archive successful recipes and track experimental parameters, capabilities essential for accelerating automated, high-throughput materials discovery workflows [@Higgins2020Chemical].
 
-## Statement of Need
+# Statement of need
 
-The synthesis of high-quality multicomponent perovskites requires extraordinary precision in precursor stoichiometry. The fundamental properties of the final perovskite material—including crystallinity, defect density, and even the reaction pathways at buried interfaces—are critically dependent on the exact composition of the precursor solution [@Ezike2022Perovskite; @Yuan2019Unveiling]. As researchers explore increasingly complex material systems, traditional methods for synthesis planning have become inadequate.
+The synthesis of high-quality multicomponent perovskites requires extraordinary precision in precursor stoichiometry. The fundamental properties of the final perovskite material, including crystallinity, defect density, and even the reaction pathways at buried interfaces, are critically dependent on the exact composition of the precursor solution [@Ezike2022Perovskite; @Yuan2019Unveiling]. As researchers explore increasingly complex material systems, traditional methods for synthesis planning have become inadequate.
 
 Current methodological approaches suffer from several critical limitations:
 
@@ -39,27 +39,50 @@ Current methodological approaches suffer from several critical limitations:
 
 **Data Management and Archival**: As experimental complexity grows, so does the need for standardized digital tools to archive and retrieve complex synthesis recipes. Relying on scattered spreadsheets or handwritten notes leads to data loss and redundant experimentation. A centralized system to store not just the target composition, but the exact precursor masses, solvent volumes, and synthesis conditions used, is crucial for long-term reproducibility and knowledge transfer within research groups.
 
-**Lack of a Standardized Framework**: The absence of a standardized computational tool means that each research group relies on bespoke, often unvalidated, calculation methods. A shared, transparent, and validated tool can provide a consistent foundation for the entire research community, from fundamental materials science to applied device engineering.
+`PerMix` addresses these limitations by providing an integrated, high-precision computational framework. Key features enabling this include a **Combinatorial Synthesis Strategy Generator** that programmatically generates all valid synthesis pathways from available precursor salts; a **Geometric Stability Analysis** module that automatically calculates Goldschmidt tolerance and octahedral factors; and **Composition Lifecycle Management** tools that allow researchers to archive successful syntheses and curate a database of literature compositions.
 
-PerMix addresses these limitations by providing an integrated, high-precision computational framework that automates complex stoichiometric calculations, implements combinatorial strategies for precursor selection, and ensures reproducible data management through a robust local database.
+# State of the field
 
-## Software Description
+The ecosystem for perovskite stoichiometry calculation is currently fragmented and largely informal. Unlike other mature areas of computational materials science that benefit from established packages (e.g., `pymatgen` for crystallography), the specific domain of experimental precursor planning lacks standardized open-source tools. The prevailing "state of the art" often consists of ad-hoc spreadsheets, bespoke laboratory scripts, or manual calculations recorded in physical notebooks. While general chemical calculators exist, they do not handle the specific geometric stability factors (e.g., Goldschmidt tolerance factor) or the combinatorial complexity of multi-site substitution required for perovskite research.
 
-PerMix is a Python package with a comprehensive GUI and integrated SQLite database, designed to streamline the entire experimental planning lifecycle in perovskite synthesis.
+`PerMix` was built as a new package rather than a contribution to an existing one because no suitable Python-based open-source framework existed that addressed these specific needs. Existing general-purpose chemistry libraries do not support the specific logic required for A/B/X site management in perovskite structures combined with mass-balance optimization for synthesis. By providing a standalone, validated calculator with a GUI, `PerMix` aims to standardize these protocols across the community, replacing error-prone manual methods with a reproducible digital workflow.
 
-### Key Features
-- **High-Precision Core Calculation Engine**: Utilizes Python's `decimal` library for arbitrary-precision arithmetic, robustly handling any number of A, B, and X-site substitutions while ensuring charge balance [@Fassl2018Fractional; @Falk2020Effect].
-- **Combinatorial Synthesis Strategy Generator**: Programmatically generates all valid synthesis pathways from available precursor salts to achieve a target stoichiometry, enabling high-throughput screening workflows [@Saliba2019Polyelemental; @Higgins2020Chemical].
-- **Integrated SQLite Database**: Replaces ad-hoc file storage with a robust relational database for managing precursors, solvents, and ionic radii, complete with dedicated GUI management tools.
-- **Composition Lifecycle Management**: Enables researchers to archive their own successful syntheses ("Favorites") and curate a database of literature compositions alongside their reported optoelectronic device properties (e.g., PCE for solar cells, detectivity for sensors).
-- **Geometric Stability Analysis**: Automatically calculates the Goldschmidt tolerance factor (t) and octahedral factor (μ) for mixed-ion systems, providing a rapid check for structural stability.
-- **Bilingual Interface**: Fully localized in English and Russian to support a wider international user base.
+# Software design
 
-### Architecture and Availability
-The software has been refactored into a Model-View-Controller (MVC) architecture, strictly separating data persistence (SQLite interactions), core scientific logic, and the user interface. This ensures maintainability and facilitates future extensions. PerMix is implemented in pure Python, leveraging established libraries like NumPy and Pandas, and is available under the MIT license. The source code, comprehensive documentation, and installation instructions are hosted on GitHub at https://github.com/experientator/permix/.
+The application is built on the **MVC (Model-View-Controller)** architecture, a design choice that strictly isolates the stoichiometric calculation logic from the **Tkinter**-based graphical user interface. This separation of concerns is critical for research software, as it ensures that the core computational engine remains portable; for instance, the backend can be migrated to a web-based framework or integrated into a laboratory automation system without modifying the underlying code. To manage chemical reference data, the system utilizes an embedded **SQLite** database. This approach decouples chemical constants such as ionic radii and compound templates from the application logic, allowing for seamless updates to the chemical library without altering the source code.
 
-## Acknowledgements
+Precision is maintained by employing the Python **Decimal** module in conjunction with the **periodictable** library for all primary calculations. Unlike standard floating-point arithmetic, this combination eliminates cumulative rounding errors, guaranteeing the high-fidelity accuracy required for calculating precursor masses ($10^{-6}$ g) and complex geometric factors. By integrating these robust software engineering principles, the application provides a stable, extensible, and scientifically rigorous tool for perovskite synthesis. The software is available under the MIT license, with source code hosted on GitHub.
 
-The authors would like to express their sincere gratitude to their scientific supervisor, Prof. R.G. Nazmitdinov, Doctor of Sciences (Physics and Mathematics) and Leading Researcher at the Bogoliubov Laboratory of Theoretical Physics, JINR, for his invaluable guidance and unwavering support throughout this project. This work was conducted as part of a university research project at Dubna State University (Order No. 167 of February 12, 2025). Financial support from the Russian Science Foundation under project no. 23-19-00884 is gratefully acknowledged.
+# Research impact statement
 
-## References
+`PerMix` has already demonstrated tangible impact in experimental perovskite research. It was the core computational tool used to develop a theory-guided approach for the growth of centimeter-scale CsPbBr$_3$ single crystals [@Simonenko2026]. 
+
+Furthermore, the software enabled the synthesis of complex mixed-cation and mixed-anion single crystals: (MA$_{1-z}$Cs$_z$)Pb(Br$_w$Y$_{1-w}$)$_3$ (where Y = Cl, I). `PerMix` was used to programmatically generate and optimize reaction equations based on laboratory inventory constraints (e.g., the absence of MAI or MACl). The software successfully calculated optimal pathways using the minimum number of reagents, as shown in **Table 1**.
+
+**Table 1**: Optimal reaction equations generated by `PerMix` for (MA$_z$Cs$_{1-z}$)Pb(Br$_w$Y$_{1-w}$)$_3$ (Y = Cl, I) synthesis.
+| № | z | X | w | Equations Count | Optimal Reaction Equation |
+|:-:|:-:|:-:|:-:|:---------------:|:-------------------------|
+| 1 | 0 | Cl| 0.1| 3 | 1.0 MABr + 0.15 PbCl$_2$ + 0.85 PbBr$_2$ $\longrightarrow$ MAPb(Br$_{0.9}$Cl$_{0.1}$)$_3$ |
+| 2 | 0 | - | 0 | 1 | 1.0 MABr + 1.0 PbBr$_2$ $\longrightarrow$ MAPbBr$_3$ |
+| 3 | 0 | I | 0.1| 3 | 1.0 MABr + 0.15 PbI$_2$ + 0.85 PbBr$_2$ $\longrightarrow$ MAPb(Br$_{0.9}$I$_{0.1}$)$_3$ |
+| 4 | 0.1| Cl| 0.1| 7 | 0.1 CsBr + 0.9 MABr + 0.15 PbCl$_2$ + 0.85 PbBr$_2$ $\longrightarrow$ (MA$_{0.9}$Cs$_{0.1}$)Pb(Br$_{0.9}$Cl$_{0.1}$)$_3$ |
+| 5 | 0.1| - | 0 | 3 | 0.1 CsBr + 0.9 MABr + 1.0 PbBr$_2$ $\longrightarrow$ (MA$_{0.9}$Cs$_{0.1}$)PbBr$_3$ |
+| 6 | 0.1| I | 0.1| 7 | 0.1 CsBr + 0.9 MABr + 0.15 PbI$_2$ + 0.85 PbBr$_2$ $\longrightarrow$ (MA$_{0.9}$Cs$_{0.1}$)Pb(Br$_{0.9}$I$_{0.1}$)$_3$ |
+| 7 | 0.2| Cl| 0.1| 7 | 0.2 CsBr + 0.8 MABr + 0.15 PbCl$_2$ + 0.85 PbBr$_2$ $\longrightarrow$ (MA$_{0.8}$Cs$_{0.2}$)Pb(Br$_{0.9}$Cl$_{0.1}$)$_3$ |
+| 8 | 0.2| - | 0 | 3 | 0.2 CsBr + 0.8 MABr + 1.0 PbBr$_2$ $\longrightarrow$ (MA$_{0.8}$Cs$_{0.2}$)PbBr$_3$ |
+| 9 | 0.2| I | 0.1| 7 | 0.2 CsBr + 0.8 MABr + 0.15 PbI$_2$ + 0.85 PbBr$_2$ $\longrightarrow$ (MA$_{0.8}$Cs$_{0.2}$)Pb(Br$_{0.9}$I$_{0.1}$)$_3$ |
+
+The experimental validation (see \autoref{fig:crystals}) confirmed that the varying cationic and anionic phases resulted in distinct crystal morphologies and colors, validating the accuracy of the `PerMix` stoichiometry engine. This demonstrates that the software effectively automates experimental planning for complex, multi-component materials.
+
+![Photos of (MA$_{1-z}$Cs$_z$)Pb(Br$_w$Y$_{1-w}$)$_3$ (Y = Cl, I) single crystals synthesized using `PerMix`. The numbering corresponds to the compositions in Table 1.\label{fig:crystals}](crystals.png)
+
+# AI usage disclosure
+
+Generative AI tools (Gemini 3 Pro by Google Inc.) were used during the development process to assist in writing repetitive boilerplate code, specifically for the localization strings and database interaction methods. All AI-generated code was manually reviewed, tested, and validated by the authors to ensure correctness and adherence to the project's logic and coding standards. No AI tools were used to generate the scientific content or the core calculation algorithms of this manuscript.
+
+# Acknowledgements
+
+The authors would like to express their sincere gratitude to their scientific supervisor, Prof. R.G. Nazmitdinov, Doctor of Sciences (Physics and Mathematics) and Leading Researcher at the Bogoliubov Laboratory of Theoretical Physics, JINR, for his invaluable guidance and unwavering support throughout this project. The work was carried out with financial support from the Russian Science Foundation (project No. 25-29-01209).
+
+# References
+```
