@@ -23,11 +23,23 @@ def calculate_precursor_masses(
         calculate_target_anion_moles(
             anions, anion_stoichiometry))
 
-    base_X_rigid = determine_base_anion_for_rigid_cations(anion_moles)
+    # base_X_rigid = determine_base_anion_for_rigid_cations(anion_moles)
+    #
+    # calculated_strategies, num_combs_processed = (
+    #     calculate_strategies_coefficients(
+    #         cations, anion_moles, base_X_rigid))
 
-    calculated_strategies, num_combs_processed = (
-        calculate_strategies_coefficients(
-            cations, anion_moles, base_X_rigid))
+    base_anions_list = determine_base_anion_for_rigid_cations(anion_moles)
+    calculated_strategies = {}
+    num_combs_processed = 0
+    for base_X in base_anions_list:
+        strategies_for_this_base, num_combs = calculate_strategies_coefficients(
+            cations,
+            anion_moles,
+            base_X
+        )
+        calculated_strategies.update(strategies_for_this_base)
+        num_combs_processed += num_combs
 
     v_antisolvent = 0.0
     solvents_by_type = {solvent_type: [] for solvent_type in ["solvent", "antisolvent"]}
@@ -155,7 +167,7 @@ def calculate_precursor_masses(
         "individual_k_factors_settings": k_factors,
         "anion_info_product_input": anions,
         "target_anion_moles_per_formula_unit": anion_moles,
-        "base_X_anion_for_rigid_cations": base_X_rigid,
+        "base_X_anion_for_rigid_cations": base_anions_list,
         "num_active_cations_in_phase": len(cations),
         "num_strategies_generated": equation_counter,
         "num_combinations_processed": num_combs_processed,

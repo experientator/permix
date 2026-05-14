@@ -76,29 +76,38 @@ def calculate_target_anion_moles(anions, total_anion_stoich):
         )
     return target_moles
 
+# def determine_base_anion_for_rigid_cations(anions_moles):
+#     """
+#     Определяет базовый анион для "жестких" катионов.
+#     """
+#     non_zero_halides_with_moles = {
+#         hal: float(moles)
+#         for hal, moles in anions_moles.items()
+#     }
+#
+#     max_moles = max(non_zero_halides_with_moles.values())
+#     candidate_halides = [
+#         h_symbol
+#         for h_symbol, h_moles in non_zero_halides_with_moles.items()
+#         if h_moles == max_moles
+#     ]
+#
+#     if len(candidate_halides) > 1:
+#         halide_order_map = {hal: i for i, hal in enumerate(constants.halides)}
+#         candidate_halides.sort(key=lambda h_cand: halide_order_map.get(h_cand, 99))
+#
+#     base_X_rigid = candidate_halides[0]
+#
+#     return base_X_rigid
+
 def determine_base_anion_for_rigid_cations(anions_moles):
     """
     Определяет базовый анион для "жестких" катионов.
     """
-    non_zero_halides_with_moles = {
-        hal: float(moles)
-        for hal, moles in anions_moles.items()
-    }
-
-    max_moles = max(non_zero_halides_with_moles.values())
-    candidate_halides = [
-        h_symbol
-        for h_symbol, h_moles in non_zero_halides_with_moles.items()
-        if h_moles == max_moles
+    return [
+        hal for hal, moles in anions_moles.items()
+        if float(moles) > 1e-9
     ]
-
-    if len(candidate_halides) > 1:
-        halide_order_map = {hal: i for i, hal in enumerate(constants.halides)}
-        candidate_halides.sort(key=lambda h_cand: halide_order_map.get(h_cand, 99))
-
-    base_X_rigid = candidate_halides[0]
-
-    return base_X_rigid
 
 def round_cations(cations_site):
     return "(" + cations_site + ")"

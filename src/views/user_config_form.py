@@ -128,70 +128,6 @@ class UserConfigView(tk.Frame):
                                         text=localization_manager.tr("ucv_but1"),
                                         command=self.get_summary, **AppStyles.button_style())
 
-        self.sort_menu_frame = tk.LabelFrame(self.sec_column,
-                                             text=localization_manager.tr("ucv_lf3"),
-                                             **AppStyles.labelframe_style())
-
-        self.sort_menu_frame.columnconfigure(0, weight=1)
-        self.sort_menu_frame.columnconfigure(1, weight=1)
-        self.sort_menu_frame.columnconfigure(2, weight=1)
-        self.sort_menu_frame.columnconfigure(3, weight=1)
-
-        self.first_level_label = tk.Label(self.sort_menu_frame,
-                                          text=localization_manager.tr("ucv_1lvl"),
-                                          **AppStyles.label_style())
-        self.second_level_label = tk.Label(self.sort_menu_frame,
-                                           text=localization_manager.tr("ucv_2lvl"),
-                                           **AppStyles.label_style())
-        self.third_level_label = tk.Label(self.sort_menu_frame,
-                                          text=localization_manager.tr("ucv_3lvl"),
-                                          **AppStyles.label_style())
-
-        sort_opt = [localization_manager.tr("ucv_sort1"),
-                    localization_manager.tr("ucv_sort2")]
-        self.sort_options_label = tk.Label(self.sort_menu_frame,
-                                           text=localization_manager.tr("ucv_sort"),
-                                           **AppStyles.label_style())
-
-        self.sort_options = ttk.Combobox(self.sort_menu_frame,
-                                         **AppStyles.combobox_config(),
-                                         values=sort_opt,
-                                         state='readonly')
-
-        self.first_criteria_list = [localization_manager.tr("ucv_crit_all"),
-                                    localization_manager.tr("ucv_crit_num"),
-                                    localization_manager.tr("ucv_crit_mass")]
-        self.first_level = ttk.Combobox(self.sort_menu_frame,
-                                        **AppStyles.combobox_config(), values=self.first_criteria_list)
-
-        self.second_level = ttk.Combobox(self.sort_menu_frame,
-                                         **AppStyles.combobox_config(), state='disabled')
-
-        self.third_level = ttk.Combobox(self.sort_menu_frame,
-                                        **AppStyles.combobox_config(), state='disabled')
-
-        self.sort_button = tk.Button(self.sort_menu_frame,
-                                     text=localization_manager.tr("ucv_but2"),
-                                     command=self.sort_process,
-                                     **AppStyles.button_style(),
-                                     state='disabled')
-
-        self.mass_reagent = ttk.Combobox(self.sort_menu_frame,
-                                         **AppStyles.combobox_config(),
-                                         state='readonly',
-                                         width=10)
-        self.mass_reagent_label = tk.Label(self.sort_menu_frame,
-                                           **AppStyles.label_style(),
-                                           text=localization_manager.tr("ucv_l2"))
-
-        self.hystogram_frame = tk.Frame(self.sec_column, **AppStyles.frame_style(), width=200)
-        self.num_equations_hyst_label = tk.Label(self.sort_menu_frame,
-                                                 **AppStyles.label_style(),
-                                                 text = localization_manager.tr("ucv_l3"))
-        self.num_equations_hyst_entry = tk.Entry(self.sort_menu_frame,
-                                                 **AppStyles.entry_style(),
-                                                 width = 5)
-
 
         self.fav_button = tk.Button(self.first_column,
                                     text=localization_manager.tr("ucv_but3"),
@@ -749,7 +685,71 @@ class UserConfigView(tk.Frame):
             return False
 
     def sort_frame(self):
+        self.sort_menu_frame = tk.LabelFrame(self.sec_column,
+                                             text=localization_manager.tr("ucv_lf3"),
+                                             **AppStyles.labelframe_style())
+
+        self.sort_menu_frame.columnconfigure(0, weight=1)
+        self.sort_menu_frame.columnconfigure(1, weight=1)
+        self.sort_menu_frame.columnconfigure(2, weight=1)
+        self.sort_menu_frame.columnconfigure(3, weight=1)
         self.sort_menu_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+
+        self.first_level_label = tk.Label(self.sort_menu_frame,
+                                          text=localization_manager.tr("ucv_1lvl"),
+                                          **AppStyles.label_style())
+        self.second_level_label = tk.Label(self.sort_menu_frame,
+                                           text=localization_manager.tr("ucv_2lvl"),
+                                           **AppStyles.label_style())
+        self.third_level_label = tk.Label(self.sort_menu_frame,
+                                          text=localization_manager.tr("ucv_3lvl"),
+                                          **AppStyles.label_style())
+
+        sort_opt = [localization_manager.tr("ucv_sort1"),
+                    localization_manager.tr("ucv_sort2")]
+        self.sort_options_label = tk.Label(self.sort_menu_frame,
+                                           text=localization_manager.tr("ucv_sort"),
+                                           **AppStyles.label_style())
+
+        self.sort_options = ttk.Combobox(self.sort_menu_frame,
+                                         **AppStyles.combobox_config(),
+                                         values=sort_opt,
+                                         state='readonly')
+
+        self.first_criteria_list = [localization_manager.tr("ucv_crit_all"),
+                                    localization_manager.tr("ucv_crit_num"),
+                                    localization_manager.tr("ucv_crit_mass")]
+        self.first_level = ttk.Combobox(self.sort_menu_frame,
+                                        **AppStyles.combobox_config(), values=self.first_criteria_list)
+
+        self.second_level = ttk.Combobox(self.sort_menu_frame,
+                                         **AppStyles.combobox_config(), state='disabled')
+
+        self.third_level = ttk.Combobox(self.sort_menu_frame,
+                                        **AppStyles.combobox_config(), state='disabled')
+
+        self.sort_button = tk.Button(self.sort_menu_frame,
+                                     text=localization_manager.tr("ucv_but2"),
+                                     command=self.sort_process,
+                                     **AppStyles.button_style(),
+                                     state='disabled')
+
+        self.mass_reagent = ttk.Combobox(self.sort_menu_frame,
+                                         **AppStyles.combobox_config(),
+                                         state='readonly',
+                                         width=10)
+        self.mass_reagent_label = tk.Label(self.sort_menu_frame,
+                                           **AppStyles.label_style(),
+                                           text=localization_manager.tr("ucv_l2"))
+
+        self.hystogram_frame = tk.Frame(self.sec_column, **AppStyles.frame_style(), width=200)
+        self.num_equations_hyst_label = tk.Label(self.sort_menu_frame,
+                                                 **AppStyles.label_style(),
+                                                 text=localization_manager.tr("ucv_l3"))
+        self.num_equations_hyst_entry = tk.Entry(self.sort_menu_frame,
+                                                 **AppStyles.entry_style(),
+                                                 width=5)
+
         self.first_level_label.grid(row=1, column=0, sticky='ew', padx=5, pady=2)
         self.second_level_label.grid(row=2, column=0, sticky='ew', padx=5, pady=2)
         self.third_level_label.grid(row=3, column=0, sticky='ew', padx=5, pady=2)
@@ -1180,7 +1180,9 @@ class UserConfigView(tk.Frame):
             self.sites_update_button.destroy()
 
         if hasattr(self, 'sort_menu_frame') and self.sort_menu_frame.winfo_exists():
-            self.sort_menu_frame.pack_forget()
+            self.sort_menu_frame.destroy()
+            delattr(self, 'sort_menu_frame')
+
         if hasattr(self, 'hystogram_frame') and self.hystogram_frame.winfo_exists():
             self.hystogram_frame.pack_forget()
         if hasattr(self, 'summary_frame') and self.summary_frame.winfo_exists():
@@ -1240,7 +1242,6 @@ class UserConfigView(tk.Frame):
                 self._enable_widgets(child)
 
     def _on_fraction_change(self, event, site_type):
-
         fraction_entries = [
             widget["fraction"] for widget in self.site_widgets[site_type]["dynamic_widgets"]
         ]
@@ -1250,79 +1251,33 @@ class UserConfigView(tk.Frame):
 
         current_widget = event.widget
 
-        total_fraction = 0.0
-        empty_field = None
-        validly_filled_count = 0
+        try:
+            val_str = current_widget.get().strip()
+            if not val_str: return
 
-        for entry in fraction_entries:
-            if entry is not current_widget:
-                entry.config(bg='White')
-
-        for entry in fraction_entries:
-            value_str = entry.get().strip()
-
-            if not value_str:
-                if empty_field is None:
-                    empty_field = entry
-                else:
-                    return
-                continue
-
-            try:
-                fraction = float(value_str)
-                if fraction < 0:
-                    entry.config(bg='#ffcccc')
-                    return
-
-                if fraction > 0.0:
-                    total_fraction += fraction
-                    validly_filled_count += 1
-            except ValueError:
-                entry.config(bg='#ffcccc')
+            val = float(val_str)
+            if val > 1.0:
+                current_widget.config(bg='#ffcccc')
                 return
-
-        if total_fraction > 1.0001:
-            for entry in fraction_entries:
-                if entry.get().strip():
-                    entry.config(bg='#ffcccc')
+            current_widget.config(bg='White')
+        except ValueError:
+            current_widget.config(bg='#ffcccc')
             return
 
-        if validly_filled_count == len(fraction_entries) - 1 and empty_field is not None:
-            remaining_fraction = 1.0 - total_fraction
-            if remaining_fraction < 0: return
+        target_field = None
+        for entry in fraction_entries:
+            if entry is not current_widget:
+                target_field = entry
+                break
 
-            remaining_fraction_str = f"{remaining_fraction:.4f}".rstrip('0').rstrip('.') or "0"
+        if len(fraction_entries) == 2 and target_field:
+            remaining = 1.0 - val
+            if remaining >= 0:
+                remaining_str = f"{remaining:.4f}".rstrip('0').rstrip('.')
+                if not remaining_str: remaining_str = "0"
 
-            empty_field.delete(0, tk.END)
-            empty_field.insert(0, remaining_fraction_str)
-            empty_field.config(bg='#e0ffe0')
-
-        elif validly_filled_count == len(fraction_entries):
-            target_field = None
-            for entry in reversed(fraction_entries):
-                if entry is not current_widget:
-                    target_field = entry
-                    break
-
-            if target_field is None:
-                target_field = fraction_entries[0] if fraction_entries[0] is not current_widget else None
-
-            if target_field:
-                sum_without_target = 0
-                for entry in fraction_entries:
-                    if entry is not target_field:
-                        sum_without_target += float(entry.get())
-
-                new_value = 1.0 - sum_without_target
-                if new_value < 0:
-                    current_widget.config(bg='#ffcccc')
-                    return
-
-                new_value_str = f"{new_value:.4f}".rstrip('0').rstrip('.') or "0"
-
-                target_field.config(bg='White')
                 target_field.delete(0, tk.END)
-                target_field.insert(0, new_value_str)
+                target_field.insert(0, remaining_str)
                 target_field.config(bg='#e0ffe0')
 
 
