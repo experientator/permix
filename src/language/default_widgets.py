@@ -438,6 +438,8 @@ default_translations = [
  ("ahyst5", "Precursors", "Прекурсоры"),
  ("ahyst6", "Error while plotting histogram", "Ошибка при построении гистограммы"),
  ("ahyst7", "Build error", "Ошибка построения"),
+ ("ahyst8", "top", "топ"),
+ ("ahyst9", "based on", "по"),
 
  ("amc1", "Solvent fractions", "Доли растворителей"),
  ("amc2", "Antisolvent fractions", "Доли антирастворителей"),

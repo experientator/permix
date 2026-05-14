@@ -821,13 +821,15 @@ class UserConfigView(tk.Frame):
         self.add_text(format_results_mass_table(self.calculations, sorted_keys))
         self.hystogram_frame.pack(expand=True, padx=5, pady=5)
         actual_num_eq = len(new_sorted_equations)
+        text_hysto1 = localization_manager.tr("ahyst8")
+        text_hysto2 = localization_manager.tr("ahyst9")
         if num_eq < actual_num_eq:
             first_sorted_equations = new_sorted_equations[:num_eq]
             prepare_and_draw_mass_histogram(first_sorted_equations,
-                                        self.hystogram_frame, f"топ-{num_eq} по {sort_option}")
+                                        self.hystogram_frame, f"{text_hysto1}-{num_eq} {text_hysto2} {sort_option}")
         else:
             prepare_and_draw_mass_histogram(new_sorted_equations,
-                                            self.hystogram_frame, f"топ-{actual_num_eq} по {sort_option}")
+                                            self.hystogram_frame, f"{text_hysto1}-{actual_num_eq} {text_hysto2} {sort_option}")
 
     def save_config(self):
         self.top_window = tk.Toplevel(self)
