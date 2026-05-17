@@ -17,7 +17,7 @@
         <img src="https://img.shields.io/github/license/experientator/permix" alt="GitHub license">
     </a>
     <a href="https://joss.theoj.org/">
-        <img src="https://joss.theoj.org/papers/10.21105/joss.01234/status.svg" alt="JOSS Status">
+        <img src="https://doi.org/10.1016/j.chemolab.2026.XXXXXX)" alt="CILS Status">
     </a>
     <a href="https://zenodo.org/">
         <img src="https://zenodo.org/badge/DOI/10.5281/zenodo.1234567.svg" alt="DOI">
@@ -152,20 +152,19 @@ The software is architected with a modular design that separates core logic from
 
 If you use PerMix in your research, please cite our paper in the *Journal of Open Source Software*.
 
-> Schmidberskaya & Simonenko, (2025). PerMix: A Python Framework for Perovskite Precursor Mass Calculations. *Journal of Open Source Software*, X(XX), 12345. https://doi.org/10.21105/joss.01234
+> Schmidberskaya, A. P., & Simonenko, I. O. (2026). PerMix: A Python Framework for Perovskite Precursor Mass Calculations. Chemometrics and Intelligent Laboratory Systems, X, XXXXXX. https://doi.org/10.1016/j.chemolab.2026.XXXXXX
 
 ```bibtex
-@article{Schmidberskaya2025,
-  doi = {10.21105/joss.01234},
-  url = {https://doi.org/10.21105/joss.01234},
-  year = {2025},
-  publisher = {The Open Journal},
-  volume = {X},
-  number = {XX},
-  pages = {12345},
+@article{Schmidberskaya2026,
   author = {Schmidberskaya, Arina P. and Simonenko, Ilia O.},
-  title = {PerMix: A Python Framework for Perovskite Precursor Mass Calculations},
-  journal = {Journal of Open Source Software}
+  title = {{PerMix: A Python Framework for Perovskite Precursor Mass Calculations}},
+  journal = {Chemometrics and Intelligent Laboratory Systems},
+  publisher = {Elsevier},
+  year = {2026},
+  volume = {X},
+  pages = {XXXXXX},
+  doi = {10.1016/j.chemolab.2026.XXXXXX},
+  url = {https://doi.org/10.1016/j.chemolab.2026.XXXXXX}
 }
 ```
 
