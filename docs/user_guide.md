@@ -9,10 +9,10 @@ Welcome to PerMix! PerMix is a graphical user interface (GUI) designed to standa
 Upon launching PerMix, the main window opens, dedicated to the core calculation workflow. The top navigation bar features several key tabs:
 
 * **Viewing:** Provides access to a set of Data Viewers that allow you to manage the local database. You can browse, add, or delete entries to tailor the software to your needs:
-* *Solvents:* Displays all the solvents and antisolvents currently available in the database, detailing properties like density and boiling point.
-    * *Ion Radii:* Manages the database of chemical species and their physical properties, essential for calculating geometric stability factors.
-    * *Phase Templates:* Allows you to manage structural blueprints, which define a crystal structure's stoichiometry and its constituent cation sites.
-    * *Compositions:* A central hub for managing reference materials. It contains both a database of "Literature compositions" and your personal saved calculations under "My compositions" (Favorite compositions).
+  * *Solvents:* Displays all the solvents and antisolvents currently available in the database, detailing properties like density and boiling point.
+  * *Ion Radii:* Manages the database of chemical species and their physical properties, essential for calculating geometric stability factors.
+  * *Phase Templates:* Allows you to manage structural blueprints, which define a crystal structure's stoichiometry and its constituent cation sites.
+  * *Compositions:* A central hub for managing reference materials. It contains both a database of "Literature compositions" and your personal saved calculations under "My compositions" (Favorite compositions).
 * **Language:** Toggles the interface language between English and Russian.
 * **About Program:** Contains comprehensive information about the software's purpose, operational guidelines, and citation details.
 * **Exit:** Closes the application.
@@ -36,8 +36,7 @@ The main interface is designed to guide you logically from top to bottom through
 3. **Solution Parameters:** Enter the total intended **Solution Volume** (in mL) and the final **Solution Concentration** (Molarity, mol/L). If using an antisolvent, enter its total volume as well.
 
 ### Step 3: Apply K-Factors (Reagent Purity)
-The "K-factors" section allows you to apply correction factors to account for real-world impurities or to intentionally introduce excess amounts of precursors.
-* To compensate for a precursor that is not perfectly pure (e.g., 98% purity), input a multiplier greater than 1.0 (e.g., 1.02) to automatically increase the calculated mass and ensure exact stoichiometry.
+The "K-factors" section allows you to apply correction factors to account for real-world impurities or to intentionally introduce excess amounts of precursors. To compensate for a precursor that is not perfectly pure (e.g., 98% purity), input a multiplier greater than 1.0 (e.g., 1.02) to automatically increase the calculated mass and ensure exact stoichiometry.
 
 ---
 
@@ -52,6 +51,7 @@ Once all inputs are configured, click the **Start Calculations** button. The hig
 
 ### Sorting and Visualization
 When multiple synthesis equations are generated, use the "Sorting Equations" frame to rank them. You can hierarchically sort the equations based on:
+
 * Total combined mass.
 * Number of required precursors.
 * Mass of a specific precursor salt. 
