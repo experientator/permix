@@ -11,6 +11,7 @@ Choose your installation method:
 - [**From Source**](installation.md#from-source) - Build from source code
 
 Once installed, proceed directly to our comprehensive guide:
+
 - [**User Guide & Quick Start**](user_guide.md) — Learn how to run your first calculation, manage the SQLite database, and understand validation rules.
 
 ## Features
@@ -19,4 +20,3 @@ Once installed, proceed directly to our comprehensive guide:
 - **Combinatorial Strategy Generation**: Automatically generates and ranks all valid synthesis pathways from available precursors.
 - **Extensible Database**: Comes with a built-in local SQLite database of common materials that users can easily extend through the GUI using automated chemical parsing.
 - **Accelerates High-Throughput Research**: Directly supports automated and combinatorial materials discovery workflows.
-- 

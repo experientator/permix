@@ -8,8 +8,8 @@ Welcome to PerMix! PerMix is a graphical user interface (GUI) designed to standa
 
 Upon launching PerMix, the main window opens, dedicated to the core calculation workflow. The top navigation bar features several key tabs:
 
-**Viewing:** Provides access to a set of Data Viewers that allow you to manage the local database. You can browse, add, or delete entries to tailor the software to your needs:
-*Solvents:* Displays all the solvents and antisolvents currently available in the database, detailing properties like density and boiling point.
+* **Viewing:** Provides access to a set of Data Viewers that allow you to manage the local database. You can browse, add, or delete entries to tailor the software to your needs:
+* *Solvents:* Displays all the solvents and antisolvents currently available in the database, detailing properties like density and boiling point.
     * *Ion Radii:* Manages the database of chemical species and their physical properties, essential for calculating geometric stability factors.
     * *Phase Templates:* Allows you to manage structural blueprints, which define a crystal structure's stoichiometry and its constituent cation sites.
     * *Compositions:* A central hub for managing reference materials. It contains both a database of "Literature compositions" and your personal saved calculations under "My compositions" (Favorite compositions).
@@ -51,12 +51,11 @@ Once all inputs are configured, click the **Start Calculations** button. The hig
 * **Mass Table:** Presents a detailed table with the precise precursor masses in grams required for each specific synthesis equation. You can retrieve a condensed overview of a specific reaction by using the **Get the equation summary** option.
 
 ### Sorting and Visualization
-When multiple synthesis equations are generated, use the "Sorting Equations" frame to rank them.
-* You can hierarchically sort the equations based on:
-    * Total combined mass.
-    * Number of required precursors.
-    * Mass of a specific precursor salt.
-* The interface also renders a **mass histogram** to visually distribute and compare the required weights of the reagents.
+When multiple synthesis equations are generated, use the "Sorting Equations" frame to rank them. You can hierarchically sort the equations based on:
+* Total combined mass.
+* Number of required precursors.
+* Mass of a specific precursor salt. 
+The interface also renders a **mass histogram** to visually distribute and compare the required weights of the reagents.
 
 ### Saving Configurations
 If you want to archive a successful setup, click the **Save the configuration** button located in the left-hand panel. After providing a name and optional description, the setup is saved locally and instantly accessible via **Viewing -> Viewing compositions -> My compositions**, where it can be loaded back at any time.
